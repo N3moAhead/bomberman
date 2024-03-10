@@ -69,3 +69,12 @@ void display(block_t **map)
   }
   printf("%s", display);
 };
+
+void clear_display()
+{
+#ifdef _WIN32
+  system("cls");
+#else
+  system("clear");
+#endif
+}

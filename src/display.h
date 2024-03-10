@@ -4,4 +4,6 @@
 
 void display(block_t **map);
 
+void clear_display();
+
 #endif
