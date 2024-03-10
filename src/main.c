@@ -1,8 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <SDL2/SDL.h>
+#include "constants.h"
+#include "types.h"
+#include "display.h"
+#include "map.h"
 
 int main() {
-  printf("The game is running...\n");
+  block_t **map = init_map();
+  display(map);
   return 0;
 }

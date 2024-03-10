@@ -1,2 +1,3 @@
 game
-./src/*.o
+.vscode
+*.o
