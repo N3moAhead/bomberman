@@ -73,34 +73,64 @@ void free_players(players_t *players)
  * Takes the current map, a player and a wanted action
  * if the action is valid 1 will be returned
  * if the action is invalid the function will return 0
-*/
+ */
 char validate_action(
     block_t **map,
     player_t *player,
     player_action_t player_action)
 {
-  switch (player_action) {
-    case MOVE_UP:
-      if (map[player->y - 1][player->x] != WALL)
-        return 1;
-      return 0;
-    case MOVE_DOWN:
-      if (map[player->y + 1][player->x] != WALL)
-        return 1;
-      return 0;
-    case MOVE_LEFT:
-      if (map[player->y][player->x - 1] != WALL)
-        return 1;
-      return 0;
-    case MOVE_RIGHT:
-      if (map[player->y][player->x + 1] != WALL)
-        return 1;
-      return 0;
-    case NONE:
+  switch (player_action)
+  {
+  case MOVE_UP:
+    if (map[player->y - 1][player->x] != WALL)
       return 1;
-    case PLANT_BOMB:
-      if (map[player->y][player->x] == AIR)
-        return 1;
-      return 0;
+    return 0;
+  case MOVE_DOWN:
+    if (map[player->y + 1][player->x] != WALL)
+      return 1;
+    return 0;
+  case MOVE_LEFT:
+    if (map[player->y][player->x - 1] != WALL)
+      return 1;
+    return 0;
+  case MOVE_RIGHT:
+    if (map[player->y][player->x + 1] != WALL)
+      return 1;
+    return 0;
+  case NONE:
+    return 1;
+  case PLANT_BOMB:
+    if (map[player->y][player->x] == AIR)
+      return 1;
+    return 0;
+  }
+}
+
+/**
+ * This function takes a player struct and a player action and
+ * updates the player struct with the player action
+ * So the given player struct will be modified!
+ * Oh and this function also assumes that the player action is already validated!
+ */
+void update_player(player_t *player, player_action_t player_action)
+{
+  switch (player_action)
+  {
+  case MOVE_UP:
+    player->y--;
+    break;
+  case MOVE_DOWN:
+    player->y++;
+    break;
+  case MOVE_LEFT:
+    player->x--;
+    break;
+  case MOVE_RIGHT:
+    player->x++;
+    break;
+  case NONE:
+    break;
+  case PLANT_BOMB:
+    break;
   }
 }
