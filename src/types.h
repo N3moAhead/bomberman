@@ -2,11 +2,18 @@
 #define TYPES_H
 
 typedef enum player_action {
+  // Move the player a field up
   MOVE_UP,
+  // Move the player a field down
   MOVE_DOWN,
+  // Move the player a field to the left
   MOVE_LEFT,
+  // Move the player a field to the right
   MOVE_RIGHT,
-  PLANT_BOMB
+  // Place a new bomb at the current position of the player
+  PLANT_BOMB,
+  // Do nothing this round, just chilling a bit
+  NONE,
 } player_action_t;
 
 typedef enum block {
@@ -24,12 +31,19 @@ typedef enum block {
   BOMB3,
   WALL,
   EXPLOSION, 
-  AIR
+  AIR,
 } block_t;
 
-typedef struct {
+typedef struct player {
   int x;
   int y;
-} player;
+} player_t;
+
+typedef struct players {
+  player_t player1;
+  player_t player2;
+  player_t player3; 
+  player_t player4; 
+} players_t;
 
 #endif
