@@ -74,10 +74,16 @@ int main() {
      * if I figure out that it is a bad idea i will change it later on
      */
     copy_map(map_copy, map);
+    /** 
+     * Players are just added for display because players can stand on bombs
+     * or explosions. bombs or explosions and I don't want to have to deal with
+     * bugs because the game could not detect a bomb because the player was standing on it.
+     * So I just add them to the map for the display function.
+    */
     add_players(map_copy, players);
     display(map_copy);
 
-    // only run the loop 10 time for now
+    // only run the loop 10 times for now
     if (index++ > 10) {
       game_is_running = 0;
     }
