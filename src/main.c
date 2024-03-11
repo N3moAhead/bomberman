@@ -64,7 +64,11 @@ int main() {
     // UPDATE THE MAP
     update_map(map);
     //TODO CHECKING THE PLAYER INPUT
-    //TODO ADD THE PLAYER INPUT TO THE MAP
+    // ADD THE PLAYER INPUT TO THE MAP
+    apply_player_input(map, &players->player1, player1_action);
+    apply_player_input(map, &players->player2, player2_action);
+    apply_player_input(map, &players->player3, player3_action);
+    apply_player_input(map, &players->player4, player4_action);
     //TODO CHECK PlAYER HEALTH 
     // CLEAR THE DISPLAY
     clear_display();
