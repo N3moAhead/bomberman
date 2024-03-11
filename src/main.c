@@ -83,8 +83,13 @@ int main()
     apply_player_input(map, &players->player2, player2_action);
     apply_player_input(map, &players->player3, player3_action);
     apply_player_input(map, &players->player4, player4_action);
-    // TODO UPDATE THE PLAYER OBJECTS
+    // UPDATE THE PLAYER OBJECTS
+    update_player(&players->player1, player1_action);
+    update_player(&players->player2, player2_action);
+    update_player(&players->player3, player3_action);
+    update_player(&players->player4, player4_action);
     // TODO CHECK PlAYER HEALTH
+    // TODO SLEEP FOR A MOMENT
     // CLEAR THE DISPLAY
     clear_display();
     // DISPLAYING THE MAP
