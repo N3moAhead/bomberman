@@ -5,6 +5,7 @@
 #include "display.h"
 #include "map.h"
 #include "players.h"
+#include "game_helper.h"
 #include "player1.h"
 #include "player2.h"
 #include "player3.h"
@@ -94,7 +95,8 @@ int main()
     if (alive_players < 2) {
       game_is_running = 0;
     }
-    // TODO SLEEP FOR A MOMENT
+    // SLEEP FOR A MOMENT
+    sleep();
     // CLEAR THE DISPLAY
     clear_display();
     // TODO DISPLAYING THE PLAYER LIVES
