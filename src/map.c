@@ -58,6 +58,39 @@ void free_map(block_t **map)
   free(map);
 };
 
+void add_explosion(block_t **map, int row, int col) {
+  // Aplying the explosion to the center
+  map[row][col] = EXPLOSION;
+  // Top
+  if (map[row - 1][col] != WALL) {
+    map[row - 1][col] = EXPLOSION;
+    if (map[row - 2][col] != WALL) {
+      map[row - 2][col] = EXPLOSION;
+    }
+  }
+  // Bottom
+  if (map[row + 1][col] != WALL) {
+    map[row + 1][col] = EXPLOSION;
+    if (map[row + 2][col] != WALL) {
+      map[row + 2][col] = EXPLOSION;
+    }
+  }
+  // Right
+  if (map[row][col + 1] != WALL) {
+    map[row][col + 1] = EXPLOSION;
+    if (map[row][col + 2] != WALL) {
+      map[row][col + 2] = EXPLOSION;
+    }
+  }
+  // Left
+  if (map[row][col - 1] != WALL) {
+    map[row][col - 1] = EXPLOSION;
+    if (map[row][col - 2] != WALL) {
+      map[row][col - 2] = EXPLOSION;
+    }
+  }
+}
+
 void update_map(block_t **map)
 {
   for (int row = 0; row < MAP_HEIGHT; row++)
@@ -86,10 +119,6 @@ void update_map(block_t **map)
         map[row][col] = BOMB3;
         break;
       case BOMB3:
-        // TODO Add a real big explosion!
-        // A normal explosion should be a star 2 in each direction from the center
-        // until it hits a wall
-        map[row][col] = EXPLOSION;
         break;
       case WALL:
         break;
@@ -99,6 +128,17 @@ void update_map(block_t **map)
       case AIR:
         break;
       }
+    }
+  }
+  // Thats a super stupid solution to add bombs
+  // but i kind of want to get it done so it will stay for
+  // the moment like that yikes :(
+  for (int row = 0; row < MAP_HEIGHT; row++)
+  {
+    for (int col = 0; col < MAP_WIDTH; col++)
+    {
+      if (map[row][col] == BOMB3)
+        add_explosion(map, row, col);
     }
   }
 }
