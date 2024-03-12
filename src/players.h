@@ -14,6 +14,12 @@ char validate_action(
     player_t *player,
     player_action_t player_action);
 
-void update_player(player_t *player, player_action_t player_action);
+void update_player(
+    player_t *player,
+    player_action_t player_action,
+    block_t **map
+);
+
+int get_alive_player_count(players_t *players);
 
 #endif
