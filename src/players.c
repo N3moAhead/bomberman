@@ -22,18 +22,22 @@ players_t *init_players()
   // Player 1 starts top left
   new_players->player1.x = 1;
   new_players->player1.y = 1;
+  new_players->player1.lives = 3;
 
   // Player 2 starts top right
   new_players->player2.x = MAP_WIDTH - 2;
   new_players->player2.y = 1;
+  new_players->player2.lives = 3;
 
   // Player 3 starts bottom left
   new_players->player3.x = 1;
   new_players->player3.y = MAP_HEIGHT - 2;
+  new_players->player3.lives = 3;
 
   // Player 4 starts bottom right
   new_players->player4.x = MAP_WIDTH - 2;
   new_players->player4.y = MAP_HEIGHT - 2;
+  new_players->player4.lives = 3;
 
   return new_players;
 }
@@ -112,8 +116,13 @@ char validate_action(
  * So the given player struct will be modified!
  * Oh and this function also assumes that the player action is already validated!
  */
-void update_player(player_t *player, player_action_t player_action)
+void update_player(player_t *player, player_action_t player_action, block_t **map)
 {
+  // Update the player lives
+  if (map[player->y][player->x] == EXPLOSION) {
+    player->lives--;
+  }
+  // Update the player position
   switch (player_action)
   {
   case MOVE_UP:
@@ -133,4 +142,17 @@ void update_player(player_t *player, player_action_t player_action)
   case PLANT_BOMB:
     break;
   }
+}
+
+int get_alive_player_count(players_t *players) {
+  char alive_players = 0;
+  if (players->player1.lives > 0)
+    alive_players++;
+  if (players->player2.lives > 0)
+    alive_players++;
+  if (players->player3.lives > 0)
+    alive_players++;
+  if (players->player4.lives > 0)
+    alive_players++;
+  return alive_players;
 }

@@ -84,14 +84,20 @@ int main()
     apply_player_input(map, &players->player3, player3_action);
     apply_player_input(map, &players->player4, player4_action);
     // UPDATE THE PLAYER OBJECTS
-    update_player(&players->player1, player1_action);
-    update_player(&players->player2, player2_action);
-    update_player(&players->player3, player3_action);
-    update_player(&players->player4, player4_action);
-    // TODO CHECK PlAYER HEALTH
+    update_player(&players->player1, player1_action, map);
+    update_player(&players->player2, player2_action, map);
+    update_player(&players->player3, player3_action, map);
+    update_player(&players->player4, player4_action, map);
+    // CHECK IF ENOUGH PLAYERS ARE STILL ALIVE
+    int alive_players = get_alive_player_count(players);
+    // ending the game if only one player is left to play
+    if (alive_players < 2) {
+      game_is_running = 0;
+    }
     // TODO SLEEP FOR A MOMENT
     // CLEAR THE DISPLAY
     clear_display();
+    // TODO DISPLAYING THE PLAYER LIVES
     // DISPLAYING THE MAP
     /**
      * Im reusing the player map here to save a bit of memory
