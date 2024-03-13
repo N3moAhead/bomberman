@@ -23,46 +23,95 @@ void display(block_t **map)
       case BOMB1:
       case BOMB2:
       case BOMB3:
-        write_index += snprintf(
+        #ifdef _WIN32
+          write_index += snprintf(
+            display + write_index,
+            sizeof(display) - write_index,
+            " O");
+        #else
+          write_index += snprintf(
             display + write_index,
             sizeof(display) - write_index,
             "💣");
+        #endif
         break;
       case WALL:
-        write_index += snprintf(
-            display + write_index,
-            sizeof(display) - write_index,
-            "🧱");
+        #ifdef _WIN32
+          write_index += snprintf(
+              display + write_index,
+              sizeof(display) - write_index,
+              "##");
+        #else
+          write_index += snprintf(
+              display + write_index,
+              sizeof(display) - write_index,
+              "🧱");
+        #endif
         break;
       case EXPLOSION:
-        write_index += snprintf(
-            display + write_index,
-            sizeof(display) - write_index,
-            "💥");
+        #ifdef _WIN32
+          write_index += snprintf(
+              display + write_index,
+              sizeof(display) - write_index,
+              "XX");
+        #else
+          write_index += snprintf(
+              display + write_index,
+              sizeof(display) - write_index,
+              "💥");
+        #endif
         break;
       case PLAYER1:
-        write_index += snprintf(
-            display + write_index,
-            sizeof(display) - write_index,
-            "🕺");
+        #ifdef _WIN32
+          write_index += snprintf(
+              display + write_index,
+              sizeof(display) - write_index,
+              "P1");
+        #else
+          write_index += snprintf(
+              display + write_index,
+              sizeof(display) - write_index,
+              "🕺");
+        #endif
         break;
       case PLAYER2:
-        write_index += snprintf(
-            display + write_index,
-            sizeof(display) - write_index,
-            "🏃");
+      #ifdef _WIN32
+          write_index += snprintf(
+              display + write_index,
+              sizeof(display) - write_index,
+              "P2");
+        #else
+          write_index += snprintf(
+              display + write_index,
+              sizeof(display) - write_index,
+              "🏃");
+        #endif
         break;
       case PLAYER3:
-        write_index += snprintf(
-            display + write_index,
-            sizeof(display) - write_index,
-            "🧍");
+        #ifdef _WIN32
+          write_index += snprintf(
+              display + write_index,
+              sizeof(display) - write_index,
+              "P3");
+        #else
+          write_index += snprintf(
+              display + write_index,
+              sizeof(display) - write_index,
+              "🧍");
+        #endif
         break;
       case PLAYER4:
-        write_index += snprintf(
-            display + write_index,
-            sizeof(display) - write_index,
-            "💃");
+        #ifdef _WIN32
+          write_index += snprintf(
+              display + write_index,
+              sizeof(display) - write_index,
+              "P4");
+        #else
+          write_index += snprintf(
+              display + write_index,
+              sizeof(display) - write_index,
+              "💃");
+        #endif
         break;
       }
     }
