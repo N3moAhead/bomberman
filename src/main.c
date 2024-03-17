@@ -40,7 +40,7 @@ int main()
   players_t *players_copy = init_players();
 
   char game_is_running = 1;
-  int index = 0;
+  int game_round = 0;
   char action_valid = 0;
   while (game_is_running)
   {
@@ -48,7 +48,7 @@ int main()
     // player 1
     copy_map(map_copy, map);
     copy_players(players_copy, players);
-    player_action_t player1_action = get_player_1_action(map_copy, players_copy);
+    player_action_t player1_action = get_player_1_action(map_copy, players_copy, game_round);
     action_valid = validate_action(map, &players->player1, player1_action);
     if (!action_valid)
       player1_action = NONE;
@@ -56,7 +56,7 @@ int main()
     // player 2
     copy_map(map_copy, map);
     copy_players(players_copy, players);
-    player_action_t player2_action = get_player_2_action(map_copy, players_copy);
+    player_action_t player2_action = get_player_2_action(map_copy, players_copy, game_round);
     action_valid = validate_action(map, &players->player2, player2_action);
     if (!action_valid)
       player2_action = NONE;
@@ -64,7 +64,7 @@ int main()
     // player 3
     copy_map(map_copy, map);
     copy_players(players_copy, players);
-    player_action_t player3_action = get_player_3_action(map_copy, players_copy);
+    player_action_t player3_action = get_player_3_action(map_copy, players_copy, game_round);
     action_valid = validate_action(map, &players->player3, player3_action);
     if (!action_valid)
       player3_action = NONE;
@@ -72,7 +72,7 @@ int main()
     // player 4
     copy_map(map_copy, map);
     copy_players(players_copy, players);
-    player_action_t player4_action = get_player_4_action(map_copy, players_copy);
+    player_action_t player4_action = get_player_4_action(map_copy, players_copy, game_round);
     action_valid = validate_action(map, &players->player4, player4_action);
     if (!action_valid)
       player4_action = NONE;
@@ -116,7 +116,7 @@ int main()
     display(map_copy);
 
     // only run the loop 10 times for now
-    if (index++ > 10)
+    if (game_round++ > 10)
     {
       game_is_running = 0;
     }
