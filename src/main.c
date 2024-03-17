@@ -114,12 +114,6 @@ int main()
      */
     add_players(map_copy, players);
     display(map_copy);
-
-    // only run the loop 10 times for now
-    if (game_round++ > 10)
-    {
-      game_is_running = 0;
-    }
   }
   return 0;
 }
