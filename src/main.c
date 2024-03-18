@@ -113,6 +113,7 @@ int main()
      * So I just add them to the map for the display function.
      */
     add_players(map_copy, players);
+    display_player_lives(players);
     display(map_copy);
   }
   return 0;

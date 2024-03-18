@@ -120,6 +120,60 @@ void display(block_t **map)
   printf("%s", display);
 };
 
+static void display_lives(int lives) {
+  for (int i = 0; i < MAX_LIVES; i++) {
+    if (i < lives) {
+      #ifdef _WIN32
+        printf("<3 ");
+      #else
+        printf("❤️ ");
+      #endif
+    } else {
+      if (lives <= 0 && i == 0) {
+        #ifdef _WIN32
+          printf("XX ");
+        #else
+          printf("💀 ");
+        #endif
+      } else {
+        printf("   ");
+      }
+    }
+  }
+}
+
+void display_player_lives(players_t *players) {
+  #ifdef _WIN32
+    printf("P1: ");
+  #else
+    printf("🕺: ");
+  #endif
+  display_lives(players->player1.lives);
+  printf("\t");
+  #ifdef _WIN32
+    printf("P2: ");
+  #else
+    printf("🏃: ");
+  #endif
+  display_lives(players->player2.lives);
+  printf("\n\n");
+
+  #ifdef _WIN32
+    printf("P3: ");
+  #else
+    printf("🧍: ");
+  #endif
+  display_lives(players->player3.lives);
+  printf("\t");
+  #ifdef _WIN32
+    printf("P4: ");
+  #else
+    printf("💃: ");
+  #endif
+  display_lives(players->player4.lives);
+  printf("\n\n\n");
+};
+
 void clear_display()
 {
 #ifdef _WIN32
