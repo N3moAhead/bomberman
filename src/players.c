@@ -22,22 +22,22 @@ players_t *init_players()
   // Player 1 starts top left
   new_players->player1.x = 1;
   new_players->player1.y = 1;
-  new_players->player1.lives = 3;
+  new_players->player1.lives = MAX_LIVES;
 
   // Player 2 starts top right
   new_players->player2.x = MAP_WIDTH - 2;
   new_players->player2.y = 1;
-  new_players->player2.lives = 3;
+  new_players->player2.lives = MAX_LIVES;
 
   // Player 3 starts bottom left
   new_players->player3.x = 1;
   new_players->player3.y = MAP_HEIGHT - 2;
-  new_players->player3.lives = 3;
+  new_players->player3.lives = MAX_LIVES;
 
   // Player 4 starts bottom right
   new_players->player4.x = MAP_WIDTH - 2;
   new_players->player4.y = MAP_HEIGHT - 2;
-  new_players->player4.lives = 3;
+  new_players->player4.lives = MAX_LIVES;
 
   return new_players;
 }
