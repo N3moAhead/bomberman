@@ -178,7 +178,7 @@ void apply_player_input(
     case NONE:
       break;
     case PLANT_BOMB:
-      map[player->y][player->y] = BOMB1;
+      map[player->y][player->x] = BOMB1;
       break;
   }
 }
