@@ -146,13 +146,17 @@ void update_map(block_t **map)
 void add_players(block_t **map, players_t *players)
 {
   // Player 1
-  map[players->player1.y][players->player1.x] = PLAYER1;
+  if (players->player1.lives > 0)
+    map[players->player1.y][players->player1.x] = PLAYER1;
   // Player 2
-  map[players->player2.y][players->player2.x] = PLAYER2;
+  if (players->player2.lives > 0)
+    map[players->player2.y][players->player2.x] = PLAYER2;
   // Player 3
-  map[players->player3.y][players->player3.x] = PLAYER3;
+  if (players->player3.lives > 0)
+    map[players->player3.y][players->player3.x] = PLAYER3;
   // Player 4
-  map[players->player4.y][players->player4.x] = PLAYER4;
+  if (players->player4.lives > 0)
+    map[players->player4.y][players->player4.x] = PLAYER4;
 }
 
 /**
