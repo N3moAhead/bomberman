@@ -1,11 +1,16 @@
 #include <stdlib.h>
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
 #include "game_helper.h"
 
-void sleep()
+void delay()
 {
 #ifdef _WIN32
-  system("timeout 1");
+  Sleep(300);
 #else
-  system("sleep 0.7");
+  usleep(300000);
 #endif
 }
