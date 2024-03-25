@@ -105,7 +105,7 @@ int main()
       game_is_running = 0;
     }
     // SLEEP FOR A MOMENT
-    sleep();
+    delay();
     // CLEAR THE DISPLAY
     clear_display();
     // DISPLAYING THE MAP
