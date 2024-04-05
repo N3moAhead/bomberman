@@ -51,18 +51,22 @@ void copy_players(players_t *dest, players_t *players)
   // Player 1 starts top left
   dest->player1.x = players->player1.x;
   dest->player1.y = players->player1.y;
+  dest->player1.lives = players->player1.lives;
 
   // Player 2 starts top right
   dest->player2.x = players->player2.x;
   dest->player2.y = players->player2.y;
+  dest->player2.lives = players->player2.lives;
 
   // Player 3 starts bottom left
   dest->player3.x = players->player3.x;
   dest->player3.y = players->player3.y;
+  dest->player3.lives = players->player3.lives;
 
   // Player 4 starts bottom right
   dest->player4.x = players->player4.x;
   dest->player4.y = players->player4.y;
+  dest->player4.lives = players->player4.lives;
 }
 
 //! Depreacted dont use it!
