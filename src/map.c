@@ -21,6 +21,10 @@ block_t **init_map()
       {
         map[row][col] = WALL;
       }
+      else if (row % 2 == 1 && col % 2 == 1 && row > 2 && row < MAP_HEIGHT - 2 && col > 2 && col < MAP_WIDTH - 2)
+      {
+        map[row][col] = WALL;
+      }
       else
       {
         map[row][col] = AIR;
@@ -58,34 +62,43 @@ void free_map(block_t **map)
   free(map);
 };
 
-void add_explosion(block_t **map, int row, int col) {
+void add_explosion(block_t **map, int row, int col)
+{
   // Aplying the explosion to the center
   map[row][col] = EXPLOSION;
   // Top
-  if (map[row - 1][col] != WALL) {
+  if (map[row - 1][col] != WALL)
+  {
     map[row - 1][col] = EXPLOSION;
-    if (map[row - 2][col] != WALL) {
+    if (map[row - 2][col] != WALL)
+    {
       map[row - 2][col] = EXPLOSION;
     }
   }
   // Bottom
-  if (map[row + 1][col] != WALL) {
+  if (map[row + 1][col] != WALL)
+  {
     map[row + 1][col] = EXPLOSION;
-    if (map[row + 2][col] != WALL) {
+    if (map[row + 2][col] != WALL)
+    {
       map[row + 2][col] = EXPLOSION;
     }
   }
   // Right
-  if (map[row][col + 1] != WALL) {
+  if (map[row][col + 1] != WALL)
+  {
     map[row][col + 1] = EXPLOSION;
-    if (map[row][col + 2] != WALL) {
+    if (map[row][col + 2] != WALL)
+    {
       map[row][col + 2] = EXPLOSION;
     }
   }
   // Left
-  if (map[row][col - 1] != WALL) {
+  if (map[row][col - 1] != WALL)
+  {
     map[row][col - 1] = EXPLOSION;
-    if (map[row][col - 2] != WALL) {
+    if (map[row][col - 2] != WALL)
+    {
       map[row][col - 2] = EXPLOSION;
     }
   }
@@ -171,25 +184,26 @@ void add_players(block_t **map, players_t *players)
  * This function will not update the given player struct.
  * This function will also assume that the action it handles is already
  * validated and just executes it!
-*/
+ */
 void apply_player_input(
     block_t **map,
     player_t *player,
     player_action_t player_action)
 {
-  switch(player_action) {
-    /**
-     * Players are not displayed in the map so
-     * we wont have to update them here
-     */
-    case MOVE_UP:
-    case MOVE_DOWN:
-    case MOVE_LEFT:
-    case MOVE_RIGHT:
-    case NONE:
-      break;
-    case PLANT_BOMB:
-      map[player->y][player->x] = BOMB1;
-      break;
+  switch (player_action)
+  {
+  /**
+   * Players are not displayed in the map so
+   * we wont have to update them here
+   */
+  case MOVE_UP:
+  case MOVE_DOWN:
+  case MOVE_LEFT:
+  case MOVE_RIGHT:
+  case NONE:
+    break;
+  case PLANT_BOMB:
+    map[player->y][player->x] = BOMB1;
+    break;
   }
 }
