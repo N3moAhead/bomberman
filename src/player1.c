@@ -15,7 +15,7 @@
 /**
  * Validate that an given Value is inside of given boundaries
  */
-int gated_int(int value, int max, int min)
+static int gated_int(int value, int max, int min)
 {
   if (value >= max)
   {
@@ -28,7 +28,7 @@ int gated_int(int value, int max, int min)
   return value;
 }
 
-char is_bomb(block_t **map, int pos_x, int pos_y)
+static char is_bomb(block_t **map, int pos_x, int pos_y)
 {
   int gated_x = gated_int(pos_x, MAP_WIDTH - 1, 0);
   int gated_y = gated_int(pos_y, MAP_HEIGHT - 1, 0);
@@ -42,7 +42,7 @@ char is_bomb(block_t **map, int pos_x, int pos_y)
 /**
  * Returns 0 or 1 based on if the given position is dangerous
  */
-char is_pos_dangerous(block_t **map, int pos_x, int pos_y)
+static char is_pos_dangerous(block_t **map, int pos_x, int pos_y)
 {
   char is_dangerous = 0;
   // Check the current field
@@ -74,7 +74,7 @@ char is_pos_dangerous(block_t **map, int pos_x, int pos_y)
   return is_dangerous;
 }
 
-char is_wall(block_t **map, int pos_x, int pos_y)
+static char is_wall(block_t **map, int pos_x, int pos_y)
 {
   int gated_x = gated_int(pos_x, MAP_WIDTH - 1, 0);
   int gated_y = gated_int(pos_y, MAP_HEIGHT - 1, 0);
@@ -90,7 +90,7 @@ char is_wall(block_t **map, int pos_x, int pos_y)
  * If so the function returns 1
  * If not the function returns 0
  */
-char is_flee_direction_safe(block_t **map, int pos_x, int pos_y)
+static char is_flee_direction_safe(block_t **map, int pos_x, int pos_y)
 {
   int gated_x = gated_int(pos_x, MAP_WIDTH - 1, 0);
   int gated_y = gated_int(pos_y, MAP_HEIGHT - 1, 0);
@@ -105,7 +105,7 @@ char is_flee_direction_safe(block_t **map, int pos_x, int pos_y)
  * The current field is dangerous so the bot has to flee from this field
  * This function should return a direction to run away
  */
-player_action_t get_flee_direction(block_t **map, player_t player)
+static player_action_t get_flee_direction(block_t **map, player_t player)
 {
   /**
    * Lets first check the sourounding fields
@@ -157,7 +157,7 @@ player_action_t get_flee_direction(block_t **map, player_t player)
   return NONE;
 }
 
-char could_a_bomb_reach_field(int from_pos_x, int from_pos_y, int to_pos_x, int to_pos_y)
+static char could_a_bomb_reach_field(int from_pos_x, int from_pos_y, int to_pos_x, int to_pos_y)
 {
   // TODO This function currently ignores walls which is pretty bad so i will have to refactor that later on!
   //  same field
@@ -175,7 +175,7 @@ char could_a_bomb_reach_field(int from_pos_x, int from_pos_y, int to_pos_x, int 
   return 0;
 }
 
-char is_player_in_range(players_t players)
+static char is_player_in_range(players_t players)
 {
   int player_positions[3][3] = {
       {players.player2.x, players.player2.y, players.player2.lives},
@@ -194,7 +194,7 @@ char is_player_in_range(players_t players)
   return 0;
 }
 
-int abs_int(int num)
+static int abs_int(int num)
 {
   if (num < 0)
   {
@@ -203,12 +203,12 @@ int abs_int(int num)
   return num;
 }
 
-int get_distance(int from_x, int from_y, int to_x, int to_y)
+static int get_distance(int from_x, int from_y, int to_x, int to_y)
 {
   return (abs_int(to_y - from_y) + abs_int(to_x - from_x));
 }
 
-player_action_t get_move_towards_enemy(block_t **map, players_t players)
+static player_action_t get_move_towards_enemy(block_t **map, players_t players)
 {
   player_t player_positions[3] = {players.player2, players.player3, players.player4};
 
