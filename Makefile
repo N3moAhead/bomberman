@@ -1,6 +1,6 @@
-SRC_DIR := ./src
-SRC_FILES := $(wildcard $(SRC_DIR)/*.c)
-OBJ_FILES := $(patsubst $(SRC_DIR)/%.c, $(SRC_DIR)/%.o, $(SRC_FILES))
+SRC_DIRS := ./src ./src/bots
+SRC_FILES := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
+OBJ_FILES := $(patsubst %.c,%.o,$(SRC_FILES))
 
 CC := gcc
 CFLAGS := -Wall -Wextra -g
@@ -22,7 +22,7 @@ all: $(EXECUTABLE)
 $(EXECUTABLE): $(OBJ_FILES)
 	$(CC) $(OBJ_FILES) -o $(call FIXPATH,$(EXECUTABLE))
 
-$(SRC_DIR)/%.o: $(SRC_DIR)/%.c
+%.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@
 
 clear:
