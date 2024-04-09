@@ -20,21 +20,25 @@ players_t *init_players()
   players_t *new_players = allocate_players();
 
   // Player 1 starts top left
+  new_players->player1.id = 1;
   new_players->player1.x = 1;
   new_players->player1.y = 1;
   new_players->player1.lives = MAX_LIVES;
 
   // Player 2 starts top right
+  new_players->player2.id = 2;
   new_players->player2.x = MAP_WIDTH - 2;
   new_players->player2.y = 1;
   new_players->player2.lives = MAX_LIVES;
 
   // Player 3 starts bottom left
+  new_players->player3.id = 3;
   new_players->player3.x = 1;
   new_players->player3.y = MAP_HEIGHT - 2;
   new_players->player3.lives = MAX_LIVES;
 
   // Player 4 starts bottom right
+  new_players->player4.id = 4;
   new_players->player4.x = MAP_WIDTH - 2;
   new_players->player4.y = MAP_HEIGHT - 2;
   new_players->player4.lives = MAX_LIVES;
@@ -49,21 +53,25 @@ players_t *init_players()
 void copy_players(players_t *dest, players_t *players)
 {
   // Player 1 starts top left
+  dest->player1.id = players->player1.id;
   dest->player1.x = players->player1.x;
   dest->player1.y = players->player1.y;
   dest->player1.lives = players->player1.lives;
 
   // Player 2 starts top right
+  dest->player2.id = players->player2.id;
   dest->player2.x = players->player2.x;
   dest->player2.y = players->player2.y;
   dest->player2.lives = players->player2.lives;
 
   // Player 3 starts bottom left
+  dest->player3.id = players->player3.id;
   dest->player3.x = players->player3.x;
   dest->player3.y = players->player3.y;
   dest->player3.lives = players->player3.lives;
 
   // Player 4 starts bottom right
+  dest->player4.id = players->player4.id;
   dest->player4.x = players->player4.x;
   dest->player4.y = players->player4.y;
   dest->player4.lives = players->player4.lives;
