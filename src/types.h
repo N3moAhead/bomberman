@@ -35,6 +35,7 @@ typedef enum block {
 } block_t;
 
 typedef struct player {
+  int id;
   int x;
   int y;
   int lives;
