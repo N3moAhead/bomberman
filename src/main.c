@@ -85,7 +85,7 @@ int main()
       player4_action = NONE;
 
     // UPDATE THE MAP
-    update_map(map, game_round);
+    update_map(map);
     // ADD THE PLAYER INPUT TO THE MAP
     apply_player_input(map, &players->player1, player1_action);
     apply_player_input(map, &players->player2, player2_action);

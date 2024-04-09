@@ -23,6 +23,13 @@ void display(block_t **map)
       case BOMB1:
       case BOMB2:
       case BOMB3:
+      case BOMB4:
+      case BOMB5:
+      case BOMB6:
+      case BOMB7:
+      case BOMB8:
+      case BOMB9:
+      case BOMB10:
         #ifdef _WIN32
           write_index += snprintf(
             display + write_index,
