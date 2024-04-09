@@ -22,13 +22,20 @@ typedef enum block {
   PLAYER3,
   PLAYER4,
   /**
-   * Bombs explode after 3 stages.
+   * Bombs explode after 10 stages.
    * Each bomb gets updated after each tick and explode
-   * after the third stage.
+   * after the tenth stage.
    */
   BOMB1, 
   BOMB2,
   BOMB3,
+  BOMB4,
+  BOMB5,
+  BOMB6,
+  BOMB7,
+  BOMB8,
+  BOMB9,
+  BOMB10,
   WALL,
   EXPLOSION, 
   AIR,

@@ -104,13 +104,8 @@ void add_explosion(block_t **map, int row, int col)
   }
 }
 
-void update_map(block_t **map, int game_round)
+void update_map(block_t **map)
 {
-  // Im not completly sure how good this solution is
-  // It makes it kind of hard to predict bombs in the game
-  // but it could also be fun though XD
-  // It would be unclear with this change how old a bomb is and when it will explode
-  char update_bombs = game_round % 2;
   for (int row = 0; row < MAP_HEIGHT; row++)
   {
     for (int col = 0; col < MAP_WIDTH; col++)
@@ -131,14 +126,33 @@ void update_map(block_t **map, int game_round)
       case PLAYER4:
         break;
       case BOMB1:
-        if (update_bombs)
-          map[row][col] = BOMB2;
+        map[row][col] = BOMB2;
         break;
       case BOMB2:
-        if (update_bombs)
-          map[row][col] = BOMB3;
+        map[row][col] = BOMB3;
         break;
       case BOMB3:
+        map[row][col] = BOMB4;
+        break;
+      case BOMB4:
+        map[row][col] = BOMB5;
+        break;
+      case BOMB5:
+        map[row][col] = BOMB6;
+        break;
+      case BOMB6:
+        map[row][col] = BOMB7;
+        break;
+      case BOMB7:
+        map[row][col] = BOMB8;
+        break;
+      case BOMB8:
+        map[row][col] = BOMB9;
+        break;
+      case BOMB9:
+        map[row][col] = BOMB10;
+        break;
+      case BOMB10:
         break;
       case WALL:
         break;
@@ -157,7 +171,7 @@ void update_map(block_t **map, int game_round)
   {
     for (int col = 0; col < MAP_WIDTH; col++)
     {
-      if (map[row][col] == BOMB3 && update_bombs)
+      if (map[row][col] == BOMB10)
         add_explosion(map, row, col);
     }
   }
