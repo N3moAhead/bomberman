@@ -1,43 +1,7 @@
 #include "n3mo_bot_v1.h"
 #include "../types.h"
 #include "../constants.h"
-
-/**
- * Validate that an given Value is inside of given boundaries
- */
-static int gated_int(int value, int max, int min)
-{
-  if (value >= max)
-  {
-    return max;
-  }
-  if (value <= min)
-  {
-    return min;
-  }
-  return value;
-}
-
-static char is_bomb(block_t **map, int pos_x, int pos_y)
-{
-  int gated_x = gated_int(pos_x, MAP_WIDTH - 1, 0);
-  int gated_y = gated_int(pos_y, MAP_HEIGHT - 1, 0);
-  switch (map[gated_y][gated_x])
-  {
-    case BOMB1:
-    case BOMB2:
-    case BOMB3:
-    case BOMB4:
-    case BOMB5:
-    case BOMB6:
-    case BOMB7:
-    case BOMB8:
-    case BOMB9:
-    case BOMB10:
-      return 1;
-  }
-  return 0;
-}
+#include "../player_helper.h"
 
 /**
  * Returns 0 or 1 based on if the given position is dangerous
@@ -72,17 +36,6 @@ static char is_pos_dangerous(block_t **map, int pos_x, int pos_y)
     return 1;
   }
   return is_dangerous;
-}
-
-static char is_wall(block_t **map, int pos_x, int pos_y)
-{
-  int gated_x = gated_int(pos_x, MAP_WIDTH - 1, 0);
-  int gated_y = gated_int(pos_y, MAP_HEIGHT - 1, 0);
-  if (map[gated_y][gated_x] == WALL)
-  {
-    return 1;
-  }
-  return 0;
 }
 
 /**
@@ -197,20 +150,6 @@ static char is_player_in_range(players_t players, player_t bot)
   }
 
   return 0;
-}
-
-static int abs_int(int num)
-{
-  if (num < 0)
-  {
-    return num * -1;
-  }
-  return num;
-}
-
-static int get_distance(int from_x, int from_y, int to_x, int to_y)
-{
-  return (abs_int(to_y - from_y) + abs_int(to_x - from_x));
 }
 
 static player_action_t get_move_towards_enemy(block_t **map, players_t players, player_t bot)
