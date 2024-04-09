@@ -22,9 +22,19 @@ static char is_bomb(block_t **map, int pos_x, int pos_y)
 {
   int gated_x = gated_int(pos_x, MAP_WIDTH - 1, 0);
   int gated_y = gated_int(pos_y, MAP_HEIGHT - 1, 0);
-  if (map[gated_y][gated_x] == BOMB1 || map[gated_y][gated_x] == BOMB2 || map[gated_y][gated_x] == BOMB3)
+  switch (map[gated_y][gated_x])
   {
-    return 1;
+    case BOMB1:
+    case BOMB2:
+    case BOMB3:
+    case BOMB4:
+    case BOMB5:
+    case BOMB6:
+    case BOMB7:
+    case BOMB8:
+    case BOMB9:
+    case BOMB10:
+      return 1;
   }
   return 0;
 }
