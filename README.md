@@ -106,7 +106,7 @@ if (map[3][3] == WALL) {
 ## Example of checking if a player stands on a specific field
 
 ```c
-if (players->player2.x == 3 && players->player2.y == 4) {
+if (players->player2.cell_pos.x == 3 && players->player2.cell_pos.y == 4) {
   printf("Player2 is standing on the field 3/4");
 } else {
   printf("Player2 ist standing somewhere else");
