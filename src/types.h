@@ -41,10 +41,15 @@ typedef enum block {
   AIR,
 } block_t;
 
-typedef struct player {
-  int id;
+/** Used for the cell position inside of the field grid */
+typedef struct cell_pos {
   int x;
   int y;
+} cell_pos_t;
+
+typedef struct player {
+  int id;
+  cell_pos_t cell_pos;
   int lives;
 } player_t;
 
