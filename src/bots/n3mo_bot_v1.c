@@ -53,6 +53,28 @@ static char is_flee_direction_safe(block_t **map, cell_pos_t pos)
   return 0;
 }
 
+static int get_distance_to_closest_bomb(block_t **map, cell_pos_t pos)
+{
+  // If no bomb on the field is found a ridiculous
+  // far away distance will be returned as distance
+  int closest_distance = MAP_HEIGHT * MAP_WIDTH;
+  for (int row = 0; row < MAP_HEIGHT; row++)
+  {
+    for (int col = 0; col < MAP_WIDTH; col++)
+    {
+      if (is_bomb(map, (cell_pos_t){.x = col, .y = row}))
+      {
+        int distance = get_distance((cell_pos_t){.x = col, .y = row}, pos);
+        if (closest_distance == MAP_HEIGHT * MAP_WIDTH || closest_distance > distance)
+        {
+          closest_distance = distance;
+        }
+      }
+    }
+  }
+  return closest_distance;
+}
+
 /**
  * The current field is dangerous so the bot has to flee from this field
  * This function should return a direction to run away
@@ -94,33 +116,108 @@ static player_action_t get_flee_direction(block_t **map, player_t player)
    * If no field is save, we will choose the first free
    * field to move to that is not a wall
    */
+  // Todo check try to move to the field that is the furthes away from all the placed bombs
+  player_action_t possible_options[4];
   if (!is_wall(map, (cell_pos_t){
                         .x = player.cell_pos.x,
                         .y = player.cell_pos.y - 1}))
   {
-    return MOVE_UP;
+    possible_options[0] = MOVE_UP;
+  }
+  else
+  {
+    possible_options[0] = NONE;
   }
   // down
   if (!is_wall(map, (cell_pos_t){
                         .x = player.cell_pos.x,
                         .y = player.cell_pos.y + 1}))
   {
-    return MOVE_DOWN;
+    possible_options[1] = MOVE_DOWN;
+  }
+  else
+  {
+    possible_options[1] = NONE;
   }
   // left
   if (!is_wall(map, (cell_pos_t){
                         .x = player.cell_pos.x - 1,
                         .y = player.cell_pos.y}))
   {
-    return MOVE_LEFT;
+    possible_options[2] = MOVE_LEFT;
+  }
+  else
+  {
+    possible_options[2] = NONE;
   }
   // right
   if (!is_wall(map, (cell_pos_t){
                         .x = player.cell_pos.x + 1,
                         .y = player.cell_pos.y}))
   {
-    return MOVE_RIGHT;
+    possible_options[3] = MOVE_RIGHT;
   }
+  else
+  {
+    possible_options[3] = NONE;
+  }
+
+  int best_option = -1;
+  int longest_bomb_distance;
+  // Evaluate going up
+  if (possible_options[0] != NONE)
+  {
+    int distance = get_distance_to_closest_bomb(map, (cell_pos_t){
+                                                          .x = player.cell_pos.x,
+                                                          .y = player.cell_pos.y - 1});
+    if (best_option == -1 || distance > longest_bomb_distance)
+    {
+      best_option = 0;
+      longest_bomb_distance = distance;
+    }
+  }
+  // Evaluate going down
+  if (possible_options[1] != NONE)
+  {
+    int distance = get_distance_to_closest_bomb(map, (cell_pos_t){
+                                                          .x = player.cell_pos.x,
+                                                          .y = player.cell_pos.y + 1});
+    if (best_option == -1 || distance > longest_bomb_distance)
+    {
+      best_option = 1;
+      longest_bomb_distance = distance;
+    }
+  }
+  // Evaluate going left
+  if (possible_options[2] != NONE)
+  {
+    int distance = get_distance_to_closest_bomb(map, (cell_pos_t){
+                                                          .x = player.cell_pos.x - 1,
+                                                          .y = player.cell_pos.y});
+    if (best_option == -1 || distance > longest_bomb_distance)
+    {
+      best_option = 2;
+      longest_bomb_distance = distance;
+    }
+  }
+  // Evaluate going right
+  if (possible_options[3] != NONE)
+  {
+    int distance = get_distance_to_closest_bomb(map, (cell_pos_t){
+                                                          .x = player.cell_pos.x + 1,
+                                                          .y = player.cell_pos.y});
+    if (best_option == -1 || distance > longest_bomb_distance)
+    {
+      best_option = 3;
+      longest_bomb_distance = distance;
+    }
+  }
+
+  if (best_option != -1)
+  {
+    return possible_options[best_option];
+  }
+
   // If no field is possible the bot will just do nothing
   return NONE;
 }
@@ -179,7 +276,7 @@ static player_action_t get_move_towards_enemy(block_t **map, players_t players, 
     player_positions[write_index++] = players.player3;
   if (players.player4.id != bot.id)
     player_positions[write_index++] = players.player4;
-  
+
   int closest_player_index = -1;
   int closest_player_distance;
   for (int i = 0; i < 3; i++)
