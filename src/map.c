@@ -181,16 +181,16 @@ void add_players(block_t **map, players_t *players)
 {
   // Player 1
   if (players->player1.lives > 0)
-    map[players->player1.y][players->player1.x] = PLAYER1;
+    map[players->player1.cell_pos.y][players->player1.cell_pos.x] = PLAYER1;
   // Player 2
   if (players->player2.lives > 0)
-    map[players->player2.y][players->player2.x] = PLAYER2;
+    map[players->player2.cell_pos.y][players->player2.cell_pos.x] = PLAYER2;
   // Player 3
   if (players->player3.lives > 0)
-    map[players->player3.y][players->player3.x] = PLAYER3;
+    map[players->player3.cell_pos.y][players->player3.cell_pos.x] = PLAYER3;
   // Player 4
   if (players->player4.lives > 0)
-    map[players->player4.y][players->player4.x] = PLAYER4;
+    map[players->player4.cell_pos.y][players->player4.cell_pos.x] = PLAYER4;
 }
 
 /**
@@ -217,7 +217,7 @@ void apply_player_input(
   case NONE:
     break;
   case PLANT_BOMB:
-    map[player->y][player->x] = BOMB1;
+    map[player->cell_pos.y][player->cell_pos.x] = BOMB1;
     break;
   }
 }
