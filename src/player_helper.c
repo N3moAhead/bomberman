@@ -19,9 +19,9 @@ int abs_int(int value)
  * WARNING! Its not calculating a walkable path
  * Its also not calculating a diagonal path
  */
-int get_distance(int from_x, int from_y, int to_x, int to_y)
+int get_distance(cell_pos_t from, cell_pos_t to)
 {
-  return (abs_int(to_y - from_y) + abs_int(to_x - from_x));
+  return (abs_int(to.y - from.y) + abs_int(to.x - from.x));
 }
 
 /**
@@ -42,11 +42,23 @@ int gated_int(int value, int max, int min)
   return value;
 }
 
-char is_bomb(block_t **map, int pos_x, int pos_y)
+/**
+ * Makes sure that a given position stays inside of
+ * the the map boundaries
+ */
+cell_pos_t get_gated_position(cell_pos_t pos)
 {
-  int gated_x = gated_int(pos_x, MAP_WIDTH - 1, 0);
-  int gated_y = gated_int(pos_y, MAP_HEIGHT - 1, 0);
-  switch (map[gated_y][gated_x])
+  cell_pos_t adjusted_pos = {
+    .x = gated_int(pos.x, MAP_WIDTH - 1, 0),
+    .y = gated_int(pos.y, MAP_HEIGHT - 1, 0)
+  };
+  return adjusted_pos;
+}
+
+char is_bomb(block_t **map, cell_pos_t pos)
+{
+  cell_pos_t gated_pos = get_gated_position(pos);
+  switch (map[gated_pos.y][gated_pos.x])
   {
   case BOMB1:
   case BOMB2:
@@ -64,11 +76,10 @@ char is_bomb(block_t **map, int pos_x, int pos_y)
   }
 }
 
-char is_wall(block_t **map, int pos_x, int pos_y)
+char is_wall(block_t **map, cell_pos_t pos)
 {
-  int gated_x = gated_int(pos_x, MAP_WIDTH - 1, 0);
-  int gated_y = gated_int(pos_y, MAP_HEIGHT - 1, 0);
-  if (map[gated_y][gated_x] == WALL)
+  cell_pos_t gated_pos = get_gated_position(pos);
+  if (map[gated_pos.y][gated_pos.x] == WALL)
   {
     return 1;
   }
