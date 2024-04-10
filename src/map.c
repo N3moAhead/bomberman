@@ -21,7 +21,7 @@ block_t **init_map()
       {
         map[row][col] = WALL;
       }
-      else if (row % 2 == 1 && col % 2 == 1 && row > 2 && row < MAP_HEIGHT - 2 && col > 2 && col < MAP_WIDTH - 2)
+      else if (row % 2 == 0 && col % 2 == 0 && row > 0 && row < MAP_HEIGHT - 2 && col > 0 && col < MAP_WIDTH - 2)
       {
         map[row][col] = WALL;
       }
