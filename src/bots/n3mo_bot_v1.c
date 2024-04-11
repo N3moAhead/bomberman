@@ -163,7 +163,7 @@ static player_action_t get_flee_direction(block_t **map, player_t player)
   }
 
   int best_option = -1;
-  int longest_bomb_distance;
+  int longest_bomb_distance = -1;
   // Evaluate going up
   if (possible_options[0] != NONE)
   {
