@@ -41,6 +41,10 @@ typedef enum block {
   AIR,
 } block_t;
 
+typedef struct bot_description {
+  char author_name[50];
+} bot_description_t;
+
 /** Used for the cell position inside of the field grid */
 typedef struct cell_pos {
   int x;
@@ -50,6 +54,7 @@ typedef struct cell_pos {
 typedef struct player {
   int id;
   cell_pos_t cell_pos;
+  bot_description_t bot_description;
   int lives;
 } player_t;
 
