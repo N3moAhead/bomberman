@@ -30,6 +30,10 @@ int main()
    * A struct that holds the position of all 4 players.
    */
   players_t *players = init_players();
+  get_player1_bot_description(&players->player1.bot_description.author_name);
+  get_player2_bot_description(&players->player2.bot_description.author_name);
+  get_player3_bot_description(&players->player3.bot_description.author_name);
+  get_player4_bot_description(&players->player4.bot_description.author_name);
   /**
    * A copy of the current players object that will be given to the user functions
    * It will be resetted after every user function has been called
