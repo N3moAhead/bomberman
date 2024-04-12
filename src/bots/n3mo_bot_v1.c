@@ -342,3 +342,8 @@ player_action_t get_bot_move(block_t **map, players_t *players, int game_round, 
   }
   return NONE;
 }
+
+void get_bot_description(char *bot_name)
+{
+  strcpy(bot_name, "N3moAhead v1");
+}

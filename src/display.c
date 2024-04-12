@@ -150,6 +150,7 @@ static void display_lives(int lives) {
 }
 
 void display_player_lives(players_t *players) {
+  printf("%15s", players->player1.bot_description.author_name);
   #ifdef _WIN32
     printf("P1: ");
   #else
@@ -157,6 +158,7 @@ void display_player_lives(players_t *players) {
   #endif
   display_lives(players->player1.lives);
   printf("\t");
+  printf("%15s", players->player2.bot_description.author_name);
   #ifdef _WIN32
     printf("P2: ");
   #else
@@ -165,6 +167,7 @@ void display_player_lives(players_t *players) {
   display_lives(players->player2.lives);
   printf("\n\n");
 
+  printf("%15s", players->player3.bot_description.author_name);
   #ifdef _WIN32
     printf("P3: ");
   #else
@@ -172,6 +175,7 @@ void display_player_lives(players_t *players) {
   #endif
   display_lives(players->player3.lives);
   printf("\t");
+  printf("%15s", players->player4.bot_description.author_name);
   #ifdef _WIN32
     printf("P4: ");
   #else
