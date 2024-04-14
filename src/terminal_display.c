@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "display.h"
+#include "terminal_display.h"
 #include "constants.h"
 #include "types.h"
 
