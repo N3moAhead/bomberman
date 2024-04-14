@@ -1,5 +1,6 @@
 #ifndef TYPES_H
 #define TYPES_H
+#include <SDL2/SDL_image.h>
 
 typedef enum player_action {
   // Move the player a field up
@@ -45,11 +46,36 @@ typedef struct bot_description {
   char author_name[50];
 } bot_description_t;
 
-/** Used for the cell position inside of the field grid */
-typedef struct cell_pos {
+typedef struct vector_2d {
   int x;
   int y;
-} cell_pos_t;
+} vector_2d_t;
+
+/** Used for the cell position inside of the field grid */
+typedef vector_2d_t cell_pos_t;
+
+// Used to draw sprites outside of the texture atlas
+typedef struct sprite {
+  vector_2d_t pos;
+  SDL_Texture *texture;
+} sprite_t;
+
+// Used for coordinates inside of the texture atlas
+typedef struct atlas_sprite {
+  vector_2d_t atlas_pos;
+  vector_2d_t draw_pos;
+} atlas_sprite_t;
+
+typedef struct atlas_positions {
+  vector_2d_t player1;
+  vector_2d_t player2;
+  vector_2d_t player3;
+  vector_2d_t player4;
+  vector_2d_t bomb; 
+  vector_2d_t wall;
+  vector_2d_t explosion; 
+  vector_2d_t air;
+} atlas_positions_t;
 
 typedef struct player {
   int id;
