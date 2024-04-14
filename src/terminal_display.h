@@ -1,5 +1,5 @@
-#ifndef DISPLAY_H
-#define DISPLAY_H
+#ifndef TERMINAL_DISPLAY_H
+#define TERMINAL_DISPLAY_H
 #include "types.h"
 
 void display(block_t **map);
