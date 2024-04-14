@@ -1,9 +1,10 @@
-SRC_DIRS := ./src ./src/bots
+SRC_DIRS := ./src ./src/bots ./src/util
 SRC_FILES := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
 OBJ_FILES := $(patsubst %.c,%.o,$(SRC_FILES))
 
 CC := gcc
-CFLAGS := -Wall -Wextra -g
+CFLAGS := -Wall -Wextra -lSDL2 -lSDL2_image -g
+LDFLAGS := -lSDL2 -lSDL2_image
 
 ifeq ($(OS),Windows_NT)
 	EXECUTABLE := game.exe
@@ -20,7 +21,7 @@ endif
 all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJ_FILES)
-	$(CC) $(OBJ_FILES) -o $(call FIXPATH,$(EXECUTABLE))
+	$(CC) $(OBJ_FILES) -o $(call FIXPATH,$(EXECUTABLE)) $(LDFLAGS)
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@
