@@ -83,6 +83,7 @@ void display_map(block_t **map)
         blit_from_atlas(texture_atlas_positions.explosion, draw_pos);
         break;
       case PLAYER1:
+        blit_from_atlas(texture_atlas_positions.air, draw_pos);
         blit_from_atlas(texture_atlas_positions.player1, draw_pos);
         break;
       case PLAYER2:
