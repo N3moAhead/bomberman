@@ -1,6 +1,8 @@
+#include <SDL2/SDL.h>
 #include "constants.h"
 #include "types.h"
-#include "display.h"
+#include "sdl_display.h"
+#include "util/sdl_helper.h"
 #include "map.h"
 #include "players.h"
 #include "game_helper.h"
@@ -8,9 +10,14 @@
 #include "player2.h"
 #include "player3.h"
 #include "player4.h"
+#include "globals.h"
 
 int main()
 {
+  /**
+   * SDL
+   */
+  setup_sdl();
   /**
    * THE MAP
    * A 2D Array composed by the block_t type.
@@ -30,10 +37,10 @@ int main()
    * A struct that holds the position of all 4 players.
    */
   players_t *players = init_players();
-  get_player1_bot_description(&players->player1.bot_description.author_name);
-  get_player2_bot_description(&players->player2.bot_description.author_name);
-  get_player3_bot_description(&players->player3.bot_description.author_name);
-  get_player4_bot_description(&players->player4.bot_description.author_name);
+  get_player1_bot_description(players->player1.bot_description.author_name);
+  get_player2_bot_description(players->player2.bot_description.author_name);
+  get_player3_bot_description(players->player3.bot_description.author_name);
+  get_player4_bot_description(players->player4.bot_description.author_name);
   /**
    * A copy of the current players object that will be given to the user functions
    * It will be resetted after every user function has been called
@@ -46,6 +53,13 @@ int main()
   char action_valid = 0;
   while (game_is_running)
   {
+    // CHECKING FOR EXIT
+    if (quitted_game() == 1)
+    {
+      printf("The game has been stopped\n");
+      game_is_running = 0;
+      break;
+    }
     // GETTING THE PLAYER INPUT
     // player 1
     copy_map(map_copy, map);
@@ -103,13 +117,12 @@ int main()
     // CHECK IF ENOUGH PLAYERS ARE STILL ALIVE
     int alive_players = get_alive_player_count(players);
     // ending the game if only one player is left to play
-    if (alive_players < 2) {
+    if (alive_players < 2)
+    {
       game_is_running = 0;
     }
     // SLEEP FOR A MOMENT
     delay();
-    // CLEAR THE DISPLAY
-    clear_display();
     // DISPLAYING THE MAP
     /**
      * Im reusing the player map here to save a bit of memory
@@ -123,8 +136,9 @@ int main()
      * So I just add them to the map for the display function.
      */
     add_players(map_copy, players);
-    display_player_lives(players);
-    display(map_copy);
+    prepare_scene();
+    display_map(map_copy);
+    present_scene();
     game_round++;
   }
   return 0;
