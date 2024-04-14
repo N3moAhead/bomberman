@@ -1,4 +1,5 @@
 #include "n3mo_bot_v1.h"
+#include <string.h>
 #include "../types.h"
 #include "../constants.h"
 #include "../player_helper.h"

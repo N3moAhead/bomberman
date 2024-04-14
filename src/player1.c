@@ -10,7 +10,7 @@ player_action_t get_player_1_action(block_t **map, players_t *players, int game_
   return get_bot_move(map, players, game_round, players->player1);
 }
 
-void get_player1_bot_description(char *bot_name)
+void get_player1_bot_description(char bot_name[50])
 {
   get_bot_description(bot_name);
 }
