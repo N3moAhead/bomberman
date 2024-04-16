@@ -49,8 +49,84 @@ void present_scene()
   SDL_RenderPresent(renderer);
 }
 
-void display_map(block_t **map)
+/** 
+ * This function takes a position and checks for the sourounding
+ * blocks if the current position is the same block
+ * depending on the outcome this function will return the equivalent
+ * block variant.
+ * WARNING! This function does not work on the AIR TYPE!
+ */
+static block_variant_type_t get_block_variant(block_t **map, cell_pos_t pos) {
+  block_t block = map[pos.y][pos.x];
+  // The sourounding blocks
+  block_t top = pos.y - 1 >= 0 ? map[pos.y - 1][pos.x] : AIR;
+  block_t right = pos.x + 1 < MAP_WIDTH ? map[pos.y][pos.x + 1] : AIR;
+  block_t bottom = pos.y + 1 < MAP_HEIGHT ? map[pos.y + 1][pos.x] : AIR;
+  block_t left = pos.x - 1 >= 0 ? map[pos.y][pos.x - 1] : AIR;
+  // CENTER_VARIANT
+  if (top != block && right != block && bottom != block && left != block) {
+    return CENTER_VARIANT;
+  }
+  // LEFT_RIGHT_VARIANT
+  if (top != block && right == block && bottom != block && left == block) {
+    return LEFT_RIGHT_VARIANT;
+  }
+  // TOP_BOTTOM_VARIANT
+  if (top == block && right != block && bottom == block && left != block) {
+    return TOP_BOTTOM_VARIANT;
+  }
+  // BOTTOM_RIGHT_VARIANT
+  if (top != block && right == block && bottom == block && left != block) {
+    return BOTTOM_RIGHT_VARIANT;
+  }
+  // TOP_RIGHT_VARIANT
+  if (top == block && right == block && bottom != block && left != block) {
+    return TOP_RIGHT_VARIANT;
+  }
+  // BOTTOM_LEFT_VARIANT
+  if (top != block && right != block && bottom == block && left == block) {
+    return BOTTOM_LEFT_VARIANT;
+  }
+  // TOP_LEFT_VARIANT
+  if (top == block && right != block && bottom != block && left == block) {
+    return TOP_LEFT_VARIANT;
+  }
+
+  printf("Could not make a decision in get_block_variant");
+  exit(EXIT_FAILURE);
+}
+
+static void draw_wall(block_t **map, cell_pos_t pos, vector_2d_t draw_pos)
 {
+  block_variant_type_t variant = get_block_variant(map, pos);
+  vector_2d_t atlas_pos = texture_atlas_positions.wall;
+  switch (variant) {
+    case CENTER_VARIANT:
+      atlas_pos.x = ASSET_SPRITE_SIZE * 6;
+      break;
+    case LEFT_RIGHT_VARIANT:
+      atlas_pos.x = 0;
+      break;
+    case TOP_BOTTOM_VARIANT:
+      atlas_pos.x = ASSET_SPRITE_SIZE * 1;
+      break;
+    case BOTTOM_RIGHT_VARIANT:
+      atlas_pos.x = ASSET_SPRITE_SIZE * 2;
+      break;
+    case TOP_RIGHT_VARIANT:
+      atlas_pos.x = ASSET_SPRITE_SIZE * 4;
+      break;
+    case BOTTOM_LEFT_VARIANT:
+      atlas_pos.x = ASSET_SPRITE_SIZE * 3;
+      break;
+    case TOP_LEFT_VARIANT:
+      atlas_pos.x = ASSET_SPRITE_SIZE * 5;
+      break;
+  }
+  blit_from_atlas(atlas_pos, draw_pos);
+}
+
+void display_map(block_t **map) {
   for (int row = 0; row < MAP_HEIGHT; row++)
   {
     for (int col = 0; col < MAP_WIDTH; col++)
@@ -59,10 +135,10 @@ void display_map(block_t **map)
           .y = row * DISPLAY_SPRITE_SIZE,
           .x = col * DISPLAY_SPRITE_SIZE,
       };
+      blit_from_atlas(texture_atlas_positions.air, draw_pos);
       switch (map[row][col])
       {
       case AIR:
-        blit_from_atlas(texture_atlas_positions.air, draw_pos);
         break;
       case BOMB1:
       case BOMB2:
@@ -77,13 +153,12 @@ void display_map(block_t **map)
         blit_from_atlas(texture_atlas_positions.bomb, draw_pos);
         break;
       case WALL:
-        blit_from_atlas(texture_atlas_positions.wall, draw_pos);
+        draw_wall(map, (cell_pos_t){.y = row, .x = col}, draw_pos);
         break;
       case EXPLOSION:
         blit_from_atlas(texture_atlas_positions.explosion, draw_pos);
         break;
       case PLAYER1:
-        blit_from_atlas(texture_atlas_positions.air, draw_pos);
         blit_from_atlas(texture_atlas_positions.player1, draw_pos);
         break;
       case PLAYER2:
