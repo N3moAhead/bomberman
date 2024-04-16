@@ -42,6 +42,16 @@ typedef enum block {
   AIR,
 } block_t;
 
+typedef enum block_variant_type {
+  CENTER_VARIANT,
+  LEFT_RIGHT_VARIANT,
+  TOP_BOTTOM_VARIANT,
+  BOTTOM_RIGHT_VARIANT,
+  TOP_RIGHT_VARIANT,
+  BOTTOM_LEFT_VARIANT,
+  TOP_LEFT_VARIANT,
+} block_variant_type_t;
+
 typedef struct bot_description {
   char author_name[50];
 } bot_description_t;

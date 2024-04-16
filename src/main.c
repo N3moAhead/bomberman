@@ -5,7 +5,7 @@
 #include "util/sdl_helper.h"
 #include "map.h"
 #include "players.h"
-#include "game_helper.h"
+#include "util/game_helper.h"
 #include "player1.h"
 #include "player2.h"
 #include "player3.h"

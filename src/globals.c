@@ -27,11 +27,11 @@ const atlas_positions_t texture_atlas_positions = {
   } , 
   .wall = {
     .x = 0,
-    .y = 0
+    .y = 32
   }, 
   .explosion = {
     .x = 0,
-    .y = 32
+    .y = 224
   } , 
   .air = {
     .x = 64,

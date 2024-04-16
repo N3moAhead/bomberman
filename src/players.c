@@ -3,7 +3,7 @@
 #include "players.h"
 #include "types.h"
 #include "constants.h"
-#include "player_helper.h"
+#include "util/player_helper.h"
 
 players_t *allocate_players()
 {

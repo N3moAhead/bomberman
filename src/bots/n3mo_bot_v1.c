@@ -2,7 +2,7 @@
 #include <string.h>
 #include "../types.h"
 #include "../constants.h"
-#include "../player_helper.h"
+#include "../util/player_helper.h"
 
 /**
  * Returns 0 or 1 based on if the given position is dangerous
