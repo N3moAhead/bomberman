@@ -117,14 +117,6 @@ void update_map(block_t **map)
        */
       switch (map[row][col])
       {
-      case PLAYER1:
-        break;
-      case PLAYER2:
-        break;
-      case PLAYER3:
-        break;
-      case PLAYER4:
-        break;
       case BOMB1:
         map[row][col] = BOMB2;
         break;
@@ -175,22 +167,6 @@ void update_map(block_t **map)
         add_explosion(map, row, col);
     }
   }
-}
-
-void add_players(block_t **map, players_t *players)
-{
-  // Player 1
-  if (players->player1.lives > 0)
-    map[players->player1.cell_pos.y][players->player1.cell_pos.x] = PLAYER1;
-  // Player 2
-  if (players->player2.lives > 0)
-    map[players->player2.cell_pos.y][players->player2.cell_pos.x] = PLAYER2;
-  // Player 3
-  if (players->player3.lives > 0)
-    map[players->player3.cell_pos.y][players->player3.cell_pos.x] = PLAYER3;
-  // Player 4
-  if (players->player4.lives > 0)
-    map[players->player4.cell_pos.y][players->player4.cell_pos.x] = PLAYER4;
 }
 
 /**

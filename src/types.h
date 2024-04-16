@@ -18,10 +18,6 @@ typedef enum player_action {
 } player_action_t;
 
 typedef enum block {
-  PLAYER1,
-  PLAYER2,
-  PLAYER3,
-  PLAYER4,
   /**
    * Bombs explode after 10 stages.
    * Each bomb gets updated after each tick and explode
