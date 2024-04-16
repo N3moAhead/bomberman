@@ -155,41 +155,75 @@ static void draw_players(players_t players)
   }
 }
 
-void display_map(block_t **map, players_t players)
+static void draw_map(block_t **map, players_t players, int animation_value, int game_round)
 {
-  for (int row = 0; row < MAP_HEIGHT; row++)
   {
-    for (int col = 0; col < MAP_WIDTH; col++)
+    for (int row = 0; row < MAP_HEIGHT; row++)
     {
-      vector_2d_t draw_pos = {
-          .y = row * DISPLAY_SPRITE_SIZE,
-          .x = col * DISPLAY_SPRITE_SIZE,
-      };
-      blit_from_atlas(texture_atlas_positions.air, draw_pos);
-      switch (map[row][col])
+      for (int col = 0; col < MAP_WIDTH; col++)
       {
-      case AIR:
-        break;
-      case BOMB1:
-      case BOMB2:
-      case BOMB3:
-      case BOMB4:
-      case BOMB5:
-      case BOMB6:
-      case BOMB7:
-      case BOMB8:
-      case BOMB9:
-      case BOMB10:
-        blit_from_atlas(texture_atlas_positions.bomb, draw_pos);
-        break;
-      case WALL:
-        draw_wall(map, (cell_pos_t){.y = row, .x = col}, draw_pos);
-        break;
-      case EXPLOSION:
-        blit_from_atlas(texture_atlas_positions.explosion, draw_pos);
-        break;
+        vector_2d_t draw_pos = {
+            .y = row * DISPLAY_SPRITE_SIZE,
+            .x = col * DISPLAY_SPRITE_SIZE,
+        };
+        blit_from_atlas(texture_atlas_positions.air, draw_pos);
+        switch (map[row][col])
+        {
+        case AIR:
+          break;
+        case BOMB1:
+        case BOMB2:
+        case BOMB3:
+        case BOMB4:
+        case BOMB5:
+        case BOMB6:
+        case BOMB7:
+        case BOMB8:
+        case BOMB9:
+        case BOMB10:
+          blit_from_atlas((vector_2d_t){.y = texture_atlas_positions.bomb.y, .x = (game_round % 3) * ASSET_SPRITE_SIZE}, draw_pos);
+          break;
+        case WALL:
+          draw_wall(map, (cell_pos_t){.y = row, .x = col}, draw_pos);
+          break;
+        case EXPLOSION:
+          blit_from_atlas(texture_atlas_positions.explosion, draw_pos);
+          break;
+        }
       }
     }
+    draw_players(players);
   }
-  draw_players(players);
+}
+
+// Ive copied this function from this tutorial :/
+// https://www.parallelrealities.co.uk/tutorials/shooter/shooter5.php
+static void cap_frame_rate(long *then, float *remainder)
+{
+  long wait, frame_time;
+  // 33 cause 1000 / 30 ~ 33 To achieve 30 fps
+  wait = 33 + *remainder;
+  *remainder -= (int)*remainder;
+  frame_time = SDL_GetTicks() - *then;
+  wait -= frame_time;
+  if (wait < 1)
+  {
+    wait = 1;
+  }
+  SDL_Delay(wait);
+  *remainder += 0.667;
+  *then = SDL_GetTicks();
+}
+
+void display_map(block_t **map, players_t players, int game_round)
+{
+  long then = SDL_GetTicks();
+  float remainder = 0;
+  for (int i = 0; i < 9; i++)
+  {
+    cap_frame_rate(&then, &remainder);
+    prepare_scene();
+    draw_map(map, players, i, game_round);
+    present_scene();
+  }
 }
