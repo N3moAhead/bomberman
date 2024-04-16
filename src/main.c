@@ -5,7 +5,6 @@
 #include "util/sdl_helper.h"
 #include "map.h"
 #include "players.h"
-#include "util/game_helper.h"
 #include "player1.h"
 #include "player2.h"
 #include "player3.h"
@@ -121,24 +120,10 @@ int main()
     {
       game_is_running = 0;
     }
-    // SLEEP FOR A MOMENT
-    delay();
     // DISPLAYING THE MAP
-    /**
-     * Im reusing the player map here to save a bit of memory
-     * if I figure out that it is a bad idea i will change it later on
-     */
     copy_map(map_copy, map);
     copy_players(players_copy, players);
-    /**
-     * Players are just added for display because players can stand on bombs
-     * or explosions. bombs or explosions and I don't want to have to deal with
-     * bugs because the game could not detect a bomb because the player was standing on it.
-     * So I just add them to the map for the display function.
-     */
-    prepare_scene();
-    display_map(map_copy, *players);
-    present_scene();
+    display_map(map_copy, *players, game_round);
     game_round++;
   }
   return 0;
