@@ -1,6 +1,6 @@
 #include "player_helper.h"
-#include "constants.h"
-#include "types.h"
+#include "../constants.h"
+#include "../types.h"
 
 /**
  * Returns an absoluted integer for an given int

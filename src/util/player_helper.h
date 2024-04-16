@@ -1,6 +1,6 @@
 #ifndef PLAYER_HELPER_H
 #define PLAYER_HELPER_H
-#include "types.h"
+#include "../types.h"
 
 int abs_int(int value);
 int get_distance(cell_pos_t from, cell_pos_t to);
