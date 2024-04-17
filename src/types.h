@@ -39,6 +39,7 @@ typedef enum block {
 } block_t;
 
 typedef enum block_variant_type {
+  ALONE_VARIANT,
   CENTER_VARIANT,
   LEFT_RIGHT_VARIANT,
   TOP_BOTTOM_VARIANT,
@@ -46,6 +47,14 @@ typedef enum block_variant_type {
   TOP_RIGHT_VARIANT,
   BOTTOM_LEFT_VARIANT,
   TOP_LEFT_VARIANT,
+  TOP_END_VARIANT,
+  RIGHT_END_VARIANT,
+  BOTTOM_END_VARIANT,
+  LEFT_END_VARIANT,
+  TOP_BOT_LEFT_VARIANT,
+  TOP_RIGHT_LEFT_VARIANT,
+  TOP_RIGHT_BOT_VARIANT,
+  RIGHT_BOT_LEFT_VARIANT,
 } block_variant_type_t;
 
 typedef struct bot_description {
