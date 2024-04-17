@@ -64,10 +64,12 @@ static block_variant_type_t get_block_variant(block_t **map, cell_pos_t pos)
   block_t right = pos.x + 1 < MAP_WIDTH ? map[pos.y][pos.x + 1] : AIR;
   block_t bottom = pos.y + 1 < MAP_HEIGHT ? map[pos.y + 1][pos.x] : AIR;
   block_t left = pos.x - 1 >= 0 ? map[pos.y][pos.x - 1] : AIR;
-  // CENTER_VARIANT
+  if (top == block && right == block && bottom == block && left == block)
+    return CENTER_VARIANT;
+  // ALONE_VARIANT
   if (top != block && right != block && bottom != block && left != block)
   {
-    return CENTER_VARIANT;
+    return ALONE_VARIANT;
   }
   // LEFT_RIGHT_VARIANT
   if (top != block && right == block && bottom != block && left == block)
@@ -99,9 +101,118 @@ static block_variant_type_t get_block_variant(block_t **map, cell_pos_t pos)
   {
     return TOP_LEFT_VARIANT;
   }
+  // TOP_END_VARIANT
+  if (top == block && right != block && bottom != block && left != block)
+    return TOP_END_VARIANT;
+  // RIGHT_END_VARIANT
+  if (top != block && right == block && bottom != block && left != block)
+    return RIGHT_END_VARIANT;
+  // BOTTOM_END_VARIANT
+  if (top != block && right != block && bottom == block && left != block)
+    return BOTTOM_END_VARIANT;
+  // LEFT_END_VARIANT
+  if (top != block && right != block && bottom != block && left == block)
+    return LEFT_END_VARIANT;
+  // TOP_BOT_LEFT_VARIANT
+  if (top == block && right != block && bottom == block && left == block)
+    return TOP_BOT_LEFT_VARIANT;
+  // TOP_RIGHT_LEFT_VARIANT
+  if (top == block && right == block && bottom != block && left == block)
+    return TOP_RIGHT_LEFT_VARIANT;
+  // TOP_RIGHT_BOT_VARIANT
+  if (top == block && right == block && bottom == block && left != block)
+    return TOP_RIGHT_BOT_VARIANT;
+  // RIGHT_BOT_LEFT_VARIANT
+  if (top != block && right == block && bottom == block && left == block)
+    return RIGHT_BOT_LEFT_VARIANT;
 
   printf("Could not make a decision in get_block_variant");
   exit(EXIT_FAILURE);
+}
+
+static void draw_explosion(block_t **map, cell_pos_t pos, vector_2d_t draw_pos, int animation_value)
+{
+  block_variant_type_t variant = get_block_variant(map, pos);
+  vector_2d_t atlas_pos;
+  switch (variant)
+  {
+  case CENTER_VARIANT:
+    atlas_pos = (vector_2d_t){
+        .x = ((int)(animation_value / 3)) * ASSET_SPRITE_SIZE,
+        .y = 7 * ASSET_SPRITE_SIZE};
+    break;
+  case LEFT_RIGHT_VARIANT:
+    atlas_pos = (vector_2d_t){
+        .x = (animation_value / 3) * ASSET_SPRITE_SIZE,
+        .y = 9 * ASSET_SPRITE_SIZE};
+    break;
+  case TOP_BOTTOM_VARIANT:
+    atlas_pos = (vector_2d_t){
+        .x = (animation_value / 3) * ASSET_SPRITE_SIZE,
+        .y = 8 * ASSET_SPRITE_SIZE};
+    break;
+  case BOTTOM_RIGHT_VARIANT:
+    atlas_pos = (vector_2d_t){
+        .x = ((animation_value / 3) * ASSET_SPRITE_SIZE) + (3 * ASSET_SPRITE_SIZE),
+        .y = 10 * ASSET_SPRITE_SIZE};
+    break;
+  case TOP_RIGHT_VARIANT:
+    atlas_pos = (vector_2d_t){
+        .x = ((animation_value / 3) * ASSET_SPRITE_SIZE) + (3 * ASSET_SPRITE_SIZE),
+        .y = 9 * ASSET_SPRITE_SIZE};
+    break;
+  case BOTTOM_LEFT_VARIANT:
+    atlas_pos = (vector_2d_t){
+        .x = ((animation_value / 3) * ASSET_SPRITE_SIZE) + (3 * ASSET_SPRITE_SIZE),
+        .y = 7 * ASSET_SPRITE_SIZE};
+    break;
+  case TOP_LEFT_VARIANT:
+    atlas_pos = (vector_2d_t){
+        .x = ((animation_value / 3) * ASSET_SPRITE_SIZE) + (3 * ASSET_SPRITE_SIZE),
+        .y = 8 * ASSET_SPRITE_SIZE};
+    break;
+  case TOP_END_VARIANT:
+    atlas_pos = (vector_2d_t){
+        .x = (animation_value / 3) * ASSET_SPRITE_SIZE,
+        .y = 12 * ASSET_SPRITE_SIZE};
+    break;
+  case RIGHT_END_VARIANT:
+    atlas_pos = (vector_2d_t){
+        .x = (animation_value / 3) * ASSET_SPRITE_SIZE,
+        .y = 13 * ASSET_SPRITE_SIZE};
+    break;
+  case BOTTOM_END_VARIANT:
+    atlas_pos = (vector_2d_t){
+        .x = (animation_value / 3) * ASSET_SPRITE_SIZE,
+        .y = 10 * ASSET_SPRITE_SIZE};
+    break;
+  case LEFT_END_VARIANT:
+    atlas_pos = (vector_2d_t){
+        .x = (animation_value / 3) * ASSET_SPRITE_SIZE,
+        .y = 11 * ASSET_SPRITE_SIZE};
+    break;
+  case TOP_BOT_LEFT_VARIANT:
+    atlas_pos = (vector_2d_t){
+        .x = ((animation_value / 3) * ASSET_SPRITE_SIZE) + (3 * ASSET_SPRITE_SIZE),
+        .y = 11 * ASSET_SPRITE_SIZE};
+    break;
+  case TOP_RIGHT_LEFT_VARIANT:
+    atlas_pos = (vector_2d_t){
+        .x = ((animation_value / 3) * ASSET_SPRITE_SIZE) + (3 * ASSET_SPRITE_SIZE),
+        .y = 12 * ASSET_SPRITE_SIZE};
+    break;
+  case TOP_RIGHT_BOT_VARIANT:
+    atlas_pos = (vector_2d_t){
+        .x = ((animation_value / 3) * ASSET_SPRITE_SIZE) + (3 * ASSET_SPRITE_SIZE),
+        .y = 13 * ASSET_SPRITE_SIZE};
+    break;
+  case RIGHT_BOT_LEFT_VARIANT:
+    atlas_pos = (vector_2d_t){
+        .x = ((animation_value / 3) * ASSET_SPRITE_SIZE) + (3 * ASSET_SPRITE_SIZE),
+        .y = 14 * ASSET_SPRITE_SIZE};
+    break;
+  }
+  blit_from_atlas(atlas_pos, draw_pos);
 }
 
 static void draw_wall(block_t **map, cell_pos_t pos, vector_2d_t draw_pos)
@@ -110,7 +221,7 @@ static void draw_wall(block_t **map, cell_pos_t pos, vector_2d_t draw_pos)
   vector_2d_t atlas_pos = texture_atlas_positions.wall;
   switch (variant)
   {
-  case CENTER_VARIANT:
+  case ALONE_VARIANT:
     atlas_pos.x = ASSET_SPRITE_SIZE * 6;
     break;
   case LEFT_RIGHT_VARIANT:
@@ -130,6 +241,10 @@ static void draw_wall(block_t **map, cell_pos_t pos, vector_2d_t draw_pos)
     break;
   case TOP_LEFT_VARIANT:
     atlas_pos.x = ASSET_SPRITE_SIZE * 5;
+    break;
+  default:
+    // Lets just draw the center variant for now!
+    atlas_pos.x = ASSET_SPRITE_SIZE * 6;
     break;
   }
   blit_from_atlas(atlas_pos, draw_pos);
@@ -187,7 +302,7 @@ static void draw_map(block_t **map, players_t players, int animation_value, int 
           draw_wall(map, (cell_pos_t){.y = row, .x = col}, draw_pos);
           break;
         case EXPLOSION:
-          blit_from_atlas(texture_atlas_positions.explosion, draw_pos);
+          draw_explosion(map, (cell_pos_t){.y = row, .x = col}, draw_pos, animation_value);
           break;
         }
       }
