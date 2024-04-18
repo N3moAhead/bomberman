@@ -250,39 +250,57 @@ static void draw_wall(block_t **map, cell_pos_t pos, vector_2d_t draw_pos)
   blit_from_atlas(atlas_pos, draw_pos);
 }
 
-static void draw_players(players_t players, int animation_value)
+static int get_player_animation_movement_offset(player_action_t pl_act)
 {
+  switch (pl_act)
+  {
+  case MOVE_UP:
+    return (9 * ASSET_SPRITE_SIZE);
+  case MOVE_RIGHT:
+    return (6 * ASSET_SPRITE_SIZE);
+  case MOVE_LEFT:
+    return (3 * ASSET_SPRITE_SIZE);
+  case MOVE_DOWN:
+  case PLANT_BOMB:
+  case NONE:
+    return 0;
+  }
+}
+
+static void draw_players(players_t players, int animation_value, player_action_t pl1_act, player_action_t pl2_act, player_action_t pl3_act, player_action_t pl4_act)
+{
+  int animation_offset = ((int)(animation_value / 3)) * ASSET_SPRITE_SIZE;
   if (players.player1.lives > 0)
   {
     blit_from_atlas((vector_2d_t){
                         .y = texture_atlas_positions.player1.y,
-                        .x = ((int)(animation_value / 3)) * ASSET_SPRITE_SIZE},
+                        .x = animation_offset + get_player_animation_movement_offset(pl1_act)},
                     (vector_2d_t){.x = players.player1.cell_pos.x * DISPLAY_SPRITE_SIZE, .y = players.player1.cell_pos.y * DISPLAY_SPRITE_SIZE});
   }
   if (players.player2.lives > 0)
   {
     blit_from_atlas((vector_2d_t){
                         .y = texture_atlas_positions.player2.y,
-                        .x = ((int)(animation_value / 3)) * ASSET_SPRITE_SIZE},
+                        .x = animation_offset + get_player_animation_movement_offset(pl2_act)},
                     (vector_2d_t){.x = players.player2.cell_pos.x * DISPLAY_SPRITE_SIZE, .y = players.player2.cell_pos.y * DISPLAY_SPRITE_SIZE});
   }
   if (players.player3.lives > 0)
   {
     blit_from_atlas((vector_2d_t){
                         .y = texture_atlas_positions.player3.y,
-                        .x = ((int)(animation_value / 3)) * ASSET_SPRITE_SIZE},
+                        .x = animation_offset + get_player_animation_movement_offset(pl3_act)},
                     (vector_2d_t){.x = players.player3.cell_pos.x * DISPLAY_SPRITE_SIZE, .y = players.player3.cell_pos.y * DISPLAY_SPRITE_SIZE});
   }
   if (players.player4.lives > 0)
   {
     blit_from_atlas((vector_2d_t){
                         .y = texture_atlas_positions.player4.y,
-                        .x = ((int)(animation_value / 3)) * ASSET_SPRITE_SIZE},
+                        .x = animation_offset + get_player_animation_movement_offset(pl4_act)},
                     (vector_2d_t){.x = players.player4.cell_pos.x * DISPLAY_SPRITE_SIZE, .y = players.player4.cell_pos.y * DISPLAY_SPRITE_SIZE});
   }
 }
 
-static void draw_map(block_t **map, players_t players, int animation_value)
+static void draw_map(block_t **map, int animation_value)
 {
   {
     for (int row = 0; row < MAP_HEIGHT; row++)
@@ -319,7 +337,6 @@ static void draw_map(block_t **map, players_t players, int animation_value)
         }
       }
     }
-    draw_players(players, animation_value);
   }
 }
 
@@ -342,7 +359,7 @@ static void cap_frame_rate(long *then, float *remainder)
   *then = SDL_GetTicks();
 }
 
-void display_map(block_t **map, players_t players)
+void display_map(block_t **map, players_t players, player_action_t pl1_act, player_action_t pl2_act, player_action_t pl3_act, player_action_t pl4_act)
 {
   long then = SDL_GetTicks();
   float remainder = 0;
@@ -350,7 +367,8 @@ void display_map(block_t **map, players_t players)
   {
     cap_frame_rate(&then, &remainder);
     prepare_scene();
-    draw_map(map, players, i);
+    draw_map(map, i);
+    draw_players(players, i, pl1_act, pl2_act, pl3_act, pl4_act);
     present_scene();
   }
 }
