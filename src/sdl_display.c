@@ -282,7 +282,7 @@ static void draw_players(players_t players, int animation_value)
   }
 }
 
-static void draw_map(block_t **map, players_t players, int animation_value, int game_round)
+static void draw_map(block_t **map, players_t players, int animation_value)
 {
   {
     for (int row = 0; row < MAP_HEIGHT; row++)
@@ -342,7 +342,7 @@ static void cap_frame_rate(long *then, float *remainder)
   *then = SDL_GetTicks();
 }
 
-void display_map(block_t **map, players_t players, int game_round)
+void display_map(block_t **map, players_t players)
 {
   long then = SDL_GetTicks();
   float remainder = 0;
@@ -350,7 +350,7 @@ void display_map(block_t **map, players_t players, int game_round)
   {
     cap_frame_rate(&then, &remainder);
     prepare_scene();
-    draw_map(map, players, i, game_round);
+    draw_map(map, players, i);
     present_scene();
   }
 }
