@@ -7,7 +7,7 @@
 
 /** SDL SETTINGS **/
 // Window size zoom
-#define WINDOW_ZOOM 2
+#define WINDOW_ZOOM 3
 // The size of the source sprites
 #define ASSET_SPRITE_SIZE 32
 // The size of the sprites to print to the screen
