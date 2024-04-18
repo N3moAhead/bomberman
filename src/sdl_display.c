@@ -260,11 +260,40 @@ static int get_player_animation_movement_offset(player_action_t pl_act)
     return (6 * ASSET_SPRITE_SIZE);
   case MOVE_LEFT:
     return (3 * ASSET_SPRITE_SIZE);
+  case NONE:
+    return ASSET_SPRITE_SIZE;
   case MOVE_DOWN:
   case PLANT_BOMB:
-  case NONE:
     return 0;
   }
+}
+
+static vector_2d_t get_player_draw_pos(player_t player, player_action_t pl_act, int anim_value)
+{
+  vector_2d_t draw_pos = {
+      .x = player.cell_pos.x * DISPLAY_SPRITE_SIZE,
+      .y = player.cell_pos.y * DISPLAY_SPRITE_SIZE};
+  int move_distance = (int)DISPLAY_SPRITE_SIZE / 9;
+  int movement = move_distance * (anim_value + 1);
+  switch (pl_act)
+  {
+  case MOVE_UP:
+    draw_pos.y -= movement;
+    break;
+  case MOVE_RIGHT:
+    draw_pos.x += movement;
+    break;
+  case MOVE_LEFT:
+    draw_pos.x -= movement;
+    break;
+  case MOVE_DOWN:
+    draw_pos.y += movement;
+    break;
+  case PLANT_BOMB:
+  case NONE:
+    break;
+  }
+  return draw_pos;
 }
 
 static void draw_players(players_t players, int animation_value, player_action_t pl1_act, player_action_t pl2_act, player_action_t pl3_act, player_action_t pl4_act)
@@ -274,29 +303,29 @@ static void draw_players(players_t players, int animation_value, player_action_t
   {
     blit_from_atlas((vector_2d_t){
                         .y = texture_atlas_positions.player1.y,
-                        .x = animation_offset + get_player_animation_movement_offset(pl1_act)},
-                    (vector_2d_t){.x = players.player1.cell_pos.x * DISPLAY_SPRITE_SIZE, .y = players.player1.cell_pos.y * DISPLAY_SPRITE_SIZE});
+                        .x = (pl1_act == NONE ? 0 : animation_offset) + get_player_animation_movement_offset(pl1_act)},
+                    get_player_draw_pos(players.player1, pl1_act, animation_value));
   }
   if (players.player2.lives > 0)
   {
     blit_from_atlas((vector_2d_t){
                         .y = texture_atlas_positions.player2.y,
-                        .x = animation_offset + get_player_animation_movement_offset(pl2_act)},
-                    (vector_2d_t){.x = players.player2.cell_pos.x * DISPLAY_SPRITE_SIZE, .y = players.player2.cell_pos.y * DISPLAY_SPRITE_SIZE});
+                        .x = (pl2_act == NONE ? 0 : animation_offset) + get_player_animation_movement_offset(pl2_act)},
+                    get_player_draw_pos(players.player2, pl2_act, animation_value));
   }
   if (players.player3.lives > 0)
   {
     blit_from_atlas((vector_2d_t){
                         .y = texture_atlas_positions.player3.y,
-                        .x = animation_offset + get_player_animation_movement_offset(pl3_act)},
-                    (vector_2d_t){.x = players.player3.cell_pos.x * DISPLAY_SPRITE_SIZE, .y = players.player3.cell_pos.y * DISPLAY_SPRITE_SIZE});
+                        .x = (pl3_act == NONE ? 0 : animation_offset) + get_player_animation_movement_offset(pl3_act)},
+                    get_player_draw_pos(players.player3, pl3_act, animation_value));
   }
   if (players.player4.lives > 0)
   {
     blit_from_atlas((vector_2d_t){
                         .y = texture_atlas_positions.player4.y,
-                        .x = animation_offset + get_player_animation_movement_offset(pl4_act)},
-                    (vector_2d_t){.x = players.player4.cell_pos.x * DISPLAY_SPRITE_SIZE, .y = players.player4.cell_pos.y * DISPLAY_SPRITE_SIZE});
+                        .x = (pl4_act == NONE ? 0 : animation_offset) + get_player_animation_movement_offset(pl4_act)},
+                    get_player_draw_pos(players.player4, pl4_act, animation_value));
   }
 }
 
