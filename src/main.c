@@ -103,6 +103,9 @@ int main()
 
     // UPDATE THE MAP
     update_map(map);
+    // DISPLAYING THE MAP
+    copy_map(map_copy, map);
+    display_map(map_copy, *players);
     // ADD THE PLAYER INPUT TO THE MAP
     apply_player_input(map, &players->player1, player1_action);
     apply_player_input(map, &players->player2, player2_action);
@@ -120,10 +123,6 @@ int main()
     {
       game_is_running = 0;
     }
-    // DISPLAYING THE MAP
-    copy_map(map_copy, map);
-    copy_players(players_copy, players);
-    display_map(map_copy, *players, game_round);
     game_round++;
   }
   return 0;
