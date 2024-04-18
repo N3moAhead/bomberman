@@ -105,7 +105,8 @@ int main()
     update_map(map);
     // DISPLAYING THE MAP
     copy_map(map_copy, map);
-    display_map(map_copy, *players);
+    // TODO Find a better way to pass the player actions
+    display_map(map_copy, *players, player1_action, player2_action, player3_action, player4_action);
     // ADD THE PLAYER INPUT TO THE MAP
     apply_player_input(map, &players->player1, player1_action);
     apply_player_input(map, &players->player2, player2_action);
