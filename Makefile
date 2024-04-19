@@ -3,8 +3,8 @@ SRC_FILES := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
 OBJ_FILES := $(patsubst %.c,%.o,$(SRC_FILES))
 
 CC := gcc
-CFLAGS := -Wall -Wextra -lSDL2 -lSDL2_image -g
-LDFLAGS := -lSDL2 -lSDL2_image
+CFLAGS := -Wall -Wextra -lSDL2 -lSDL2_image -lSDL2_ttf -g
+LDFLAGS := -lSDL2 -lSDL2_image -lSDL2_ttf
 
 ifeq ($(OS),Windows_NT)
 	EXECUTABLE := game.exe

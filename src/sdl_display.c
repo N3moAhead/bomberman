@@ -347,6 +347,7 @@ static void draw_players(block_t **map, players_t players, int animation_value, 
                         .y = texture_atlas_positions.player1.y,
                         .x = (pl1_act == NONE && !will_die ? 0 : animation_offset) + (will_die ? 12 * ASSET_SPRITE_SIZE : get_player_animation_movement_offset(pl1_act))},
                     player1_draw_pos);
+    display_text(players.player1.bot_description.author_name, player1_draw_pos);
   }
   if (players.player2.lives > 0)
   {
@@ -358,6 +359,7 @@ static void draw_players(block_t **map, players_t players, int animation_value, 
                         .y = texture_atlas_positions.player2.y,
                         .x = (pl2_act == NONE && !will_die ? 0 : animation_offset) + (will_die ? 12 * ASSET_SPRITE_SIZE : get_player_animation_movement_offset(pl2_act))},
                     player2_draw_pos);
+    display_text(players.player2.bot_description.author_name, player2_draw_pos);
   }
   if (players.player3.lives > 0)
   {
@@ -369,6 +371,7 @@ static void draw_players(block_t **map, players_t players, int animation_value, 
                         .y = texture_atlas_positions.player3.y,
                         .x = (pl3_act == NONE && !will_die ? 0 : animation_offset) + (will_die ? 12 * ASSET_SPRITE_SIZE : get_player_animation_movement_offset(pl3_act))},
                     player3_draw_pos);
+    display_text(players.player3.bot_description.author_name, player3_draw_pos);
   }
   if (players.player4.lives > 0)
   {
@@ -380,6 +383,7 @@ static void draw_players(block_t **map, players_t players, int animation_value, 
                         .y = texture_atlas_positions.player4.y,
                         .x = (pl4_act == NONE && !will_die ? 0 : animation_offset) + (will_die ? 12 * ASSET_SPRITE_SIZE : get_player_animation_movement_offset(pl4_act))},
                     get_player_draw_pos(players.player4, pl4_act, animation_value));
+    display_text(players.player4.bot_description.author_name, player4_draw_pos);
   }
 }
 
