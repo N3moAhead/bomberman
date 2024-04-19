@@ -296,9 +296,42 @@ static vector_2d_t get_player_draw_pos(player_t player, player_action_t pl_act, 
   return draw_pos;
 }
 
-static char will_player_die(block_t **map, player_t player)
+static char will_player_get_dmg(block_t **map, player_t player)
 {
-  return (player.lives == 1 && map[player.cell_pos.y][player.cell_pos.x] == EXPLOSION);
+  return (map[player.cell_pos.y][player.cell_pos.x] == EXPLOSION);
+}
+
+static void draw_lives(player_t player, vector_2d_t player_draw_pos, char will_get_dmg, int anim_val)
+{
+  vector_2d_t asset_heart_size = {
+      .x = ASSET_SPRITE_SIZE / 2,
+      .y = ASSET_SPRITE_SIZE / 2};
+  vector_2d_t draw_heart_size = {
+      .x = (int)((asset_heart_size.x * WINDOW_ZOOM) / 2),
+      .y = (int)((asset_heart_size.y * WINDOW_ZOOM) / 2)};
+  int draw_total_size = MAX_LIVES * draw_heart_size.x;
+  // The offset of the lives to center them above the player
+  int draw_offset = (int)((DISPLAY_SPRITE_SIZE - draw_total_size) / 2);
+  vector_2d_t hearts = {
+      .x = 3 * ASSET_SPRITE_SIZE,
+      .y = 0};
+  vector_2d_t draw_pos = {
+      .y = player_draw_pos.y - draw_heart_size.x,
+      .x = player_draw_pos.x + draw_offset};
+  for (int i = 0; i < MAX_LIVES; i++)
+  {
+    if (i < player.lives && !(i + 1 == player.lives && will_get_dmg && anim_val % 3 == 0))
+    {
+      // Draw Heart
+      blit_custom_from_atlas(hearts, asset_heart_size, draw_pos, draw_heart_size);
+    }
+    else
+    {
+      // Draw Empty Heart
+      blit_custom_from_atlas((vector_2d_t){.x = hearts.x + asset_heart_size.x, .y = hearts.y}, asset_heart_size, draw_pos, draw_heart_size);
+    }
+    draw_pos.x += draw_heart_size.x;
+  }
 }
 
 static void draw_players(block_t **map, players_t players, int animation_value, player_action_t pl1_act, player_action_t pl2_act, player_action_t pl3_act, player_action_t pl4_act)
@@ -306,31 +339,43 @@ static void draw_players(block_t **map, players_t players, int animation_value, 
   int animation_offset = ((int)(animation_value / 3)) * ASSET_SPRITE_SIZE;
   if (players.player1.lives > 0)
   {
-    char will_die = will_player_die(map, players.player1);
+    vector_2d_t player1_draw_pos = get_player_draw_pos(players.player1, pl1_act, animation_value);
+    char will_get_dmg = will_player_get_dmg(map, players.player1);
+    char will_die = (players.player1.lives == 1 && will_get_dmg);
+    draw_lives(players.player1, player1_draw_pos, will_get_dmg, animation_value);
     blit_from_atlas((vector_2d_t){
                         .y = texture_atlas_positions.player1.y,
                         .x = (pl1_act == NONE && !will_die ? 0 : animation_offset) + (will_die ? 12 * ASSET_SPRITE_SIZE : get_player_animation_movement_offset(pl1_act))},
-                    get_player_draw_pos(players.player1, pl1_act, animation_value));
+                    player1_draw_pos);
   }
   if (players.player2.lives > 0)
   {
-    char will_die = will_player_die(map, players.player2);
+    vector_2d_t player2_draw_pos = get_player_draw_pos(players.player2, pl2_act, animation_value);
+    char will_get_dmg = will_player_get_dmg(map, players.player2);
+    char will_die = (players.player2.lives == 1 && will_get_dmg);
+    draw_lives(players.player2, player2_draw_pos, will_get_dmg, animation_value);
     blit_from_atlas((vector_2d_t){
                         .y = texture_atlas_positions.player2.y,
                         .x = (pl2_act == NONE && !will_die ? 0 : animation_offset) + (will_die ? 12 * ASSET_SPRITE_SIZE : get_player_animation_movement_offset(pl2_act))},
-                    get_player_draw_pos(players.player2, pl2_act, animation_value));
+                    player2_draw_pos);
   }
   if (players.player3.lives > 0)
   {
-    char will_die = will_player_die(map, players.player3);
+    vector_2d_t player3_draw_pos = get_player_draw_pos(players.player3, pl3_act, animation_value);
+    char will_get_dmg = will_player_get_dmg(map, players.player3);
+    char will_die = (players.player3.lives == 1 && will_get_dmg);
+    draw_lives(players.player3, player3_draw_pos, will_get_dmg, animation_value);
     blit_from_atlas((vector_2d_t){
                         .y = texture_atlas_positions.player3.y,
-                        .x = (pl3_act == NONE && !will_die ? 0 : animation_offset) + (will_die ? 12 * ASSET_SPRITE_SIZE :get_player_animation_movement_offset(pl3_act))},
-                    get_player_draw_pos(players.player3, pl3_act, animation_value));
+                        .x = (pl3_act == NONE && !will_die ? 0 : animation_offset) + (will_die ? 12 * ASSET_SPRITE_SIZE : get_player_animation_movement_offset(pl3_act))},
+                    player3_draw_pos);
   }
   if (players.player4.lives > 0)
   {
-    char will_die = will_player_die(map, players.player4);
+    vector_2d_t player4_draw_pos = get_player_draw_pos(players.player4, pl4_act, animation_value);
+    char will_get_dmg = will_player_get_dmg(map, players.player4);
+    char will_die = (players.player4.lives == 1 && will_get_dmg);
+    draw_lives(players.player4, player4_draw_pos, will_get_dmg, animation_value);
     blit_from_atlas((vector_2d_t){
                         .y = texture_atlas_positions.player4.y,
                         .x = (pl4_act == NONE && !will_die ? 0 : animation_offset) + (will_die ? 12 * ASSET_SPRITE_SIZE : get_player_animation_movement_offset(pl4_act))},

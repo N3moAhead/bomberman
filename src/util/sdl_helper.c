@@ -46,6 +46,23 @@ void blit_from_atlas(vector_2d_t atlas_pos, vector_2d_t draw_pos)
   SDL_RenderCopy(renderer, texture_atlas, &src, &dest);
 }
 
+void blit_custom_from_atlas(vector_2d_t atlas_pos, vector_2d_t atlas_size, vector_2d_t draw_pos, vector_2d_t draw_size)
+{
+  SDL_Rect src = {
+    .x = atlas_pos.x,
+    .y = atlas_pos.y,
+    .w = atlas_size.x,
+    .h = atlas_size.y
+  };
+  SDL_Rect dest = {
+    .x = draw_pos.x,
+    .y = draw_pos.y,
+    .w = draw_size.x,
+    .h = draw_size.y
+  };
+  SDL_RenderCopy(renderer, texture_atlas, &src, &dest);
+}
+
 static void init_sdl_window()
 {
   window = SDL_CreateWindow(
