@@ -8,5 +8,6 @@ void blit(sprite_t sprite);
 void setup_sdl();
 void blit_from_atlas(vector_2d_t atlas_pos, vector_2d_t draw_pos);
 void blit_custom_from_atlas(vector_2d_t atlas_pos, vector_2d_t atlas_size, vector_2d_t draw_pos, vector_2d_t draw_size);
+void display_text(char *text, vector_2d_t draw_pos);
 
 #endif
