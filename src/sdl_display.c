@@ -296,35 +296,44 @@ static vector_2d_t get_player_draw_pos(player_t player, player_action_t pl_act, 
   return draw_pos;
 }
 
-static void draw_players(players_t players, int animation_value, player_action_t pl1_act, player_action_t pl2_act, player_action_t pl3_act, player_action_t pl4_act)
+static char will_player_die(block_t **map, player_t player)
+{
+  return (player.lives == 1 && map[player.cell_pos.y][player.cell_pos.x] == EXPLOSION);
+}
+
+static void draw_players(block_t **map, players_t players, int animation_value, player_action_t pl1_act, player_action_t pl2_act, player_action_t pl3_act, player_action_t pl4_act)
 {
   int animation_offset = ((int)(animation_value / 3)) * ASSET_SPRITE_SIZE;
   if (players.player1.lives > 0)
   {
+    char will_die = will_player_die(map, players.player1);
     blit_from_atlas((vector_2d_t){
                         .y = texture_atlas_positions.player1.y,
-                        .x = (pl1_act == NONE ? 0 : animation_offset) + get_player_animation_movement_offset(pl1_act)},
+                        .x = (pl1_act == NONE && !will_die ? 0 : animation_offset) + (will_die ? 12 * ASSET_SPRITE_SIZE : get_player_animation_movement_offset(pl1_act))},
                     get_player_draw_pos(players.player1, pl1_act, animation_value));
   }
   if (players.player2.lives > 0)
   {
+    char will_die = will_player_die(map, players.player2);
     blit_from_atlas((vector_2d_t){
                         .y = texture_atlas_positions.player2.y,
-                        .x = (pl2_act == NONE ? 0 : animation_offset) + get_player_animation_movement_offset(pl2_act)},
+                        .x = (pl2_act == NONE && !will_die ? 0 : animation_offset) + (will_die ? 12 * ASSET_SPRITE_SIZE : get_player_animation_movement_offset(pl2_act))},
                     get_player_draw_pos(players.player2, pl2_act, animation_value));
   }
   if (players.player3.lives > 0)
   {
+    char will_die = will_player_die(map, players.player3);
     blit_from_atlas((vector_2d_t){
                         .y = texture_atlas_positions.player3.y,
-                        .x = (pl3_act == NONE ? 0 : animation_offset) + get_player_animation_movement_offset(pl3_act)},
+                        .x = (pl3_act == NONE && !will_die ? 0 : animation_offset) + (will_die ? 12 * ASSET_SPRITE_SIZE :get_player_animation_movement_offset(pl3_act))},
                     get_player_draw_pos(players.player3, pl3_act, animation_value));
   }
   if (players.player4.lives > 0)
   {
+    char will_die = will_player_die(map, players.player4);
     blit_from_atlas((vector_2d_t){
                         .y = texture_atlas_positions.player4.y,
-                        .x = (pl4_act == NONE ? 0 : animation_offset) + get_player_animation_movement_offset(pl4_act)},
+                        .x = (pl4_act == NONE && !will_die ? 0 : animation_offset) + (will_die ? 12 * ASSET_SPRITE_SIZE : get_player_animation_movement_offset(pl4_act))},
                     get_player_draw_pos(players.player4, pl4_act, animation_value));
   }
 }
@@ -397,7 +406,7 @@ void display_map(block_t **map, players_t players, player_action_t pl1_act, play
     cap_frame_rate(&then, &remainder);
     prepare_scene();
     draw_map(map, i);
-    draw_players(players, i, pl1_act, pl2_act, pl3_act, pl4_act);
+    draw_players(map, players, i, pl1_act, pl2_act, pl3_act, pl4_act);
     present_scene();
   }
 }
