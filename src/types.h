@@ -36,6 +36,7 @@ typedef enum block {
   WALL,
   EXPLOSION, 
   AIR,
+  BOX,
 } block_t;
 
 typedef enum block_variant_type {
@@ -90,6 +91,7 @@ typedef struct atlas_positions {
   vector_2d_t wall;
   vector_2d_t explosion; 
   vector_2d_t air;
+  vector_2d_t box;
 } atlas_positions_t;
 
 typedef struct player {

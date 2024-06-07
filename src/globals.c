@@ -38,5 +38,9 @@ const atlas_positions_t texture_atlas_positions = {
   .air = {
     .x = 64,
     .y = 0
-  }, 
+  },
+  .box = {
+    .y = 0,
+    .x = 32,
+  }
 };

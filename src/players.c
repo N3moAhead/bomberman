@@ -111,19 +111,19 @@ char validate_action(
   switch (player_action)
   {
   case MOVE_UP:
-    if (!is_wall(map, (cell_pos_t){.x = player->cell_pos.x, .y = player->cell_pos.y}))
+    if (!is_blocked(map, (cell_pos_t){.x = player->cell_pos.x, .y = player->cell_pos.y}))
       return 1;
     return 0;
   case MOVE_DOWN:
-    if (!is_wall(map, (cell_pos_t){.x = player->cell_pos.x, .y = player->cell_pos.y + 1}))
+    if (!is_blocked(map, (cell_pos_t){.x = player->cell_pos.x, .y = player->cell_pos.y + 1}))
       return 1;
     return 0;
   case MOVE_LEFT:
-    if (!is_wall(map, (cell_pos_t){.x = player->cell_pos.x - 1, .y = player->cell_pos.y}))
+    if (!is_blocked(map, (cell_pos_t){.x = player->cell_pos.x - 1, .y = player->cell_pos.y}))
       return 1;
     return 0;
   case MOVE_RIGHT:
-    if (!is_wall(map, (cell_pos_t){.x = player->cell_pos.x + 1, .y = player->cell_pos.y}))
+    if (!is_blocked(map, (cell_pos_t){.x = player->cell_pos.x + 1, .y = player->cell_pos.y}))
       return 1;
     return 0;
   case NONE:

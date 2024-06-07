@@ -8,5 +8,7 @@ int gated_int(int value, int max, int min);
 cell_pos_t get_gated_position(cell_pos_t pos);
 char is_bomb(block_t **map, cell_pos_t pos);
 char is_wall(block_t **map, cell_pos_t pos);
+char is_box(block_t **map, cell_pos_t pos);
+char is_blocked(block_t **map, cell_pos_t pos);
 
 #endif

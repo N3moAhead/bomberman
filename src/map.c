@@ -1,11 +1,30 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "map.h"
 #include "constants.h"
 #include "types.h"
 
+static char place_box(int row, int col)
+{
+  // No boxes around the player spawns
+  if (
+      // Player 1
+      (col == 1 && row == 1) || (col == 2 && row == 1) || (col == 1 && row == 2)
+      // Player 2
+      || (col == MAP_WIDTH - 3 && row == 1) || (col == MAP_WIDTH - 2 && row == 1) || (col == MAP_WIDTH - 2 && row == 2)
+      // Player 3
+      || (col == 1 && row == MAP_HEIGHT - 3) || (col == 1 && row == MAP_HEIGHT - 2) || (col == 2 && row == MAP_HEIGHT - 2)
+      // Player 4
+      || (col == MAP_WIDTH - 3 && row == MAP_HEIGHT - 2) || (col == MAP_WIDTH - 2 && row == MAP_HEIGHT - 2) || (col == MAP_WIDTH - 2 && row == MAP_HEIGHT - 3))
+    return 0;
+
+  return rand() % 100 < BOX_SPAWN_RATE;
+}
+
 block_t **init_map()
 {
+  srand(time(NULL));
   block_t **map = (block_t **)malloc(MAP_HEIGHT * sizeof(block_t *));
   for (int row = 0; row < MAP_HEIGHT; row++)
   {
@@ -24,6 +43,10 @@ block_t **init_map()
       else if (row % 2 == 0 && col % 2 == 0 && row > 0 && row < MAP_HEIGHT - 2 && col > 0 && col < MAP_WIDTH - 2)
       {
         map[row][col] = WALL;
+      }
+      else if (place_box(row, col))
+      {
+        map[row][col] = BOX;
       }
       else
       {
@@ -69,38 +92,38 @@ void add_explosion(block_t **map, int row, int col)
   // Top
   if (map[row - 1][col] != WALL)
   {
-    map[row - 1][col] = EXPLOSION;
-    if (map[row - 2][col] != WALL)
+    if (map[row - 2][col] != WALL && map[row - 1][col] != BOX)
     {
       map[row - 2][col] = EXPLOSION;
     }
+    map[row - 1][col] = EXPLOSION;
   }
   // Bottom
   if (map[row + 1][col] != WALL)
   {
-    map[row + 1][col] = EXPLOSION;
-    if (map[row + 2][col] != WALL)
+    if (map[row + 2][col] != WALL && map[row + 1][col] != BOX)
     {
       map[row + 2][col] = EXPLOSION;
     }
+    map[row + 1][col] = EXPLOSION;
   }
   // Right
   if (map[row][col + 1] != WALL)
   {
-    map[row][col + 1] = EXPLOSION;
-    if (map[row][col + 2] != WALL)
+    if (map[row][col + 2] != WALL && map[row][col + 1] != BOX)
     {
       map[row][col + 2] = EXPLOSION;
     }
+    map[row][col + 1] = EXPLOSION;
   }
   // Left
   if (map[row][col - 1] != WALL)
   {
-    map[row][col - 1] = EXPLOSION;
-    if (map[row][col - 2] != WALL)
+    if (map[row][col - 2] != WALL && map[row][col - 1] != BOX)
     {
       map[row][col - 2] = EXPLOSION;
     }
+    map[row][col - 1] = EXPLOSION;
   }
 }
 

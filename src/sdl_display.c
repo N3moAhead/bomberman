@@ -401,6 +401,9 @@ static void draw_map(block_t **map, int animation_value)
         blit_from_atlas(texture_atlas_positions.air, draw_pos);
         switch (map[row][col])
         {
+        case BOX:
+          blit_from_atlas(texture_atlas_positions.box, draw_pos);
+          break;
         case AIR:
           break;
         case BOMB1:
