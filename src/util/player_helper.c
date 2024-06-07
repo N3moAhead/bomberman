@@ -85,3 +85,23 @@ char is_wall(block_t **map, cell_pos_t pos)
   }
   return 0;
 }
+
+char is_box(block_t **map, cell_pos_t pos)
+{
+  cell_pos_t gated_pos = get_gated_position(pos);
+  if (map[gated_pos.y][gated_pos.x] == BOX)
+  {
+    return 1;
+  }
+  return 0;
+}
+
+char is_blocked(block_t **map, cell_pos_t pos)
+{
+  if (is_wall(map, pos) || is_box(map, pos))
+  {
+    return 1;
+  }
+  return 0;
+}
+

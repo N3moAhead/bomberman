@@ -1,7 +1,7 @@
 // Map Settings
 #define MAP_HEIGHT 11 // should be odd
 #define MAP_WIDTH 11 // should be odd
-
+#define BOX_SPAWN_RATE 90 // a percantage value from 0 to 100
 // Player Settings
 #define MAX_LIVES 3
 
