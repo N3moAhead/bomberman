@@ -64,7 +64,7 @@ Each player function can return one of six possible actions in each round to con
 - MOVE_UP: Moves the player a field up
 - MOVE_DOWN: Moves the player a field down
 - MOVE_LEFT: Moves the player a field to the left
-- MOVE_RIGHT: Moves the player field to the right
+- MOVE_RIGHT: Moves the player a field to the right
 - PLANT_BOMB: Places a bomb on the current field of the player
 - NONE: Do nothing
 
