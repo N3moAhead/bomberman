@@ -312,6 +312,16 @@ static char any_save_path(block_t **map, cell_pos_t pos, player_action_t moved, 
 
   return 0;
 }
+
+char box_around(block_t **map, cell_pos_t pos) {
+  if (map[pos.y + 1][pos.x] == BOX) return 1;
+  if (map[pos.y - 1][pos.x] == BOX) return 1;
+  if (map[pos.y][pos.x + 1] == BOX) return 1;
+  if (map[pos.y][pos.x - 1] == BOX) return 1;
+  
+  return 0;
+}
+
 /**
  * This function checks if its safe to plant a bomb
  *
@@ -326,7 +336,7 @@ static char any_save_path(block_t **map, cell_pos_t pos, player_action_t moved, 
 static player_action_t plant_bomb(block_t **map, player_t bot)
 {
   // I have to imagine that there is a bomb on the current field otherwise its probably always safe XD
-  block_t before = map[bot.cell_pos.y][bot.cell_pos.x]; 
+  block_t before = map[bot.cell_pos.y][bot.cell_pos.x];
   map[bot.cell_pos.y][bot.cell_pos.x] = BOMB1;
   // CHECK FOR A SAVE ESCAPE PATH
   // top
@@ -403,11 +413,15 @@ static player_action_t get_move_towards_enemy(block_t **map, players_t players, 
     }
   }
 
-  // Has to check if there is a way to escape when planting a bomb here
-  // im going to give him 3 turns and then he has to be safe if that is
-  // not possible im not allowing him to plant a bomb here
-  // this has to be implemented everywhere :smile: hahaha
-  return plant_bomb(map, bot);
+  if (box_around(map, bot.cell_pos)) {
+    // Has to check if there is a way to escape when planting a bomb here
+    // im going to give him 3 turns and then he has to be safe if that is
+    // not possible im not allowing him to plant a bomb here
+    // this has to be implemented everywhere :smile: hahaha
+    // return plant_bomb(map, bot);
+    return plant_bomb(map, bot);
+  }
+  return NONE;
 }
 
 player_action_t get_bot_move(block_t **map, players_t *players, int game_round, player_t bot)
