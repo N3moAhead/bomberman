@@ -76,153 +76,6 @@ static int get_distance_to_closest_bomb(block_t **map, cell_pos_t pos)
   return closest_distance;
 }
 
-/**
- * The current field is dangerous so the bot has to flee from this field
- * This function should return a direction to run away
- */
-static player_action_t get_flee_direction(block_t **map, player_t player)
-{
-  /**
-   * Lets first check the sourounding fields
-   * If one of the fields is save directly move there
-   */
-  if (is_flee_direction_safe(map, (cell_pos_t){
-                                      .x = player.cell_pos.x,
-                                      .y = player.cell_pos.y - 1}))
-  {
-    return MOVE_UP;
-  }
-  // down
-  if (is_flee_direction_safe(map, (cell_pos_t){
-                                      .x = player.cell_pos.x,
-                                      .y = player.cell_pos.y + 1}))
-  {
-    return MOVE_DOWN;
-  }
-  // left
-  if (is_flee_direction_safe(map, (cell_pos_t){
-                                      .x = player.cell_pos.x - 1,
-                                      .y = player.cell_pos.y}))
-  {
-    return MOVE_LEFT;
-  }
-  // right
-  if (is_flee_direction_safe(map, (cell_pos_t){
-                                      .x = player.cell_pos.x + 1,
-                                      .y = player.cell_pos.y}))
-  {
-    return MOVE_RIGHT;
-  }
-  /**
-   * If no field is save, we will choose the first free
-   * field to move to that is not a wall
-   */
-  // Todo check try to move to the field that is the furthes away from all the placed bombs
-  player_action_t possible_options[4];
-  if (!is_blocked(map, (cell_pos_t){
-                           .x = player.cell_pos.x,
-                           .y = player.cell_pos.y - 1}))
-  {
-    possible_options[0] = MOVE_UP;
-  }
-  else
-  {
-    possible_options[0] = NONE;
-  }
-  // down
-  if (!is_blocked(map, (cell_pos_t){
-                           .x = player.cell_pos.x,
-                           .y = player.cell_pos.y + 1}))
-  {
-    possible_options[1] = MOVE_DOWN;
-  }
-  else
-  {
-    possible_options[1] = NONE;
-  }
-  // left
-  if (!is_blocked(map, (cell_pos_t){
-                           .x = player.cell_pos.x - 1,
-                           .y = player.cell_pos.y}))
-  {
-    possible_options[2] = MOVE_LEFT;
-  }
-  else
-  {
-    possible_options[2] = NONE;
-  }
-  // right
-  if (!is_blocked(map, (cell_pos_t){
-                           .x = player.cell_pos.x + 1,
-                           .y = player.cell_pos.y}))
-  {
-    possible_options[3] = MOVE_RIGHT;
-  }
-  else
-  {
-    possible_options[3] = NONE;
-  }
-
-  int best_option = -1;
-  int longest_bomb_distance = -1;
-  // Evaluate going up
-  if (possible_options[0] != NONE)
-  {
-    int distance = get_distance_to_closest_bomb(map, (cell_pos_t){
-                                                         .x = player.cell_pos.x,
-                                                         .y = player.cell_pos.y - 1});
-    if (best_option == -1 || distance > longest_bomb_distance)
-    {
-      best_option = 0;
-      longest_bomb_distance = distance;
-    }
-  }
-  // Evaluate going down
-  if (possible_options[1] != NONE)
-  {
-    int distance = get_distance_to_closest_bomb(map, (cell_pos_t){
-                                                         .x = player.cell_pos.x,
-                                                         .y = player.cell_pos.y + 1});
-    if (best_option == -1 || distance > longest_bomb_distance)
-    {
-      best_option = 1;
-      longest_bomb_distance = distance;
-    }
-  }
-  // Evaluate going left
-  if (possible_options[2] != NONE)
-  {
-    int distance = get_distance_to_closest_bomb(map, (cell_pos_t){
-                                                         .x = player.cell_pos.x - 1,
-                                                         .y = player.cell_pos.y});
-    if (best_option == -1 || distance > longest_bomb_distance)
-    {
-      best_option = 2;
-      longest_bomb_distance = distance;
-    }
-  }
-  // Evaluate going right
-  if (possible_options[3] != NONE)
-  {
-    int distance = get_distance_to_closest_bomb(map, (cell_pos_t){
-                                                         .x = player.cell_pos.x + 1,
-                                                         .y = player.cell_pos.y});
-    if (best_option == -1 || distance > longest_bomb_distance)
-    {
-      best_option = 3;
-      longest_bomb_distance = distance;
-    }
-  }
-
-  if (best_option != -1)
-  {
-    return possible_options[best_option];
-  }
-
-  // If no field is possible the bot will just do nothing
-  return NONE;
-}
-
 static char could_a_bomb_reach_field(cell_pos_t from, cell_pos_t to)
 {
   // TODO This function currently ignores walls which is pretty bad so i will have to refactor that later on!
@@ -268,49 +121,52 @@ static char is_player_in_range(players_t players, player_t bot)
 /**
  * WARNING: This function only works for a depth of 3 fields
  */
-static char any_save_path(block_t **map, cell_pos_t pos, player_action_t moved, int n)
+static player_action_t any_save_path(block_t **map, cell_pos_t pos, player_action_t moved, int n)
 {
   // Check if the current position is blocked
   if (is_blocked(map, pos))
   {
-    return 0;
+    return NONE;
   }
   // Check if we ran out of depth
   if (n == 0)
   {
-    return is_flee_direction_safe(map, pos);
+    if (is_flee_direction_safe(map, pos)) {
+      return moved;
+    }
+    return NONE;
   }
   // Check if the current position is already safe
   if (is_flee_direction_safe(map, pos))
   {
-    return 1;
+    return moved;
   }
 
   // MOVE TO DIRECTIONS
 
   // Move up
   if (
-      moved != MOVE_DOWN && any_save_path(map, (cell_pos_t){.x = pos.x, .y = pos.y - 1}, MOVE_UP, n - 1))
+      moved != MOVE_DOWN && any_save_path(map, (cell_pos_t){.x = pos.x, .y = pos.y - 1}, MOVE_UP, n - 1) != NONE)
   {
-    return 1;
+    return MOVE_UP;
   }
   // Move down
-  if (moved != MOVE_UP && any_save_path(map, (cell_pos_t){.x = pos.x, .y = pos.y + 1}, MOVE_DOWN, n - 1))
+  if (moved != MOVE_UP && any_save_path(map, (cell_pos_t){.x = pos.x, .y = pos.y + 1}, MOVE_DOWN, n - 1) != NONE)
   {
-    return 1;
+    return MOVE_DOWN;
   }
   // Move left
-  if (moved != MOVE_RIGHT && any_save_path(map, (cell_pos_t){.x = pos.x - 1, .y = pos.y}, MOVE_LEFT, n - 1))
+  if (moved != MOVE_RIGHT && any_save_path(map, (cell_pos_t){.x = pos.x - 1, .y = pos.y}, MOVE_LEFT, n - 1) != NONE)
   {
-    return 1;
+    return MOVE_LEFT;
   }
   // Move right
-  if (moved != MOVE_LEFT && any_save_path(map, (cell_pos_t){.x = pos.x + 1, .y = pos.y}, MOVE_RIGHT, n - 1))
+  if (moved != MOVE_LEFT && any_save_path(map, (cell_pos_t){.x = pos.x + 1, .y = pos.y}, MOVE_RIGHT, n - 1) != NONE)
   {
-    return 1;
+    return MOVE_RIGHT;
   }
 
-  return 0;
+  return NONE;
 }
 
 char box_around(block_t **map, cell_pos_t pos) {
@@ -321,6 +177,20 @@ char box_around(block_t **map, cell_pos_t pos) {
   
   return 0;
 }
+
+/**
+ * The current field is dangerous so the bot has to flee from this field
+ * This function should return a direction to run away
+ */
+static player_action_t get_flee_direction(block_t **map, player_t player)
+{
+  player_action_t possible_move = any_save_path(map, player.cell_pos, NONE, 4);
+  if (possible_move != NONE) {
+    return possible_move;
+  }
+  return NONE;
+}
+
 
 /**
  * This function checks if its safe to plant a bomb
@@ -340,22 +210,22 @@ static player_action_t plant_bomb(block_t **map, player_t bot)
   map[bot.cell_pos.y][bot.cell_pos.x] = BOMB1;
   // CHECK FOR A SAVE ESCAPE PATH
   // top
-  if (any_save_path(map, (cell_pos_t){.x = bot.cell_pos.x, .y = bot.cell_pos.y - 1}, MOVE_UP, 2)) {
+  if (any_save_path(map, (cell_pos_t){.x = bot.cell_pos.x, .y = bot.cell_pos.y - 1}, MOVE_UP, 2) != NONE) {
     map[bot.cell_pos.y][bot.cell_pos.x] = before;
     return PLANT_BOMB;
   }
   // bottom
-  if (any_save_path(map, (cell_pos_t){.x = bot.cell_pos.x, .y = bot.cell_pos.y + 1}, MOVE_DOWN, 2)) {
+  if (any_save_path(map, (cell_pos_t){.x = bot.cell_pos.x, .y = bot.cell_pos.y + 1}, MOVE_DOWN, 2) != NONE) {
     map[bot.cell_pos.y][bot.cell_pos.x] = before;
     return PLANT_BOMB;
   }
   // left
-  if (any_save_path(map, (cell_pos_t){.x = bot.cell_pos.x - 1, .y = bot.cell_pos.y}, MOVE_LEFT, 2)) {
+  if (any_save_path(map, (cell_pos_t){.x = bot.cell_pos.x - 1, .y = bot.cell_pos.y}, MOVE_LEFT, 2) != NONE) {
     map[bot.cell_pos.y][bot.cell_pos.x] = before;
     return PLANT_BOMB;
   }
   // right
-  if (any_save_path(map, (cell_pos_t){.x = bot.cell_pos.x + 1, .y = bot.cell_pos.y}, MOVE_RIGHT, 2)) {
+  if (any_save_path(map, (cell_pos_t){.x = bot.cell_pos.x + 1, .y = bot.cell_pos.y}, MOVE_RIGHT, 2) != NONE) {
     map[bot.cell_pos.y][bot.cell_pos.x] = before;
     return PLANT_BOMB;
   }
