@@ -76,6 +76,33 @@ char is_bomb(block_t **map, cell_pos_t pos)
   }
 }
 
+char bomb_to_number(block_t bomb) {
+  switch (bomb) {
+    case BOMB1:
+      return 1;
+    case BOMB2:
+      return 2;
+    case BOMB3:
+      return 3;
+    case BOMB4:
+      return 4;
+    case BOMB5:
+      return 5;
+    case BOMB6:
+      return 6;
+    case BOMB7:
+      return 7;
+    case BOMB8:
+      return 8;
+    case BOMB9:
+      return 9;
+    case BOMB10:
+      return 10;
+    default:
+      return 0;
+  }
+}
+
 char is_wall(block_t **map, cell_pos_t pos)
 {
   cell_pos_t gated_pos = get_gated_position(pos);
