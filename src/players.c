@@ -111,7 +111,7 @@ char validate_action(
   switch (player_action)
   {
   case MOVE_UP:
-    if (!is_blocked(map, (cell_pos_t){.x = player->cell_pos.x, .y = player->cell_pos.y}))
+    if (!is_blocked(map, (cell_pos_t){.x = player->cell_pos.x, .y = player->cell_pos.y - 1}))
       return 1;
     return 0;
   case MOVE_DOWN:
