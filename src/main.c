@@ -123,6 +123,7 @@ int main()
     {
       game_is_running = 0;
     }
+    delete_markers();
     game_round++;
   }
   return 0;

@@ -66,6 +66,8 @@ typedef struct vector_2d {
   int x;
   int y;
 } vector_2d_t;
+/** Macro to create vector 2d */
+#define VECTOR_2D(row,col) ((vector_2d_t){.y = row, .x = col})
 
 /** Used for the cell position inside of the field grid */
 typedef vector_2d_t cell_pos_t;
@@ -109,5 +111,17 @@ typedef struct players {
   player_t player3; 
   player_t player4; 
 } players_t;
+
+typedef struct marker_node {
+  vector_2d_t pos;
+  SDL_Color color;
+  char* text;
+  struct marker_node* next;
+} marker_node_t;
+
+/** SDL COLORS */
+#define SDL_Red ((SDL_Color){255, 0, 0, 255})
+#define SDL_Green ((SDL_Color){0, 255, 0, 255})
+#define SDL_Blue ((SDL_Color){0, 0, 255, 255})
 
 #endif

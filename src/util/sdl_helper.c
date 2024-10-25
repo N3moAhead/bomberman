@@ -57,6 +57,29 @@ void display_text(char *text, vector_2d_t draw_pos)
   SDL_RenderCopy(renderer, texture, NULL, &dest);
 }
 
+/**
+ * Renders a transparent rectangle to the screen with
+ * a centered text container inside it
+ */
+void display_marker(SDL_Color rect_color, vector_2d_t draw_pos, char *text) {
+  SDL_Rect rect = {
+    .x = draw_pos.x,
+    .y = draw_pos.y,
+    .w = DISPLAY_SPRITE_SIZE,
+    .h = DISPLAY_SPRITE_SIZE,
+  };
+  SDL_SetRenderDrawColor(renderer, rect_color.r, rect_color.g, rect_color.b, 128);
+  SDL_RenderFillRect(renderer, &rect);
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+  SDL_Color text_color = {255, 255, 255, 255};
+  SDL_Surface *surface = TTF_RenderText_Solid(font, text, text_color);
+  SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+  int draw_x_offset = (int)((DISPLAY_SPRITE_SIZE - surface->w) / 2);
+  int draw_y_offset = (int)((DISPLAY_SPRITE_SIZE - surface->h) / 2);
+  SDL_Rect dest = {draw_pos.x + draw_x_offset, draw_pos.y + draw_y_offset, surface->w, surface->h};
+  SDL_RenderCopy(renderer, texture, NULL, &dest);
+}
+
 void blit_custom_from_atlas(vector_2d_t atlas_pos, vector_2d_t atlas_size, vector_2d_t draw_pos, vector_2d_t draw_size)
 {
   SDL_Rect src = {
@@ -96,6 +119,7 @@ static void init_sdl_renderer()
     printf("Error while trying to create a new SDL Renderer! SDL_Error: %s \n", SDL_GetError());
     exit(EXIT_FAILURE);
   }
+  SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 }
 
 static void init_font()
