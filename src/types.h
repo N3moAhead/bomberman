@@ -69,6 +69,8 @@ typedef struct vector_2d {
 
 /** Used for the cell position inside of the field grid */
 typedef vector_2d_t cell_pos_t;
+/** Macro to create cell positions */
+#define CELL_POS(row,col) ((cell_pos_t){.y = row, .x = col})
 
 // Used to draw sprites outside of the texture atlas
 typedef struct sprite {

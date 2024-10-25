@@ -26,10 +26,10 @@ typedef struct turn_value {
  * These functions take a cell_position and modify into one common direction.
  * Example: get_top(some_position) // will return the position above some_position
  */
-cell_pos_t get_top(cell_pos_t pos) { return (cell_pos_t){.x = pos.x, .y = pos.y - 1}; }
-cell_pos_t get_bot(cell_pos_t pos) { return (cell_pos_t){.x = pos.x, .y = pos.y + 1}; }
-cell_pos_t get_left(cell_pos_t pos) { return (cell_pos_t){.x = pos.x - 1, .y = pos.y}; }
-cell_pos_t get_right(cell_pos_t pos) { return (cell_pos_t){.x = pos.x + 1, .y = pos.y}; }
+cell_pos_t get_top(cell_pos_t pos) { return CELL_POS(pos.y - 1,pos.x); }
+cell_pos_t get_bot(cell_pos_t pos) { return CELL_POS(pos.y + 1, pos.x); }
+cell_pos_t get_left(cell_pos_t pos) { return CELL_POS(pos.y, pos.x - 1); }
+cell_pos_t get_right(cell_pos_t pos) { return CELL_POS(pos.y, pos.x + 1); }
 
 /**
  * Expects the current map and a position as parameter.
@@ -60,7 +60,7 @@ char is_field_safe(block_t **map, cell_pos_t pos) {
 }
 
 /**
- * Uses a recursive approach to walk towards the nearest save field.
+ * Uses a recursive approach to walk towards the nearest safe field.
  */
 turn_value_t recursive_search(block_t **map, cell_pos_t pos, player_action_t last_turn, int depth) {
   if (is_field_safe(map, pos)) {
@@ -111,6 +111,8 @@ player_action_t attack() {
 
 /**
  * MOVE_TO_ENEMY: Walk towards the closest enemy
+ * Find the closest enemy
+ * 
  */
 player_action_t move_to_enemy() {
   return NONE;
@@ -121,7 +123,10 @@ player_action_t get_bot_move_v2(block_t **map, players_t *players, int game_roun
   /**
    * TODO: Implement the other functions attack and move_to_enemy
    */
-  return flee(map, bot);
+  if (!is_field_safe(map, bot.cell_pos)) {
+    return flee(map, bot);
+  }
+  return NONE;
 }
 
 void get_bot_description_v2(char *bot_name)
