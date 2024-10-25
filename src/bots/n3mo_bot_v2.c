@@ -90,6 +90,26 @@ turn_value_t recursive_search(block_t **map, cell_pos_t pos, player_action_t las
   return best_turn;
 }
 
+void update_closest_player(player_t *closest_player, int *closest_distance, player_t from_player, player_t to_player) {
+  if (from_player.id != to_player.id) {
+    int player_distance = get_distance(from_player.cell_pos, to_player.cell_pos);
+    if (*closest_distance == -1 || player_distance < *closest_distance) {
+      *closest_player = to_player;
+      *closest_distance = player_distance;
+    }
+  }
+}
+
+player_t get_closest_player(players_t *players, player_t bot) {
+  player_t closest_player; 
+  int closest_distance = -1;
+  update_closest_player(&closest_player, &closest_distance, players->player1, bot);
+  update_closest_player(&closest_player, &closest_distance, players->player2, bot);
+  update_closest_player(&closest_player, &closest_distance, players->player3, bot);
+  update_closest_player(&closest_player, &closest_distance, players->player4, bot);
+  return closest_player;
+}
+
 /**
  * P L A Y E R   F U N C T I O N S
  */
@@ -123,6 +143,7 @@ player_action_t get_bot_move_v2(block_t **map, players_t *players, int game_roun
   /**
    * TODO: Implement the other functions attack and move_to_enemy
    */
+  get_closest_player(players, bot);
   if (!is_field_safe(map, bot.cell_pos)) {
     return flee(map, bot);
   }
