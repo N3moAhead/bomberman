@@ -459,6 +459,7 @@ void display_map(block_t **map, players_t players, player_action_t pl1_act, play
     prepare_scene();
     draw_map(map, i);
     draw_players(map, players, i, pl1_act, pl2_act, pl3_act, pl4_act);
+    display_markers();
     present_scene();
   }
 }

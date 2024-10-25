@@ -5,6 +5,7 @@
 #include "../util/player_helper.h"
 #include "stdio.h"
 #include "../util/debug_helper.h"
+#include "../globals.h"
 
 /**
  * H E L P E R   F U N C T I O N S
@@ -63,6 +64,7 @@ char is_field_safe(block_t **map, cell_pos_t pos) {
  * Uses a recursive approach to walk towards the nearest safe field.
  */
 turn_value_t recursive_search(block_t **map, cell_pos_t pos, player_action_t last_turn, int depth) {
+  add_marker(SDL_Green, pos, "check");
   if (is_field_safe(map, pos)) {
     return (turn_value_t){.turn = last_turn, .value = depth};
   }
