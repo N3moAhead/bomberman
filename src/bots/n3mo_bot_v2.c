@@ -66,35 +66,50 @@ char is_field_safe(block_t **map, cell_pos_t pos) {
 turn_value_t recursive_search(
   block_t **map,
   cell_pos_t pos,
-  player_action_t last_turn,
   int depth,
   char visited[MAP_HEIGHT][MAP_WIDTH]
 ) {
-  if (is_field_safe(map, pos)) {
-    return (turn_value_t){.turn = last_turn, .value = depth};
+  if (visited[pos.y][pos.x] == 1) {
+    return (turn_value_t){.value = -1000};
   }
-  if (depth <= 0 || visited[pos.y][pos.x]) {
-    return (turn_value_t){.turn = last_turn, .value = -1000};
-  }
-  visited[pos.y][pos.x] = 1;
   add_marker(SDL_Green, pos, "check");
+  if (is_field_safe(map, pos)) {
+    return (turn_value_t){.value = depth};
+  }
+  if (depth <= 0) {
+    return (turn_value_t){.value = -1000};
+  }
+
+  visited[pos.y][pos.x] = 1;
   turns_t possible_turns = get_possible_turns(map, pos);
   turn_value_t best_turn = {.turn = NONE, .value = -1000};
   if (possible_turns.top) {
-    turn_value_t top_turn = recursive_search(map, get_top(pos), MOVE_UP, depth - 1, visited);
-    if (top_turn.value > best_turn.value) best_turn = top_turn;
+    turn_value_t top_turn = recursive_search(map, get_top(pos), depth - 1, visited);
+    if (top_turn.value > best_turn.value) {
+      best_turn.value = top_turn.value;
+      best_turn.turn = MOVE_UP;
+    };
   }
   if (possible_turns.bot) {
-    turn_value_t bot_turn = recursive_search(map, get_bot(pos), MOVE_DOWN, depth - 1, visited);
-    if (bot_turn.value > best_turn.value) best_turn = bot_turn;
+    turn_value_t bot_turn = recursive_search(map, get_bot(pos), depth - 1, visited);
+    if (bot_turn.value > best_turn.value) {
+      best_turn.value = bot_turn.value;
+      best_turn.turn = MOVE_DOWN;
+    };
   }
   if (possible_turns.left) {
-    turn_value_t left_turn = recursive_search(map, get_left(pos), MOVE_LEFT, depth - 1, visited);
-    if (left_turn.value > best_turn.value) best_turn = left_turn;
+    turn_value_t left_turn = recursive_search(map, get_left(pos), depth - 1, visited);
+    if (left_turn.value > best_turn.value) {
+      best_turn.value = left_turn.value;
+      best_turn.turn = MOVE_LEFT;
+    };
   }
   if (possible_turns.right) {
-    turn_value_t right_turn = recursive_search(map, get_right(pos), MOVE_RIGHT, depth - 1, visited);
-    if (right_turn.value > best_turn.value) best_turn = right_turn;
+    turn_value_t right_turn = recursive_search(map, get_right(pos), depth - 1, visited);
+    if (right_turn.value > best_turn.value) {
+      best_turn.value = right_turn.value;
+      best_turn.turn = MOVE_RIGHT;
+    };
   }
   return best_turn;
 }
@@ -133,7 +148,7 @@ player_action_t flee(block_t **map, player_t bot) {
       visited[row][col] = 0;
     }
   }
-  turn_value_t best_flee_turn = recursive_search(map, bot.cell_pos, NONE, 5, visited);
+  turn_value_t best_flee_turn = recursive_search(map, bot.cell_pos, 5, visited);
   return best_flee_turn.turn;
 }
 
