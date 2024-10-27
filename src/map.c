@@ -169,6 +169,8 @@ void update_map(block_t **map)
         break;
       case BOMB10:
         break;
+      case BOX:
+        break;
       case WALL:
         break;
       case EXPLOSION:

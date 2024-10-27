@@ -211,6 +211,8 @@ static void draw_explosion(block_t **map, cell_pos_t pos, vector_2d_t draw_pos, 
         .x = ((animation_value / 3) * ASSET_SPRITE_SIZE) + (3 * ASSET_SPRITE_SIZE),
         .y = 14 * ASSET_SPRITE_SIZE};
     break;
+  case ALONE_VARIANT:
+    break;
   }
   blit_from_atlas(atlas_pos, draw_pos);
 }
@@ -264,6 +266,8 @@ static int get_player_animation_movement_offset(player_action_t pl_act)
     return ASSET_SPRITE_SIZE;
   case MOVE_DOWN:
   case PLANT_BOMB:
+    return 0;
+  default:
     return 0;
   }
 }
