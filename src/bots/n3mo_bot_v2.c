@@ -53,10 +53,10 @@ turns_t get_possible_turns(block_t **map, cell_pos_t pos) {
  */
 char is_field_safe(block_t **map, cell_pos_t pos) {
   if (is_bomb(map, pos)) return 0;
-  if (is_bomb(map, get_top(pos)) || !is_blocked(map, get_top(pos)) && is_bomb(map, get_top(get_top(pos)))) return 0;
-  if (is_bomb(map, get_right(pos)) || !is_blocked(map, get_right(pos)) && is_bomb(map, get_right(get_right(pos)))) return 0;
-  if (is_bomb(map, get_bot(pos)) || !is_blocked(map, get_bot(pos)) && is_bomb(map, get_bot(get_bot(pos)))) return 0;
-  if (is_bomb(map, get_left(pos)) || !is_blocked(map, get_left(pos)) && is_bomb(map, get_left(get_left(pos)))) return 0;
+  if (is_bomb(map, get_top(pos)) || (!is_blocked(map, get_top(pos)) && is_bomb(map, get_top(get_top(pos))))) return 0;
+  if (is_bomb(map, get_right(pos)) || (!is_blocked(map, get_right(pos)) && is_bomb(map, get_right(get_right(pos))))) return 0;
+  if (is_bomb(map, get_bot(pos)) || (!is_blocked(map, get_bot(pos)) && is_bomb(map, get_bot(get_bot(pos))))) return 0;
+  if (is_bomb(map, get_left(pos)) || (!is_blocked(map, get_left(pos)) && is_bomb(map, get_left(get_left(pos))))) return 0;
   return 1;
 }
 
@@ -72,7 +72,7 @@ turn_value_t recursive_search(
   if (visited[pos.y][pos.x] == 1) {
     return (turn_value_t){.value = -1000};
   }
-  add_marker(SDL_Green, pos, "check");
+  // add_marker(SDL_Green, pos, "check");
   if (is_field_safe(map, pos)) {
     return (turn_value_t){.value = depth};
   }
@@ -173,6 +173,12 @@ player_action_t get_bot_move_v2(block_t **map, players_t *players, int game_roun
   /**
    * TODO: Implement the other functions attack and move_to_enemy
    */
+  if (game_round == 1 || game_round == 2) {
+    return MOVE_LEFT;
+  }
+  if (game_round % 6 == 0) {
+    return PLANT_BOMB;
+  }
   get_closest_player(players, bot);
   if (!is_field_safe(map, bot.cell_pos)) {
     return flee(map, bot);

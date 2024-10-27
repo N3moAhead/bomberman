@@ -54,28 +54,6 @@ static char is_flee_direction_safe(block_t **map, cell_pos_t pos)
   return 0;
 }
 
-static int get_distance_to_closest_bomb(block_t **map, cell_pos_t pos)
-{
-  // If no bomb on the field is found a ridiculous
-  // far away distance will be returned as distance
-  int closest_distance = MAP_HEIGHT * MAP_WIDTH;
-  for (int row = 0; row < MAP_HEIGHT; row++)
-  {
-    for (int col = 0; col < MAP_WIDTH; col++)
-    {
-      if (is_bomb(map, (cell_pos_t){.x = col, .y = row}))
-      {
-        int distance = get_distance((cell_pos_t){.x = col, .y = row}, pos);
-        if (closest_distance == MAP_HEIGHT * MAP_WIDTH || closest_distance > distance)
-        {
-          closest_distance = distance;
-        }
-      }
-    }
-  }
-  return closest_distance;
-}
-
 static char could_a_bomb_reach_field(cell_pos_t from, cell_pos_t to)
 {
   // TODO This function currently ignores walls which is pretty bad so i will have to refactor that later on!
@@ -125,6 +103,7 @@ static player_action_t any_save_path(block_t **map, cell_pos_t pos, player_actio
 {
   // Check if the current position is blocked
   if (is_blocked(map, pos))
+
   {
     return NONE;
   }
