@@ -71,3 +71,7 @@ void print_player_action(player_action_t action) {
       break;
   }
 }
+
+void print_cell_pos(cell_pos_t pos) {
+  printf("CELL_POS: row: %d, col: %d\n", pos.y, pos.x);
+}
