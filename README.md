@@ -11,6 +11,8 @@
 
 This repository contains everything needed to play the classic game Bomberman on the terminal. It can easily be extended by developing bots for the four possible players. If you want, you can fork the repository or simply push the written bot here. The documentation below explains how to write a bot for the game.
 
+**INFO** I'm currently rebuilding the repository as a networked game, with a game server and multiple clients. You can still get the original C-based game in the c_game/ directory.
+
 # Installation
 
 Clone the repository:
