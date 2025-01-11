@@ -1,4 +1,9 @@
-game
-game.exe
-.vscode
-*.o
+# c_game files
+c_game/game
+c_game/game.exe
+c_game/.vscode
+c_game/*.o
+
+# server
+server/devel/server.env
+
