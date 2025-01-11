@@ -28,7 +28,7 @@ func main() {
 			continue
 		}
 
-		fmt.Printf("Empfangen von %s: %s\n", clientAddr, string(buffer[:n]))
+		fmt.Printf("Received message from %s: %s\n", clientAddr, string(buffer[:n]))
 
 		_, err = conn.WriteToUDP([]byte("Message received!"), clientAddr)
 		if err != nil {
