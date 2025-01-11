@@ -6,7 +6,7 @@
 /_____/\____/_/ /_/ /_/_.___/\___/_/  /_/ /_/ /_/\__,_/_/ /_/
 ```
 
-![alt text](assets/game_example_image.png)
+![alt text](images/game_example_image.png)
 
 
 This repository contains everything needed to play the classic game Bomberman on the terminal. It can easily be extended by developing bots for the four possible players. If you want, you can fork the repository or simply push the written bot here. The documentation below explains how to write a bot for the game.
