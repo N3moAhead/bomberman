@@ -102,7 +102,6 @@ turn_value_t recursive_search_safe_field(
   if (visited[pos.y][pos.x] == 1) {
     return (turn_value_t){.value = -1000};
   }
-  add_marker(SDL_Green, pos, "check safe?");
   if (is_field_safe(map, pos)) {
     return (turn_value_t){.value = depth};
   }
@@ -156,7 +155,6 @@ turn_value_t get_step_to_pos(block_t **map, cell_pos_t pos, cell_pos_t goal, cha
     return (turn_value_t){.value = 1000};
   }
   visited[pos.y][pos.x] = 1;
-  add_marker(SDL_Red, pos, "check walk");
   if (cell_pos_equal(pos, goal)) {
     return (turn_value_t){.value = 0};
   }
@@ -258,8 +256,7 @@ player_action_t move_to_enemy(block_t **map, players_t *players, player_t bot) {
       visited[row][col] = 0;
     }
   }
-  print_cell_pos(closest_player_pos);
-  turn_value_t turn_value = get_step_to_pos(map, bot.cell_pos, closest_player_pos, visited); 
+  turn_value_t turn_value = get_step_to_pos(map, bot.cell_pos, closest_player_pos, visited);
   return turn_value.turn;
 }
 
