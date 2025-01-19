@@ -1,6 +1,6 @@
 #!/bin/bash
 set -xae
 
-source server.env
+source go-client.env
 
 podman compose -f podman-compose-local.yaml $*
