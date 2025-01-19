@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 )
@@ -11,7 +12,13 @@ func panicOnError(err error) {
 	}
 }
 
+type Player struct {
+	Name string `json:"name"`
+}
+
 func main() {
+	var self Player = Player{Name: "Go Client"}
+
 	serverAddr, err := net.ResolveUDPAddr("udp", "localhost:8080")
 	panicOnError(err)
 
@@ -19,11 +26,13 @@ func main() {
 	panicOnError(err)
 	defer conn.Close()
 
-	message := "Hey im the client nice to meet you ^^"
-	_, err = conn.Write([]byte(message))
+	jsonData, err := json.Marshal(self)
 	panicOnError(err)
 
-	fmt.Println("Message send:", message)
+	_, err = conn.Write(jsonData)
+	panicOnError(err)
+
+	fmt.Println("JSON data sent:", string(jsonData))
 
 	buffer := make([]byte, 1024)
 	n, _, err := conn.ReadFromUDP(buffer)
