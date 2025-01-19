@@ -1,15 +1,13 @@
 services:
-  bomberman-server:
-    image: local/bomberman/server:devel
-    container_name: bomberman-sever
+  go-client:
+    image: local/bomberman/go-client:devel
+    container_name: go_client
     build:
       dockerfile: dev.Dockerfile
       context: ../
     restart: never
     networks:
       - bomb-net
-    ports:
-      - 8080:8080/udp
     volumes:
       - ../src:/app
 
