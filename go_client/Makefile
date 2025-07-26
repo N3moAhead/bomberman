@@ -1,6 +1,6 @@
 DEFAULT_CMD=cd devel && ./podman-compose.sh
 
-.DEFAULT_GOAL := run
+.DEFAULT_GOAL := dev
 
 tidy:
 	cd src && go fmt ./...
@@ -8,12 +8,8 @@ tidy:
 audit: tidy
 	cd src && go vet ./...
 
-run: audit
-	go run ./src/cmd/client/main.go
-
-# Does sadly not work correctly at the moment
 dev: audit
-	@$(DEFAULT_CMD) up --build;
+	@$(DEFAULT_CMD) up;
 
-dev-no-cache: audit
-	@$(DEFAULT_CMD) up --build --no-cache;
+commit: audit
+	cd ../ && git add go_client/* && git commit
