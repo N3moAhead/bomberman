@@ -1,1 +1,0 @@
-Lachen Weinen Tanzen Welt

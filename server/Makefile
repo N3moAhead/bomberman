@@ -12,4 +12,4 @@ dev: audit
 	@$(DEFAULT_CMD) up;
 
 commit: audit
-	cd ../ && git add bomberman-server/* && git commit
+	cd ../ && git add server/* && git commit
