@@ -28,9 +28,9 @@ func Run(addr *string) {
 		w.Write([]byte("[BOMBERMAN-SERVER] is running. Connect via WebSocket on /ws"))
 	})
 
-	log.Printf("Server starting on %s", *addr)
+	log.Printf("Bomberman-Server starting on %s", *addr)
 	// Start the HTTP server
-	err := http.ListenAndServe(*addr, nil) // Use the default ServeMux
+	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
 		log.Fatalf("ListenAndServe failed: %v", err)
 	}

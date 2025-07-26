@@ -20,9 +20,15 @@ const (
 	UpdateLobby MessageType = "update_lobby"  // Sent to update the lobby state
 )
 
+type GameInfo struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
 // WelcomeMessage contains the ID of the new client and the list of available games
 type WelcomeMessage struct {
-	ClientID string `json:"clientId"`
+	ClientID     string     `json:"clientId"`
+	CurrentGames []GameInfo `json:"currentGames"`
 }
 
 type PlayerInfo struct {
