@@ -6,12 +6,7 @@ services:
       dockerfile: dev.Dockerfile
       context: ../
     restart: never
-    networks:
-      - bomb-net
     ports:
       - 8038:8038
     volumes:
       - ../src:/app
-
-networks:
-  bomb-net: {}
