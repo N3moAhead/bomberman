@@ -9,7 +9,7 @@ audit: tidy
 	cd src && go vet ./...
 
 dev: audit
-	@$(DEFAULT_CMD) up --build;
+	@$(DEFAULT_CMD) up;
 
 commit: audit
 	cd ../ && git add server/* && git commit
