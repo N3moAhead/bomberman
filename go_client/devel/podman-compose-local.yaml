@@ -1,17 +1,12 @@
 services:
-  go-client:
+  bomberman-go-client:
     image: local/bomberman/go-client:devel
     container_name: go_client
     build:
       dockerfile: dev.Dockerfile
       context: ../
     restart: never
-    networks:
-      - bomb-net
     volumes:
       - ../src:/app
-
-networks:
-  bomb-net:
-    external:
-      name: local_bomb_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
