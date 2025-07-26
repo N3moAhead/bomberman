@@ -9,11 +9,9 @@ services:
     networks:
       - bomb-net
     ports:
-      - 8080:8080/udp
+      - 8038:8038
     volumes:
       - ../src:/app
 
 networks:
-  bomb-net:
-    external:
-      name: local_bomb_network
+  bomb-net: {}
