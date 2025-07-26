@@ -10,3 +10,6 @@ audit: tidy
 
 dev: audit
 	@$(DEFAULT_CMD) up --build;
+
+commit: audit
+	cd ../ && git add server/* && git commit
