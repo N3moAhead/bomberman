@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Server Tesst</title>
+  </head>
+  <body>
+    <h1>Server Test</h1>
+    <button onclick="toggleIsReady()">Toggle Ready</button>
+    <script>
+      const socket = new WebSocket("ws://localhost:8038/ws");
+      let ready = false;
+
+      socket.addEventListener("open", (event) => {
+        console.log("We have successfully connected to the websocket");
+      });
+
+      socket.addEventListener("message", (event) => {
+        console.log("Received Message", event.data);
+      });
+
+      function toggleIsReady() {
+        if (socket.readyState === WebSocket.OPEN) {
+          ready = !ready;
+          socket.send(
+            JSON.stringify({
+              type: "player_status_update",
+              payload: {
+                isReady: ready,
+              },
+            }),
+          );
+        }
+      }
+    </script>
+  </body>
+</html>
