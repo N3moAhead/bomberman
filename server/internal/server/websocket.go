@@ -28,12 +28,12 @@ func serveWs(hubInstance *hub.Hub, w http.ResponseWriter, r *http.Request) {
 	log.Println("Client connected from:", conn.RemoteAddr())
 
 	client := &hub.Client{
-		Hub:          hubInstance,
-		Conn:         conn,
-		Send:         make(chan []byte, 256), // Use a buffered channel
-		Id:           uuid.New().String(),
-		Score:        0,
-		SelectedGame: "",
+		Hub:     hubInstance,
+		Conn:    conn,
+		Send:    make(chan []byte, 1024), // Use a buffered channel
+		Id:      uuid.New().String(),
+		Score:   0,
+		IsReady: false,
 	}
 
 	client.Hub.Register <- client // Use the Register channel from the hub instance

@@ -15,9 +15,11 @@ type MessageType string
 
 const (
 	// Message types for the WebSocket communication
-	Welcome     MessageType = "welcome"       // Sent when a client connects
-	BackToLobby MessageType = "back_to_lobby" // Send when a player returns from a game back to the lobby
-	UpdateLobby MessageType = "update_lobby"  // Sent to update the lobby state
+	Welcome            MessageType = "welcome"       // Sent when a client connects
+	BackToLobby        MessageType = "back_to_lobby" // Send when a player returns from a game back to the lobby
+	UpdateLobby        MessageType = "update_lobby"  // Sent to update the lobby status
+	PlayerStatusUpdate MessageType = "player_status_update"
+	Error              MessageType = "error"
 )
 
 type GameInfo struct {
@@ -32,12 +34,17 @@ type WelcomeMessage struct {
 }
 
 type PlayerInfo struct {
-	InGame bool `json:"inGame"`
+	InGame  bool `json:"inGame"`
+	IsReady bool `json:"isReady"`
 }
 
 // LobbyUpdateMessage contains the current state of the lobby
 type LobbyUpdateMessage struct {
 	Players map[string]PlayerInfo `json:"players"` // Maps client id to client infos
+}
+
+type PlayerStatusUpdatePayload struct {
+	IsReady bool `json:"isReady"`
 }
 
 // ErrorMessage is sent in case of errors

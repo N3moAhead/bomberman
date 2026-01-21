@@ -1,6 +1,7 @@
 package hub
 
 import (
+	"encoding/json"
 	"log"
 	"sync"
 	"time"
@@ -34,7 +35,7 @@ type Hub struct {
 
 func NewHub() *Hub {
 	return &Hub{
-		incoming:   make(chan hubMessage, 256),
+		incoming:   make(chan hubMessage, 2048),
 		Register:   make(chan *Client),
 		unregister: make(chan *Client),
 		// TODO lets not create something like that in here
@@ -112,9 +113,17 @@ func (h *Hub) Run() {
 
 // Handles all messages from clients that are not inside a game
 func (h *Hub) handleLobbyMessage(client *Client, msg message.Message) {
-	// Currently just a stub because there wont be any lobby messages for the beginning
-	// Later on something like selecting a game mode could be done here. Or voting for a game mode...
 	switch msg.Type {
+	case message.PlayerStatusUpdate:
+		var payload message.PlayerStatusUpdatePayload
+		if err := json.Unmarshal(msg.Payload, &payload); err != nil {
+			log.Printf("Error unmarshalling select_game payload from %s: %v", client.Id, err)
+			client.SendMessage(message.Error, message.ErrorMessage{Message: "Invalid PlayerStatusUpdatePayload payload"})
+			return
+		}
+
+		client.IsReady = payload.IsReady
+		return
 	default:
 		log.Printf("Received unhandled lobby message type '%s' from client %s", msg.Type, client.Id)
 	}
@@ -181,7 +190,8 @@ func (h *Hub) broadcastLobbyUpdate() {
 	for client := range h.clients {
 		_, inGame := h.clientToGame[client]
 		playerInfos[client.Id] = message.PlayerInfo{
-			InGame: inGame,
+			InGame:  inGame,
+			IsReady: client.IsReady,
 		}
 	}
 	h.gameMutex.RUnlock()

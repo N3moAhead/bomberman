@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -28,8 +29,7 @@ func Run(addr *string) {
 		w.Write([]byte("[BOMBERMAN-SERVER] is running. Connect via WebSocket on /ws"))
 	})
 
-	log.Printf("Bomberman-Server starting on %s", *addr)
-	// Start the HTTP server
+	fmt.Printf("Bomberman-Server is running on %s\n", *addr)
 	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
 		log.Fatalf("ListenAndServe failed: %v", err)

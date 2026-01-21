@@ -1,15 +1,16 @@
-DEFAULT_CMD=cd devel && ./podman-compose.sh
+.DEFAULT_GOAL := run
 
-.DEFAULT_GOAL := dev
+fmt:
+	go fmt ./...
 
-tidy:
-	cd src && go fmt ./...
+vet: fmt
+	go vet ./...
 
-audit: tidy
-	cd src && go vet ./...
+build: vet
+	go build -o bomberman-server ./cmd/bomberman-server/main.go
 
-dev: audit
-	@$(DEFAULT_CMD) up;
+run: build
+	./bomberman-server
 
-commit: audit
-	cd ../ && git add server/* && git commit
+clean:
+	rm -f ./bomberman-server

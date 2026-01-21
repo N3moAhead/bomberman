@@ -14,17 +14,17 @@ const (
 	writeWait      = 10 * time.Second
 	pongWait       = 60 * time.Second
 	pingPeriod     = (pongWait * 9) / 10
-	maxMessageSize = 512
+	maxMessageSize = 1024
 )
 
 type Client struct {
-	Hub          *Hub
-	Conn         *websocket.Conn
-	Send         chan []byte
-	Id           string
-	Score        int
-	SelectedGame string
-	gameID       string // The id of the game the user is inside
+	Hub     *Hub
+	Conn    *websocket.Conn
+	Send    chan []byte
+	Id      string
+	Score   int
+	IsReady bool   // Displays if the bot or player is ready
+	gameID  string // The id of the game the user is inside
 }
 
 /// --- Implementing the game.Player Interface
@@ -61,8 +61,6 @@ func (c *Client) SendMessage(msgType message.MessageType, payload any) error {
 
 /// --- End of implementing the game.Player interface
 
-// Compile Time Check -> Checking that Client
-// implements the game.Player interface correctly
 var _ game.Player = (*Client)(nil)
 
 // ReadPump transfers messages from the WebSocket to the Hub.
