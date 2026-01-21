@@ -20,6 +20,7 @@ const (
 	UpdateLobby        MessageType = "update_lobby"  // Sent to update the lobby status
 	PlayerStatusUpdate MessageType = "player_status_update"
 	Error              MessageType = "error"
+	ClassicInput       MessageType = "classic_input"
 )
 
 type GameInfo struct {

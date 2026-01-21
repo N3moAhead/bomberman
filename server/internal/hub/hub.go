@@ -123,7 +123,7 @@ func (h *Hub) handleLobbyMessage(client *Client, msg message.Message) {
 		}
 
 		client.IsReady = payload.IsReady
-		return
+		h.broadcastLobbyUpdate()
 	default:
 		log.Printf("Received unhandled lobby message type '%s' from client %s", msg.Type, client.Id)
 	}
