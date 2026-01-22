@@ -10,7 +10,7 @@ type Vec2 struct {
 }
 
 func (v Vec2) String() string {
-	return fmt.Sprintf("Vec2{X: %f, Y: %f}", v.X, v.Y)
+	return fmt.Sprintf("Vec2{X: %d, Y: %d}", v.X, v.Y)
 }
 
 // NewVector2D constructs a new Vector2D with the given x and y components.
