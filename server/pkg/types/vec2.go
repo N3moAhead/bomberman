@@ -6,7 +6,8 @@ import (
 
 // Vec2 represents a 2-dimensional vector with float64 components.
 type Vec2 struct {
-	X, Y int
+	X int `json:"x"`
+	Y int `json:"y"`
 }
 
 func (v Vec2) String() string {
