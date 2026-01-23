@@ -21,6 +21,7 @@ const (
 	PlayerStatusUpdate MessageType = "player_status_update"
 	Error              MessageType = "error"
 	ClassicInput       MessageType = "classic_input"
+	ClassicState       MessageType = "classic_state"
 )
 
 type GameInfo struct {

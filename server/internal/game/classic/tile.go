@@ -1,9 +1,9 @@
 package classic
 
-type Tile byte
+type Tile string
 
 const (
-	AIR Tile = iota
-	WALL
-	BOX
+	AIR  Tile = "AIR"
+	WALL Tile = "WALL"
+	BOX  Tile = "BOX"
 )

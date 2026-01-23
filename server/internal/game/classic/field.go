@@ -10,16 +10,16 @@ func NewField() *Field {
 		for y := range field_height {
 			// left or right wall
 			if x == 0 || x == field_width-1 {
-				f.SetTile(x, y, WALL)
+				f.setTile(x, y, WALL)
 			}
 			// top or bot wall
 			if y == 0 || y == field_height-1 {
-				f.SetTile(x, y, WALL)
+				f.setTile(x, y, WALL)
 			}
 
 			// Labyrinth Walls
 			if x%2 == 0 && y%2 == 0 {
-				f.SetTile(x, y, WALL)
+				f.setTile(x, y, WALL)
 			}
 
 			// TODO add box placement
@@ -29,10 +29,28 @@ func NewField() *Field {
 	return &f
 }
 
-func (f *Field) GetTile(x, y int) Tile {
+func (f *Field) getTile(x, y int) Tile {
 	return f[y*field_height+x]
 }
 
-func (f *Field) SetTile(x, y int, tile Tile) {
+func (f *Field) setTile(x, y int, tile Tile) {
 	f[y*field_height+x] = tile
+}
+
+func (f *Field) isWall(x, y int) bool {
+	tile := f.getTile(x, y)
+	return tile == WALL
+}
+
+func (f *Field) isBox(x, y int) bool {
+	tile := f.getTile(x, y)
+	return tile == BOX
+}
+
+func (f *Field) isTileBlocked(x, y int) bool {
+	tile := f.getTile(x, y)
+	if tile == WALL || tile == BOX {
+		return true
+	}
+	return false
 }

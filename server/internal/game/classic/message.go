@@ -1,5 +1,7 @@
 package classic
 
+import "github.com/N3moAhead/bomberman/server/pkg/types"
+
 type PlayerMove string
 
 const (
@@ -13,4 +15,29 @@ const (
 
 type ClassicInputPayload struct {
 	Move PlayerMove `json:"move"`
+}
+
+type PlayerState struct {
+	ID     string     `json:"id"`
+	Pos    types.Vec2 `json:"pos"`
+	Health int        `json:"health"`
+	Score  int        `json:"score"`
+}
+
+type FieldState struct {
+	Width  int    `json:"width"`
+	Height int    `json:"height"`
+	Field  []Tile `json:"field"`
+}
+
+type BombState struct {
+	Pos  types.Vec2 `json:"pos"`
+	Fuse byte       `json:"fuse"`
+}
+
+type ClassicStatePayload struct {
+	Players    []PlayerState `json:"players"`
+	Field      FieldState    `json:"field"`
+	Bombs      []BombState   `json:"bombs"`
+	Explosions []types.Vec2  `json:"explosions"`
 }

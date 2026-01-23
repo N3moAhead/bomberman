@@ -38,7 +38,6 @@ func NewHub() *Hub {
 		incoming:   make(chan hubMessage, 2048),
 		Register:   make(chan *Client),
 		unregister: make(chan *Client),
-		// TODO lets not create something like that in here
 		availableGames: []message.GameInfo{
 			{Name: "Classic", Description: "The classic and simple bomberman game!"},
 		},

@@ -21,7 +21,9 @@ type Classic struct {
 	playerMap map[string]game.Player // ClientID -> game.Player
 	playerMux sync.RWMutex
 
-	field *Field
+	field      *Field
+	bombs      map[string]*Bomb      // Bomb.Pos -> Bomb
+	explosions map[string]types.Vec2 // Pos -> Vec2(Pos of the Bomb)
 
 	isRunning  bool
 	minPlayers int
@@ -40,11 +42,13 @@ func NewClassic(finisher game.GameFinisher, id string) *Classic {
 		players:   make(map[string]*Player),
 		playerMap: make(map[string]game.Player),
 
-		field: NewField(),
+		field:      NewField(),
+		bombs:      make(map[string]*Bomb),
+		explosions: make(map[string]types.Vec2),
 
 		isRunning:  false,
-		minPlayers: min_players,
-		maxPLayers: max_players,
+		minPlayers: MIN_PLAYERS,
+		maxPLayers: MAX_PLAYERS,
 	}
 }
 
@@ -135,8 +139,22 @@ func (c *Classic) Start() {
 		select {
 		case <-c.ticker.C:
 			// Update game state
+			c.update()
 			// Send game state to all players
-			return
+			gameState := c.getGameState() // Locks and unlocks the playerMux
+			for pID, p := range c.playerMap {
+				if err := p.SendMessage(message.ClassicState, gameState); err != nil {
+					log.Printf(
+						"[Game %s] Error sending state to player %s: %v",
+						c.gameID,
+						pID,
+						err,
+					)
+				}
+			}
+			if c.isGameOver() {
+				c.Stop()
+			}
 		case <-c.stopChan:
 			// When receiving a stop signal we stop the goroutine
 			return

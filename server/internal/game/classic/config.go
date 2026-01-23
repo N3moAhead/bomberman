@@ -8,9 +8,13 @@ const (
 	field_height   = 11
 	box_spawn_rate = 0.75
 
+	// --- Bombs ---
+	fuse_ticks            = 10
+	bomb_explosion_radius = 3 // center + 2 fields in each direction
+
 	// --- Game l---
-	min_players = 2
-	max_players = 4
+	MIN_PLAYERS = 2
+	MAX_PLAYERS = 4
 	TICK_RATE   = 200 * time.Millisecond
 
 	// --- Player ---
