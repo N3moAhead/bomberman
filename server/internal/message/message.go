@@ -22,6 +22,7 @@ const (
 	Error              MessageType = "error"
 	ClassicInput       MessageType = "classic_input"
 	ClassicState       MessageType = "classic_state"
+	GameStart          MessageType = "game_start"
 )
 
 type GameInfo struct {
@@ -38,6 +39,7 @@ type WelcomeMessage struct {
 type PlayerInfo struct {
 	InGame  bool `json:"inGame"`
 	IsReady bool `json:"isReady"`
+	Score   int  `json:"score"`
 }
 
 // LobbyUpdateMessage contains the current state of the lobby
@@ -47,6 +49,12 @@ type LobbyUpdateMessage struct {
 
 type PlayerStatusUpdatePayload struct {
 	IsReady bool `json:"isReady"`
+}
+
+type GameStartPayload struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	GameID      string `json:"gameId"`
 }
 
 // ErrorMessage is sent in case of errors

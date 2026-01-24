@@ -6,6 +6,7 @@
   <body>
     <h1>Server Test</h1>
     <button onclick="toggleIsReady()">Toggle Ready</button>
+    <button onclick="placeBomb()">Place Bomb</button>
     <script>
       const socket = new WebSocket("ws://localhost:8038/ws");
       let ready = false;
@@ -15,7 +16,8 @@
       });
 
       socket.addEventListener("message", (event) => {
-        console.log("Received Message", event.data);
+        const data = JSON.parse(event.data);
+        console.log("Received Message", data);
       });
 
       function toggleIsReady() {
@@ -26,6 +28,20 @@
               type: "player_status_update",
               payload: {
                 isReady: ready,
+              },
+            }),
+          );
+        }
+      }
+
+      function placeBomb() {
+        if (socket.readyState === WebSocket.OPEN) {
+          ready = !ready;
+          socket.send(
+            JSON.stringify({
+              type: "classic_input",
+              payload: {
+                move: "place_bomb",
               },
             }),
           );

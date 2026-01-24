@@ -8,6 +8,7 @@ func NewField() *Field {
 	// Let's place some walls :)
 	for x := range field_width {
 		for y := range field_height {
+			f.setTile(x, y, AIR) // Everything is air in the beginning
 			// left or right wall
 			if x == 0 || x == field_width-1 {
 				f.setTile(x, y, WALL)

@@ -1,12 +1,19 @@
 package classic
 
-import "github.com/N3moAhead/bomberman/server/pkg/types"
+import (
+	"log"
+
+	"github.com/N3moAhead/bomberman/server/pkg/types"
+)
 
 func (c *Classic) update() {
 	// Move all players
+	log.Println("Applying player input")
 	c.applyPlayerInput()
 	// Bombs Explode
+	log.Println("Reset Bombs")
 	c.resetExplosions()
+	log.Println("Update Bombs")
 	c.updateBombs()
 }
 
@@ -46,13 +53,16 @@ func (c *Classic) applyPlayerInput() {
 }
 
 func (c *Classic) updateBombs() {
+	log.Println("Update the bombs fuse")
 	for _, bomb := range c.bombs {
+		log.Println("AAA")
 		bomb.Fuse -= 1
 		if bomb.Fuse < 1 {
-			c.explodeBomb(bomb.Pos, bomb_explosion_radius)
 			delete(c.bombs, bomb.Pos.String())
+			c.explodeBomb(bomb.Pos, bomb_explosion_radius)
 		}
 	}
+	log.Println("Updated all bombs!")
 }
 
 func (c *Classic) resetExplosions() {
@@ -63,15 +73,22 @@ func (c *Classic) resetExplosions() {
 }
 
 func (c *Classic) explodeBomb(pos types.Vec2, distance int) {
+	// Up
 	c.createExplodePath(pos, types.NewVec2(0, -1), distance)
+	// Right
 	c.createExplodePath(pos, types.NewVec2(1, 0), distance)
+	// Down
 	c.createExplodePath(pos, types.NewVec2(0, 1), distance)
+	// Left
 	c.createExplodePath(pos, types.NewVec2(-1, 0), distance)
 }
 
 func (c *Classic) createExplodePath(pos types.Vec2, dir types.Vec2, distance int) {
 	// I won't check if the explosion is out of bounds because a bomb can't be placed
 	// out of bounds so it could not occur...
+	if distance == 0 {
+		return
+	}
 	tile := c.field.getTile(pos.X, pos.Y)
 	if tile == WALL {
 		return
@@ -84,6 +101,7 @@ func (c *Classic) createExplodePath(pos types.Vec2, dir types.Vec2, distance int
 	if tile == AIR {
 		// there could be a bomb
 		if c.containsBomb(pos) {
+			// Explosion explodes bomb
 			c.explodeBomb(pos, bomb_explosion_radius)
 		}
 		c.addExplosion(pos)
@@ -111,11 +129,8 @@ func (c *Classic) isGameOver() bool {
 }
 
 func (c *Classic) getGameState() ClassicStatePayload {
-	c.playerMux.Lock()
-	defer c.playerMux.Unlock()
-
 	// Get Players
-	pStates := make([]PlayerState, len(c.players))
+	pStates := []PlayerState{}
 	for _, player := range c.players {
 		pState := PlayerState{
 			ID:     player.ID,
@@ -125,6 +140,7 @@ func (c *Classic) getGameState() ClassicStatePayload {
 		}
 		pStates = append(pStates, pState)
 	}
+
 	// Get Field
 	field := []Tile{}
 	for x := range field_width {
@@ -138,12 +154,12 @@ func (c *Classic) getGameState() ClassicStatePayload {
 		Field:  field,
 	}
 	// Get Bombs
-	bombs := make([]BombState, len(c.bombs))
+	bombs := []BombState{}
 	for _, bomb := range c.bombs {
 		bombs = append(bombs, BombState{Pos: bomb.Pos, Fuse: bomb.Fuse})
 	}
 	// Get Explosions
-	explosions := make([]types.Vec2, len(c.explosions))
+	explosions := []types.Vec2{}
 	for _, ePos := range c.explosions {
 		explosions = append(explosions, ePos)
 	}

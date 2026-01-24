@@ -32,7 +32,7 @@ type FieldState struct {
 
 type BombState struct {
 	Pos  types.Vec2 `json:"pos"`
-	Fuse byte       `json:"fuse"`
+	Fuse int        `json:"fuse"`
 }
 
 type ClassicStatePayload struct {

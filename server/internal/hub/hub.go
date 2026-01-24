@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/N3moAhead/bomberman/server/internal/game"
+	"github.com/N3moAhead/bomberman/server/internal/game/classic"
 	"github.com/N3moAhead/bomberman/server/internal/message"
+	"github.com/google/uuid"
 )
 
 type hubMessage struct {
@@ -55,9 +57,9 @@ func (h *Hub) Run() {
 			h.gameMutex.Lock()
 			h.clients[client] = true
 			h.gameMutex.Unlock()
-			log.Printf("Client %s registered. Total clients: %d", client.Id, len(h.clients))
+			log.Printf("Client %s registered. Total clients: %d", client.ID, len(h.clients))
 			welcomePayload := message.WelcomeMessage{
-				ClientID:     client.Id,
+				ClientID:     client.ID,
 				CurrentGames: h.availableGames,
 			}
 			client.SendMessage(message.Welcome, welcomePayload)
@@ -76,7 +78,7 @@ func (h *Hub) Run() {
 				}
 				delete(h.clients, client)
 				close(client.Send)
-				log.Printf("Client %s unregistered. Total clients: %d", client.Id, len(h.clients))
+				log.Printf("Client %s unregistered. Total clients: %d", client.ID, len(h.clients))
 			}
 			h.gameMutex.Unlock()
 			h.broadcastLobbyUpdate()
@@ -116,20 +118,63 @@ func (h *Hub) handleLobbyMessage(client *Client, msg message.Message) {
 	case message.PlayerStatusUpdate:
 		var payload message.PlayerStatusUpdatePayload
 		if err := json.Unmarshal(msg.Payload, &payload); err != nil {
-			log.Printf("Error unmarshalling select_game payload from %s: %v", client.Id, err)
+			log.Printf("Error unmarshalling select_game payload from %s: %v", client.ID, err)
 			client.SendMessage(message.Error, message.ErrorMessage{Message: "Invalid PlayerStatusUpdatePayload payload"})
 			return
 		}
 
 		client.IsReady = payload.IsReady
 		h.broadcastLobbyUpdate()
+		h.checkAndPotentiallyStartGame()
 	default:
-		log.Printf("Received unhandled lobby message type '%s' from client %s", msg.Type, client.Id)
+		log.Printf("Received unhandled lobby message type '%s' from client %s", msg.Type, client.ID)
 	}
 }
 
 // Will use the selected game mode probabyl just classic and will start the game
 func (h *Hub) selectAndStartGame() {
+	h.gameMutex.Lock()
+
+	// Currently its always the classic game
+	gameInfo := h.availableGames[0]
+	gameID := uuid.New().String()
+	newGame := classic.NewClassic(h, gameID)
+	h.activeGames[gameID] = newGame
+
+	participatingClients := []*Client{}
+	for client := range h.clients {
+		if _, inGame := h.clientToGame[client]; !inGame && client.IsReady {
+			participatingClients = append(participatingClients, client)
+		}
+	}
+
+	if len(participatingClients) < 2 {
+		log.Printf("[HUB] Not enough players are ready and available to start a new game")
+		h.gameMutex.Unlock()
+		h.broadcastLobbyUpdate()
+		return
+	}
+
+	for _, client := range participatingClients {
+		h.clientToGame[client] = gameID
+		err := newGame.AddPlayer(client)
+		if err != nil {
+			log.Printf("[HUB: Game %s] Error while trying to add player to game %s; %v", gameID, client.ID, err)
+			delete(h.clientToGame, client)
+		} else {
+			client.gameID = gameID
+			client.IsReady = false // Reset the player ready state
+			startPayload := message.GameStartPayload{Name: gameInfo.Name, Description: gameInfo.Description, GameID: gameID}
+			client.SendMessage(message.GameStart, startPayload)
+			log.Printf("[HUB: Game %s]: Added player %s to game %s", gameID, client.ID, h.availableGames[0].Name)
+		}
+	}
+
+	go newGame.Start()
+	log.Printf("[HUB] Started game %s (%s) in a new goroutine", gameInfo.Name, gameID)
+
+	h.gameMutex.Unlock()
+
 	h.broadcastLobbyUpdate()
 }
 
@@ -156,6 +201,7 @@ func (h *Hub) GameFinished(gameID string, result game.GameResult) {
 			clientsToRemove = append(clientsToRemove, client)
 		}
 	}
+
 	for _, client := range clientsToRemove {
 		delete(h.clientToGame, client)
 		client.gameID = ""                           // the client is back in the lobby
@@ -188,9 +234,10 @@ func (h *Hub) broadcastLobbyUpdate() {
 	h.gameMutex.RLock()
 	for client := range h.clients {
 		_, inGame := h.clientToGame[client]
-		playerInfos[client.Id] = message.PlayerInfo{
+		playerInfos[client.ID] = message.PlayerInfo{
 			InGame:  inGame,
 			IsReady: client.IsReady,
+			Score:   client.Score,
 		}
 	}
 	h.gameMutex.RUnlock()
@@ -211,7 +258,7 @@ func (h *Hub) broadcastMessageInternal(msgType message.MessageType, payload any)
 	for _, client := range clientList {
 		err := client.SendMessage(msgType, payload)
 		if err != nil {
-			log.Printf("Error broadcasting message type %s to client %s: %v", msgType, client.Id, err)
+			log.Printf("Error broadcasting message type %s to client %s: %v", msgType, client.ID, err)
 		}
 	}
 }
@@ -229,7 +276,7 @@ func (h *Hub) checkAndPotentiallyStartGame() {
 	h.gameMutex.RUnlock()
 
 	if canStart {
-		log.Printf("Enough players %d/2 in lobby. Starting the game...", lobbyClientsCount)
+		log.Printf("Enough players %d/2 in lobby. Trying to start a game...", lobbyClientsCount)
 		h.selectAndStartGame()
 	} else {
 		log.Printf("Not Enough players %d/2 in lobby. Waiting for more players to join...", lobbyClientsCount)

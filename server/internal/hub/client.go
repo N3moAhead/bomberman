@@ -21,7 +21,7 @@ type Client struct {
 	Hub     *Hub
 	Conn    *websocket.Conn
 	Send    chan []byte
-	Id      string
+	ID      string
 	Score   int
 	IsReady bool   // Displays if the bot or player is ready
 	gameID  string // The id of the game the user is inside
@@ -30,7 +30,7 @@ type Client struct {
 /// --- Implementing the game.Player Interface
 
 func (c *Client) GetID() string {
-	return c.Id
+	return c.ID
 }
 
 // sendMessage formats and sends a structured message to the client
@@ -38,7 +38,7 @@ func (c *Client) GetID() string {
 func (c *Client) SendMessage(msgType message.MessageType, payload any) error {
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		log.Printf("Error marshalling payload for client %s: %v", c.Id, err)
+		log.Printf("Error marshalling payload for client %s: %v", c.ID, err)
 		return err
 	}
 	message := message.Message{
@@ -47,14 +47,14 @@ func (c *Client) SendMessage(msgType message.MessageType, payload any) error {
 	}
 	messageBytes, err := json.Marshal(message)
 	if err != nil {
-		log.Printf("Error marshalling message for client %s: %v", c.Id, err)
+		log.Printf("Error marshalling message for client %s: %v", c.ID, err)
 		return err
 	}
 
 	select {
 	case c.Send <- messageBytes:
 	default:
-		log.Printf("Client %s send buffer full. Dropping message.", c.Id)
+		log.Printf("Client %s send buffer full. Dropping message.", c.ID)
 	}
 	return nil
 }
@@ -70,7 +70,7 @@ func (c *Client) ReadPump() {
 	defer func() {
 		c.Hub.unregister <- c
 		c.Conn.Close()
-		log.Printf("Client %s disconnected (readPump closed)", c.Id)
+		log.Printf("Client %s disconnected (readPump closed)", c.ID)
 	}()
 	c.Conn.SetReadLimit(maxMessageSize)
 	c.Conn.SetReadDeadline(time.Now().Add(pongWait))
@@ -80,14 +80,14 @@ func (c *Client) ReadPump() {
 		_, messageBytes, err := c.Conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("error reading message for client %s: %v", c.Id, err)
+				log.Printf("error reading message for client %s: %v", c.ID, err)
 			}
 			break
 		}
 
 		var msg message.Message
 		if err := json.Unmarshal(messageBytes, &msg); err != nil {
-			log.Printf("error unmarshalling message from client %s: %v", c.Id, err)
+			log.Printf("error unmarshalling message from client %s: %v", c.ID, err)
 			continue
 		}
 
@@ -107,7 +107,7 @@ func (c *Client) WritePump() {
 	defer func() {
 		ticker.Stop()
 		c.Conn.Close()
-		log.Printf("Client %s writePump closed", c.Id)
+		log.Printf("Client %s writePump closed", c.ID)
 	}()
 	for {
 		select {
@@ -115,17 +115,17 @@ func (c *Client) WritePump() {
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
-				log.Printf("Client %s send channel closed by hub", c.Id)
+				log.Printf("Client %s send channel closed by hub", c.ID)
 				return
 			}
 			if err := c.Conn.WriteMessage(websocket.TextMessage, message); err != nil {
-				log.Printf("error writing message to client %s: %v", c.Id, err)
+				log.Printf("error writing message to client %s: %v", c.ID, err)
 				return
 			}
 		case <-ticker.C:
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-				log.Printf("error sending ping to client %s: %v", c.Id, err)
+				log.Printf("error sending ping to client %s: %v", c.ID, err)
 				return
 			}
 		}

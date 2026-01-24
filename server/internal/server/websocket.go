@@ -31,7 +31,7 @@ func serveWs(hubInstance *hub.Hub, w http.ResponseWriter, r *http.Request) {
 		Hub:     hubInstance,
 		Conn:    conn,
 		Send:    make(chan []byte, 1024), // Use a buffered channel
-		Id:      uuid.New().String(),
+		ID:      uuid.New().String(),
 		Score:   0,
 		IsReady: false,
 	}
