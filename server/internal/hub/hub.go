@@ -284,7 +284,6 @@ func (h *Hub) checkAndPotentiallyStartGame() {
 }
 
 func (h *Hub) updateScoresInternal(scores map[string]int) {
-	log.Println("Updating scores...")
 	for clientID, delta := range scores {
 		var targetClient *Client = nil
 		for c := range h.clients {

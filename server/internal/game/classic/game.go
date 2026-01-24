@@ -1,19 +1,14 @@
 package classic
 
 import (
-	"log"
-
 	"github.com/N3moAhead/bomberman/server/pkg/types"
 )
 
 func (c *Classic) update() {
 	// Move all players
-	log.Println("Applying player input")
 	c.applyPlayerInput()
 	// Bombs Explode
-	log.Println("Reset Bombs")
 	c.resetExplosions()
-	log.Println("Update Bombs")
 	c.updateBombs()
 }
 
@@ -53,16 +48,13 @@ func (c *Classic) applyPlayerInput() {
 }
 
 func (c *Classic) updateBombs() {
-	log.Println("Update the bombs fuse")
 	for _, bomb := range c.bombs {
-		log.Println("AAA")
 		bomb.Fuse -= 1
 		if bomb.Fuse < 1 {
 			delete(c.bombs, bomb.Pos.String())
 			c.explodeBomb(bomb.Pos, bomb_explosion_radius)
 		}
 	}
-	log.Println("Updated all bombs!")
 }
 
 func (c *Classic) resetExplosions() {
