@@ -5,11 +5,21 @@ import (
 )
 
 func (c *Classic) update() {
+	// Dmg all players in explosions
+	c.damagePlayersInExplosions()
 	// Move all players
 	c.applyPlayerInput()
 	// Bombs Explode
 	c.resetExplosions()
 	c.updateBombs()
+}
+
+func (c *Classic) damagePlayersInExplosions() {
+	for _, player := range c.players {
+		if _, ok := c.explosions[player.Pos.String()]; ok {
+			player.Health -= 1
+		}
+	}
 }
 
 func (c *Classic) applyPlayerInput() {
@@ -44,6 +54,8 @@ func (c *Classic) applyPlayerInput() {
 		default:
 			// Is the do nothing move
 		}
+		// Reset player input
+		player.NextMove = DO_NOTHING
 	}
 }
 

@@ -118,7 +118,7 @@ func (c *Classic) Start() {
 	if len(c.players) < c.minPlayers {
 		c.playerMux.Unlock()
 		log.Printf("[Game %s] Cannot start, not enough players (%d/%d).", c.gameID, len(c.players), c.minPlayers)
-		c.Stop()
+		go c.Stop()
 		return
 	}
 
@@ -142,7 +142,6 @@ func (c *Classic) Start() {
 			// Update game state
 			c.update()
 			// Send game state to all players
-			log.Println("Get the game state!")
 			gameState := c.getGameState() // Locks and unlocks the playerMux
 			for pID, p := range c.playerMap {
 				if err := p.SendMessage(message.ClassicState, gameState); err != nil {
