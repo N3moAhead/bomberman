@@ -141,21 +141,35 @@ func (h *Hub) selectAndStartGame() {
 	newGame := classic.NewClassic(h, gameID)
 	h.activeGames[gameID] = newGame
 
-	participatingClients := []*Client{}
+	clientsInLobby := []*Client{}
 	for client := range h.clients {
-		if _, inGame := h.clientToGame[client]; !inGame && client.IsReady {
-			participatingClients = append(participatingClients, client)
+		if _, inGame := h.clientToGame[client]; !inGame {
+			clientsInLobby = append(clientsInLobby, client)
 		}
 	}
 
-	if len(participatingClients) < 2 {
+	clientsReady := []*Client{}
+	for _, client := range clientsInLobby {
+		if client.IsReady {
+			clientsReady = append(clientsReady, client)
+		}
+	}
+
+	if len(clientsReady) < 2 {
 		log.Printf("[HUB] Not enough players are ready and available to start a new game")
 		h.gameMutex.Unlock()
 		h.broadcastLobbyUpdate()
 		return
 	}
 
-	for _, client := range participatingClients {
+	if len(clientsReady) < len(clientsInLobby) {
+		log.Printf("[HUB] Some players are in the lobby but still not ready we are going to wait for them")
+		h.gameMutex.Unlock()
+		h.broadcastLobbyUpdate()
+		return
+	}
+
+	for _, client := range clientsInLobby {
 		h.clientToGame[client] = gameID
 		err := newGame.AddPlayer(client)
 		if err != nil {
