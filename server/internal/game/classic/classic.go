@@ -139,16 +139,29 @@ func (c *Classic) Start() {
 	for {
 		select {
 		case <-c.ticker.C:
-			// Update game state
+			// A snapshot of players is created to
+			// avoid holding the lock during network I/O
+			c.playerMux.RLock()
+			playersToMessage := make([]game.Player, 0, len(c.playerMap))
+			for _, p := range c.playerMap {
+				playersToMessage = append(playersToMessage, p)
+			}
+			c.playerMux.RUnlock()
+
+			// Lock the mutex to ensure exclusive access to
+			// the game state during the update.
+			c.playerMux.Lock()
 			c.update()
-			// Send game state to all players
-			gameState := c.getGameState() // Locks and unlocks the playerMux
-			for pID, p := range c.playerMap {
+			gameState := c.getGameState()
+			c.playerMux.Unlock()
+
+			// Now, with the mutex released, we can safely send the new state to all players.
+			for _, p := range playersToMessage {
 				if err := p.SendMessage(message.ClassicState, gameState); err != nil {
 					log.Printf(
 						"[Game %s] Error sending state to player %s: %v",
 						c.gameID,
-						pID,
+						p.GetID(),
 						err,
 					)
 				}
@@ -213,6 +226,7 @@ func (c *Classic) HandleMessage(player game.Player, msg message.Message) {
 
 		log.Printf("[Game %s] Received player input %v", c.gameID, payload)
 		c.playerMux.Lock()
+		defer c.playerMux.Unlock()
 		pState, ok := c.players[playerID]
 		if ok {
 			pState.HandleInput(payload)

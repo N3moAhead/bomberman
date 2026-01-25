@@ -5,13 +5,18 @@ import (
 )
 
 func (c *Classic) update() {
-	// Dmg all players in explosions
-	c.damagePlayersInExplosions()
-	// Move all players
+	// "The player's action is the first priority!" - Arcade wisdom
+	// Process player inputs first to ensure their actions are part of this tick's calculations.
 	c.applyPlayerInput()
-	// Bombs Explode
+
+	// Gotta clean up the mess from last tick's fireworks before starting a new show.
 	c.resetExplosions()
+
+	// Tick-tock goes the bomb clock. Let's see if we get some fireworks.
 	c.updateBombs()
+
+	// If you're standing in fire, you're gonna get burned. Simple as that.
+	c.damagePlayersInExplosions()
 }
 
 func (c *Classic) damagePlayersInExplosions() {
