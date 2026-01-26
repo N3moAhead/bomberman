@@ -176,7 +176,7 @@ func (c *Classic) Start() {
 				}
 			}
 			if c.isGameOver() {
-				c.Stop()
+				go c.Stop()
 			}
 		case <-c.stopChan:
 			// When receiving a stop signal we stop the goroutine
