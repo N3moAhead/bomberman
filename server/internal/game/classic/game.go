@@ -108,8 +108,8 @@ func (c *Classic) createExplodePath(pos types.Vec2, dir types.Vec2, distance int
 		return
 	}
 	if tile == AIR {
-		// there could be a bomb
 		if c.containsBomb(pos) {
+			delete(c.bombs, pos.String())
 			// Explosion explodes bomb
 			c.explodeBomb(pos, bomb_explosion_radius)
 		}
