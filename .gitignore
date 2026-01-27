@@ -10,3 +10,6 @@ server/bomberman-server
 
 # client_go
 client_go/client_go
+
+# client_rust
+client_rust/target
