@@ -1,0 +1,12 @@
+{
+  "name": "bomberman-client-js",
+  "version": "1.0.0",
+  "description": "JS client for Bomberman",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
