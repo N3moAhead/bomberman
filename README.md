@@ -8,140 +8,89 @@
 
 ![alt text](images/game_example_image.png)
 
+This repository contains a client-server implementation of the classic game Bomberman. The server is written in Go, and there are example clients in Go, JavaScript, and Rust that you can use as a starting point to develop your own bot.
 
-This repository contains everything needed to play the classic game Bomberman on the terminal. It can easily be extended by developing bots for the four possible players. If you want, you can fork the repository or simply push the written bot here. The documentation below explains how to write a bot for the game.
+# Getting Started
 
-**INFO** I'm currently rebuilding the repository as a networked game, with a game server and multiple clients. You can still get the original C-based game in the c_game/ directory.
+The game consists of a central server and multiple clients (your bots). You need to run the server first, and then you can connect your clients to it.
 
-# Installation
+## 1. Run the Server
 
-Clone the repository:
-
-```bash
-# HTTPS
-git clone https://github.com/N3moAhead/bomberman.git
-# SSH
-git clone git@github.com:N3moAhead/bomberman.git
-```
-
-I am using make and gcc, so please install them if you haven't already.
-After that you can just run the following commands:
-
-**Build the binary**
+The server is located in the `server/` directory.
 
 ```bash
-make
-```
-
-**Build and run**
-
-```bash
+cd server/
 make run
 ```
 
-**Clear all build files**
+The server will start and listen for connections on port `:8038`.
+
+## 2. Run a Client
+
+You can run one of the provided clients or create your own.
+
+### Go Client
 
 ```bash
-make clear
+cd client_go/
+make run
 ```
 
-# Docs
+### JavaScript Client
 
-The principle is simple. In each round, four player functions are called up one after the other to control one of the four bots. Each function receives the current playing field, the position of all players and the current round number. Each function must return one of six actions performed by the respective bot.
-
-The playing field is a two-dimensional array. It is filled with different types of fields, such as walls, bombs or explosions.
-
-The player positions are passed as a struct, which contains a further struct for each player. Each player struct contains the position of the current player and the current lives.
-
-Attention! The playing field array does not contain any players. These are passed separately to prevent them from covering fields. For example, a player could stand on a bomb and hide it from others.
-
-Finally, the player function is passed an int containing the current turn number. This simply counts up each round by 1.
-
-The individual actions are briefly explained below, but if you want to get started right away, you can simply take a look at the file `types.h` and if you can make sense of it, you can get started right away.
-
-## Player Actions
-
-Each player function can return one of six possible actions in each round to control one of the bots. There are four actions to move the bot. One action to place a bomb on the current field and one function to simply chill for a round. Actually quite simple :)
-
-- MOVE_UP: Moves the player a field up
-- MOVE_DOWN: Moves the player a field down
-- MOVE_LEFT: Moves the player a field to the left
-- MOVE_RIGHT: Moves the player a field to the right
-- PLANT_BOMB: Places a bomb on the current field of the player
-- NONE: Do nothing
-
-## The Map
-
-The playing field is a two-dimensional array that represents the current playing field. Each value in the array is a block_t enum. Each block can be one of the following:
-
-- BOMB1: A bomb that has been freshly placed
-- BOMB2: A bomb thats one round old
-- BOMB3: A bomb that will explode in the next round
-- WALL: A wall a player is unable to go through
-- EXPLOSION: An exploding field, that harms players
-- AIR: Nothing
-
-The playing field is updated after each round. This mainly affects the bombs. A newly placed bomb is called BOMB1. This counts up one each round until BOMB3. In the next round, the bomb (BOMB3) explodes in a cross shape. An explosion lasts one round. The explosion fields then become air fields.
-
-The dimensions of the map are defined in the file `src/constants.h` as `MAP_HEIGHT` and `MAP_WIDTH`. If you would like to iterate through the whole map the code could look like this:
-
-```c
-#include "constants.h"
-
-void some_function(block_t **map) {
-  for (int row = 0; row < MAP_HEIGHT; row++) {
-    for (int col = 0; col < MAP_WIDTH; col++) {
-      block_t current_block = map[row][col];
-      // Do something...
-    }
-  }
-}
+```bash
+cd client_js/
+npm install
+npm start
 ```
 
-## Example of checking if a field is a wall
+### Rust Client
 
-```c
-if (map[3][3] == WALL) {
-  printf("Is a wall");
-} else {
-  printf("This field must be something else");
-}
+```bash
+cd client_rust/
+cargo run
 ```
 
-## Example of checking if a player stands on a specific field
+# How to Write a Bot
 
-```c
-if (players->player2.cell_pos.x == 3 && players->player2.cell_pos.y == 4) {
-  printf("Player2 is standing on the field 3/4");
-} else {
-  printf("Player2 ist standing somewhere else");
-}
-```
+Your bot will connect to the game server via WebSockets (`ws://localhost:8038/ws`). The core loop for a bot is simple: receive the game state from the server, decide on an action, and send that action back to the server.
 
-## Example player function
+Bots are automatically set to a "ready" state upon connecting, so you don't need to implement that manually.
 
-We write a bot for player 1. The bot should always repeat the following sequence: First go one step down, then one step to the right and then place a bomb.
+## Game State (`classic_state`)
 
-The code for this could look like this:
+On every game tick, the server broadcasts the current game state to all clients. This message has the type `classic_state` and its payload contains the following information:
 
-```c
-// src/player1.c
-#include "player1.h"
-#include "types.h"
+-   `players` ([]PlayerState): A list of all players currently in the game.
+    -   `id` (string): The unique ID of the player.
+    -   `pos` (Vec2): The `{x, y}` coordinates of the player on the map.
+    -   `health` (int): The current health of the player.
+    -   `score` (int): The current score of the player.
+-   `field` (FieldState): The game map itself.
+    -   `width` (int): The width of the map.
+    -   `height` (int): The height of the map.
+    -   `field` ([]Tile): A 1D array representing the 2D map. The type of each tile can be `air`, `wall`, or `box`.
+-   `bombs` ([]BombState): A list of active bombs on the map.
+    -   `pos` (Vec2): The `{x, y}` coordinates of the bomb.
+    -   `fuse` (int): The number of ticks until the bomb explodes.
+-   `explosions` ([]Vec2): A list of `{x, y}` coordinates where explosions are currently active.
 
-// This function gets called on each tick
-player_action_t get_player_1_action(block_t **map, players_t *players, int game_round) {
-  player_action_t actions[3] = {MOVE_DOWN, MOVE_RIGHT, PLANT_BOMB};
-  return actions[game_round % 3];
-}
-```
+## Player Actions (`classic_input`)
 
-First, we define an array with our sequence of actions that we want to execute one after the other. Then we simply return the next action in the sequence for each call. To do this, we select the action that corresponds to game round modulo 3. For example, in game round 6, this is MOVE_DOWN, as 6 % 3 = 0.
+To control your bot, you send a message with the type `classic_input`. The payload must contain your desired move.
 
-# Rules
+-   `move` (PlayerMove): The action to perform on the next tick.
 
-Not that many in general do what you like hahaa
+Possible values for `move` are:
+-   `nothing`: Do nothing for one turn.
+-   `move_up`: Move one tile up.
+-   `move_down`: Move one tile down.
+-   `move_left`: Move one tile left.
+-   `move_right`: Move one tile right.
+-   `place_bomb`: Place a bomb at the player's current position.
 
-- It is not permitted to adapt code outside the player functions for your own benefit.
-- You may use malloc, but after each call of the player function no more memory may be allocated and must have been released.
-- Have fun :)
+You can study the `message.go` file in `client_go/pkg/bomber/` for the exact data structures.
+
+# Legacy C Game
+
+The original version of this project was a SDL-based game written entirely in C. You can still find it in the `c_game/` directory. It has its own set of rules and instructions for writing bots. If you're interested, please refer to the `README.md` inside that directory for more information.
