@@ -11,7 +11,7 @@ type Bot struct{}
 // The code for your own bot
 func (b *Bot) CalcNextMove(state bomber.ClassicStatePayload) bomber.PlayerMove {
 	// Currently a pretty lazy player :(
-	return bomber.DO_NOTHING
+	return bomber.PLACE_BOMB
 }
 
 var _ bomber.BomberBot = (*Bot)(nil)
