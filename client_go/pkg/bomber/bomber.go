@@ -14,7 +14,7 @@ import (
 )
 
 type BomberBot interface {
-	CalcNextMove(state ClassicStatePayload) PlayerMove
+	CalcNextMove(bomberId string, state ClassicStatePayload) PlayerMove
 }
 
 type Bomber struct {
@@ -176,7 +176,7 @@ func (b *Bomber) ReadMessages() {
 			if err != nil {
 				error("Error while trying to unmarshal ClassicStatePayload: %v", err)
 			}
-			nextMove := b.bot.CalcNextMove(classicState)
+			nextMove := b.bot.CalcNextMove(b.bomberID, classicState)
 			newPayload := ClassicInputPayload{
 				Move: nextMove,
 			}
