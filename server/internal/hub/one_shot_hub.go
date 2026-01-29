@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var hub = logger.New("[HUB]")
+var log = logger.New("[HUB]")
 
 // OneShotHub is a hub that waits for two players,
 // runs one game, and then shuts down
@@ -37,7 +37,7 @@ func NewOneShotHub() *OneShotHub {
 
 // Run starts the hubs main loop
 func (h *OneShotHub) Run() {
-	hub.Info("Is running, waiting for 2 players...")
+	log.Info("Is running, waiting for 2 players...")
 	gameStarted := false
 
 	for {
@@ -45,12 +45,12 @@ func (h *OneShotHub) Run() {
 		case client := <-h.Register:
 			if len(h.clients) < 2 {
 				h.clients[client] = true
-				hub.Info("Client %s registered. Total clients: %d/2", client.GetID(), len(h.clients))
+				log.Info("Client %s registered. Total clients: %d/2", client.GetID(), len(h.clients))
 				welcomePayload := message.WelcomeMessage{ClientID: client.GetID()}
 				client.SendMessage(message.Welcome, welcomePayload)
 			}
 			if len(h.clients) == 2 && !gameStarted {
-				hub.Info("Two players connected, starting game...")
+				log.Info("Two players connected, starting game...")
 				h.startGame()
 				gameStarted = true
 			}
@@ -58,7 +58,7 @@ func (h *OneShotHub) Run() {
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
 				client.Close()
-				hub.Warn("Client %s unregistered.", client.GetID())
+				log.Warn("Client %s unregistered.", client.GetID())
 				// If a client disconnects, the game should end, which will trigger shutdown
 				// The game logic itself handles player disconnection
 			}
@@ -67,11 +67,11 @@ func (h *OneShotHub) Run() {
 			if h.game != nil {
 				h.game.HandleMessage(hubMsg.client, hubMsg.message)
 			} else {
-				hub.Warn("Message from %s received before game start, ignoring.", hubMsg.client.GetID())
+				log.Warn("Message from %s received before game start, ignoring.", hubMsg.client.GetID())
 			}
 			h.gameMutex.Unlock()
 		case <-h.shutdown:
-			hub.Info("Game finished, OneShotHub is shutting down.")
+			log.Info("Game finished, OneShotHub is shutting down.")
 			h.gameMutex.Lock()
 			for client := range h.clients {
 				client.Close()
@@ -95,15 +95,15 @@ func (h *OneShotHub) startGame() {
 	for client := range h.clients {
 		err := h.game.AddPlayer(client)
 		if err != nil {
-			hub.Error("Error adding player %s to game: %v", client.GetID(), err)
+			log.Error("Error adding player %s to game: %v", client.GetID(), err)
 		} else {
-			hub.Info("Added player %s to game %s", client.GetID(), gameID)
+			log.Info("Added player %s to game %s", client.GetID(), gameID)
 			startPayload := message.GameStartPayload{Name: "Classic (One-Shot)", Description: "The classic bomberman game, one-shot style!", GameID: gameID}
 			client.SendMessage(message.GameStart, startPayload)
 		}
 	}
 	go h.game.Start()
-	hub.Success("Started game %s in a new goroutine", gameID)
+	log.Success("Started game %s in a new goroutine", gameID)
 }
 
 // --- Interface Implementations ---
@@ -120,7 +120,7 @@ func (h *OneShotHub) HandleIncomingMessage(c Client, msg message.Message) {
 
 // GameFinished implements the GameFinisher interface.
 func (h *OneShotHub) GameFinished(gameID string, result game.GameResult) {
-	hub.Success("Game %s finished in OneShotHub. Result: %+v. Signalling shutdown.", gameID, result)
+	log.Success("Game %s finished in OneShotHub. Result: %+v. Signalling shutdown.", gameID, result)
 	close(h.shutdown)
 }
 

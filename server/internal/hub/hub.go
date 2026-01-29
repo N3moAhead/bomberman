@@ -2,7 +2,6 @@ package hub
 
 import (
 	"encoding/json"
-	"log"
 	"sync"
 	"time"
 
@@ -73,14 +72,14 @@ func (h *Hub) HandleIncomingMessage(c Client, msg message.Message) {
 }
 
 func (h *Hub) Run() {
-	hub.Info("Hub is running...")
+	log.Info("Hub is running...")
 	for {
 		select {
 		case client := <-h.Register:
 			h.gameMutex.Lock()
 			h.clients[client] = true
 			h.gameMutex.Unlock()
-			hub.Info("Client %s registered. Total clients: %d", client.GetID(), len(h.clients))
+			log.Info("Client %s registered. Total clients: %d", client.GetID(), len(h.clients))
 			welcomePayload := message.WelcomeMessage{
 				ClientID:     client.GetID(),
 				CurrentGames: h.availableGames,
@@ -95,13 +94,13 @@ func (h *Hub) Run() {
 				if inGame {
 					if activeGame, gameExists := h.activeGames[gameID]; gameExists {
 						activeGame.RemovePlayer(client)
-						hub.Info("Removed client %s from game %s", client.GetID(), activeGame.GetID())
+						log.Info("Removed client %s from game %s", client.GetID(), activeGame.GetID())
 					}
 					delete(h.clientToGame, client)
 				}
 				delete(h.clients, client)
 				client.Close()
-				hub.Warn("Client %s unregistered. Total clients: %d", client.GetID(), len(h.clients))
+				log.Warn("Client %s unregistered. Total clients: %d", client.GetID(), len(h.clients))
 			}
 			h.gameMutex.Unlock()
 			h.broadcastLobbyUpdate()
@@ -120,7 +119,7 @@ func (h *Hub) Run() {
 				if gameExists {
 					currentGame.HandleMessage(hubMsg.client, hubMsg.message)
 				} else {
-					hub.Error("Client %s mapped to game %s, but game does not exist.", hubMsg.client.GetID(), gameID)
+					log.Error("Client %s mapped to game %s, but game does not exist.", hubMsg.client.GetID(), gameID)
 					h.gameMutex.Lock()
 					delete(h.clientToGame, hubMsg.client)
 					h.gameMutex.Unlock()
@@ -137,7 +136,7 @@ func (h *Hub) handleLobbyMessage(client Client, msg message.Message) {
 	case message.PlayerStatusUpdate:
 		var payload message.PlayerStatusUpdatePayload
 		if err := json.Unmarshal(msg.Payload, &payload); err != nil {
-			hub.Error("Error unmarshalling select_game payload from %s: %v", client.GetID(), err)
+			log.Error("Error unmarshalling select_game payload from %s: %v", client.GetID(), err)
 			client.SendMessage(message.Error, message.ErrorMessage{Message: "Invalid PlayerStatusUpdatePayload payload"})
 			return
 		}
@@ -146,7 +145,7 @@ func (h *Hub) handleLobbyMessage(client Client, msg message.Message) {
 		h.broadcastLobbyUpdate()
 		h.checkAndPotentiallyStartGame()
 	default:
-		hub.Warn("Received unhandled lobby message type '%s' from client %s", msg.Type, client.GetID())
+		log.Warn("Received unhandled lobby message type '%s' from client %s", msg.Type, client.GetID())
 	}
 }
 
@@ -173,14 +172,14 @@ func (h *Hub) selectAndStartGame() {
 	}
 
 	if len(clientsReady) < 2 {
-		hub.Warn("Not enough players are ready and available to start a new game")
+		log.Warn("Not enough players are ready and available to start a new game")
 		h.gameMutex.Unlock()
 		h.broadcastLobbyUpdate()
 		return
 	}
 
 	if len(clientsReady) < len(clientsInLobby) {
-		hub.Info("Some players are in the lobby but still not ready we are going to wait for them")
+		log.Info("Some players are in the lobby but still not ready we are going to wait for them")
 		h.gameMutex.Unlock()
 		h.broadcastLobbyUpdate()
 		return
@@ -190,19 +189,19 @@ func (h *Hub) selectAndStartGame() {
 		h.clientToGame[client] = gameID
 		err := newGame.AddPlayer(client)
 		if err != nil {
-			hub.Error("Error while trying to add player to game %s; %v", client.GetID(), err)
+			log.Error("Error while trying to add player to game %s; %v", client.GetID(), err)
 			delete(h.clientToGame, client)
 		} else {
 			client.SetGameID(gameID)
 			client.SetReady(false)
 			startPayload := message.GameStartPayload{Name: gameInfo.Name, Description: gameInfo.Description, GameID: gameID}
 			client.SendMessage(message.GameStart, startPayload)
-			hub.Success("Added player %s to game %s", client.GetID(), h.availableGames[0].Name)
+			log.Success("Added player %s to game %s", client.GetID(), h.availableGames[0].Name)
 		}
 	}
 
 	go newGame.Start()
-	hub.Success("Started game %s (%s) in a new goroutine", gameInfo.Name, gameID)
+	log.Success("Started game %s (%s) in a new goroutine", gameInfo.Name, gameID)
 
 	h.gameMutex.Unlock()
 
@@ -213,12 +212,12 @@ func (h *Hub) GameFinished(gameID string, result game.GameResult) {
 	h.gameMutex.Lock()
 	defer h.gameMutex.Unlock()
 
-	hub.Info("Game %s finished. Processing results.", gameID)
+	log.Info("Game %s finished. Processing results.", gameID)
 
 	if _, exists := h.activeGames[gameID]; exists {
 		delete(h.activeGames, gameID)
 	} else {
-		hub.Warn("GameFinished called for non-existent or already finished game %s", gameID)
+		log.Warn("GameFinished called for non-existent or already finished game %s", gameID)
 		return
 	}
 
@@ -233,7 +232,7 @@ func (h *Hub) GameFinished(gameID string, result game.GameResult) {
 		delete(h.clientToGame, client)
 		client.SetGameID("")
 		client.SendMessage(message.BackToLobby, nil)
-		hub.Info("Client %s removed from finished game %s, returned to lobby.", client.GetID(), gameID)
+		log.Info("Client %s removed from finished game %s, returned to lobby.", client.GetID(), gameID)
 	}
 
 	if len(result.Scores) > 0 {
@@ -266,7 +265,7 @@ func (h *Hub) broadcastLobbyUpdate() {
 
 func (h *Hub) broadcastMessageInternal(msgType message.MessageType, payload any) {
 	h.gameMutex.RLock()
-	hub.Info("Broadcasting message type '%s' to %d clients", msgType, len(h.clients))
+	log.Info("Broadcasting message type '%s' to %d clients", msgType, len(h.clients))
 	clientList := make([]Client, 0, len(h.clients))
 	for client := range h.clients {
 		clientList = append(clientList, client)
@@ -276,7 +275,7 @@ func (h *Hub) broadcastMessageInternal(msgType message.MessageType, payload any)
 	for _, client := range clientList {
 		err := client.SendMessage(msgType, payload)
 		if err != nil {
-			hub.Error("Error broadcasting message type %s to client %s: %v", msgType, client.GetID(), err)
+			log.Error("Error broadcasting message type %s to client %s: %v", msgType, client.GetID(), err)
 		}
 	}
 }
@@ -293,10 +292,10 @@ func (h *Hub) checkAndPotentiallyStartGame() {
 	h.gameMutex.RUnlock()
 
 	if canStart {
-		hub.Info("Enough players %d/2 in lobby. Trying to start a game...", lobbyClientsCount)
+		log.Info("Enough players %d/2 in lobby. Trying to start a game...", lobbyClientsCount)
 		h.selectAndStartGame()
 	} else {
-		log.Printf("Not Enough players %d/2 in lobby. Waiting for more players to join...", lobbyClientsCount)
+		log.Warn("Not Enough players %d/2 in lobby. Waiting for more players to join...", lobbyClientsCount)
 	}
 }
 
@@ -311,9 +310,9 @@ func (h *Hub) updateScoresInternal(scores map[string]int) {
 		}
 		if targetClient != nil {
 			targetClient.IncrementScore(delta)
-			hub.Info("Score updated for %s: new score %d", targetClient.GetID(), targetClient.GetScore())
+			log.Info("Score updated for %s: new score %d", targetClient.GetID(), targetClient.GetScore())
 		} else {
-			hub.Warn("Could not find client %s to update score", clientID)
+			log.Warn("Could not find client %s to update score", clientID)
 		}
 	}
 }

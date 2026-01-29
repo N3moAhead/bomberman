@@ -3,14 +3,16 @@ package classic
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"sync"
 	"time"
 
 	"github.com/N3moAhead/bomberman/server/internal/game"
 	"github.com/N3moAhead/bomberman/server/internal/message"
+	"github.com/N3moAhead/bomberman/server/pkg/logger"
 	"github.com/N3moAhead/bomberman/server/pkg/types"
 )
+
+var log = logger.New("[Classic]")
 
 type Classic struct {
 	gameFinisher game.GameFinisher
@@ -96,7 +98,7 @@ func (c *Classic) AddPlayer(player game.Player) error {
 	c.players[playerID] = newPlayer
 	c.playerMap[playerID] = player
 
-	log.Printf("[Game %s] Player %s added.\n", c.gameID, playerID)
+	log.Success("Player %s added. (Game %s)\n", playerID, c.gameID)
 	return nil
 }
 
@@ -108,10 +110,10 @@ func (c *Classic) RemovePlayer(player game.Player) {
 	if _, ok := c.players[playerID]; ok {
 		delete(c.players, playerID)
 		delete(c.playerMap, playerID)
-		log.Printf("[Game %s] Player %s removed.\n", c.gameID, playerID)
+		log.Info("[Game %s] Player %s removed.\n", c.gameID, playerID)
 
 		if len(c.players) < c.minPlayers && c.isRunning {
-			log.Printf(
+			log.Warn(
 				"[Game %s] Not enough players remaining (%d/%d). Stopping game.\n",
 				c.gameID,
 				len(c.players),
@@ -126,7 +128,7 @@ func (c *Classic) Start() {
 	c.playerMux.Lock()
 	if len(c.players) < c.minPlayers {
 		c.playerMux.Unlock()
-		log.Printf("[Game %s] Cannot start, not enough players (%d/%d).", c.gameID, len(c.players), c.minPlayers)
+		log.Error("[Game %s] Cannot start, not enough players (%d/%d).", c.gameID, len(c.players), c.minPlayers)
 		go c.Stop()
 		return
 	}
@@ -137,12 +139,12 @@ func (c *Classic) Start() {
 
 	c.playerMux.Unlock()
 
-	log.Printf("[Game %s] Starting game loop.", c.gameID)
+	log.Info("[Game %s] Starting game loop.", c.gameID)
 	defer func() {
 		if c.ticker != nil {
 			c.ticker.Stop()
 		}
-		log.Printf("[Game %s] Game loop stopped.", c.gameID)
+		log.Info("[Game %s] Game loop stopped.", c.gameID)
 	}()
 
 	for {
@@ -167,7 +169,7 @@ func (c *Classic) Start() {
 			// Now, with the mutex released, we can safely send the new state to all players.
 			for _, p := range playersToMessage {
 				if err := p.SendMessage(message.ClassicState, gameState); err != nil {
-					log.Printf(
+					log.Error(
 						"[Game %s] Error sending state to player %s: %v",
 						c.gameID,
 						p.GetID(),
@@ -215,7 +217,7 @@ func (c *Classic) Stop() {
 	}
 	c.playerMux.Unlock()
 
-	log.Printf("[Game %s] Stopping game.", c.gameID)
+	log.Info("[Game %s] Stopping game.", c.gameID)
 
 	// Inform the hub that the game is finished and retrieve all
 	// players back to the lobby
@@ -229,25 +231,24 @@ func (c *Classic) HandleMessage(player game.Player, msg message.Message) {
 	case message.ClassicInput:
 		var payload ClassicInputPayload
 		if err := json.Unmarshal(msg.Payload, &payload); err != nil {
-			log.Printf("[Game %s] Error unmarshalling ClassInput from %s: %v\n", c.gameID, playerID, err)
+			log.Error("[Game %s] Error unmarshalling ClassInput from %s: %v\n", c.gameID, playerID, err)
 			return
 		}
 
-		log.Printf("[Game %s] Received player input %v", c.gameID, payload)
 		c.playerMux.Lock()
 		defer c.playerMux.Unlock()
 		pState, ok := c.players[playerID]
 		if ok {
 			pState.HandleInput(payload)
 		} else {
-			log.Printf(
+			log.Warn(
 				"[Game %s] Received input from player %s who is not in the internal state map.",
 				c.gameID,
 				playerID,
 			)
 		}
 	default:
-		log.Printf(
+		log.Warn(
 			"[Game %s] Received unhandled message type '%s' from player %s",
 			c.gameID,
 			msg.Type,
