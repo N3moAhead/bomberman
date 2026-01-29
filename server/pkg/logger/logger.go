@@ -3,6 +3,7 @@ package logger
 import (
 	"fmt"
 	"log"
+	"os"
 )
 
 // ANSI color codes
@@ -27,13 +28,15 @@ func New(prefix string) *Logger {
 	return &Logger{prefix: prefix}
 }
 
+// --- Printf Style ---
+
 func (l *Logger) print(level, color, format string, a ...any) {
 	prefixStr := ""
 	if l.prefix != "" {
 		prefixStr = fmt.Sprintf("%s%s%s ", colorViolet, l.prefix, colorReset)
 	}
 
-	levelTag := fmt.Sprintf("%s[%-7s]%s", color, level, colorReset)
+	levelTag := fmt.Sprintf("%s[%-7s]%s", color, level, colorReset) // Padded for alignment
 	message := fmt.Sprintf(format, a...)
 
 	log.Printf("%s %s%s", levelTag, prefixStr, message)
@@ -62,6 +65,50 @@ func (l *Logger) Info(format string, a ...any) {
 // Debug logs a message with a cyan 'DEBUG' level
 func (l *Logger) Debug(format string, a ...any) {
 	l.print("DEBUG", colorCyan, format, a...)
+}
+
+// --- Println Style ---
+
+func (l *Logger) println(level, color string, a ...any) {
+	prefixStr := ""
+	if l.prefix != "" {
+		prefixStr = fmt.Sprintf("%s%s%s ", colorViolet, l.prefix, colorReset)
+	}
+
+	levelTag := fmt.Sprintf("%s[%-7s]%s", color, level, colorReset) // Padded for alignment
+	message := fmt.Sprint(a...)
+
+	log.Printf("%s %s%s", levelTag, prefixStr, message)
+}
+
+// Successln logs a message with a green 'SUCCESS' level
+func (l *Logger) Successln(a ...any) {
+	l.println("SUCCESS", colorGreen, a...)
+}
+
+// Errorln logs a message with a red 'ERROR' level
+func (l *Logger) Errorln(a ...any) {
+	l.println("ERROR", colorRed, a...)
+}
+
+// Warnln logs a message with a yellow 'WARN' level
+func (l *Logger) Warnln(a ...any) {
+	l.println("WARN", colorYellow, a...)
+}
+
+// Infoln logs a message with a blue 'INFO' level
+func (l *Logger) Infoln(a ...any) {
+	l.println("INFO", colorBlue, a...)
+}
+
+// Debugln logs a message with a cyan 'DEBUG' level
+func (l *Logger) Debugln(a ...any) {
+	l.println("DEBUG", colorCyan, a...)
+}
+
+func (l *Logger) Fatal(a ...any) {
+	l.println("ERROR", colorRed, a...)
+	os.Exit(1)
 }
 
 // --- Global Logger ---
@@ -98,4 +145,33 @@ func Info(format string, a ...any) {
 // Debug logs a message using the default global logger
 func Debug(format string, a ...any) {
 	std.Debug(format, a...)
+}
+
+// Successln logs a message using the default global logger
+func Successln(a ...any) {
+	std.Successln(a...)
+}
+
+// Errorln logs a message using the default global logger
+func Errorln(a ...any) {
+	std.Errorln(a...)
+}
+
+// Warnln logs a message using the default global logger
+func Warnln(a ...any) {
+	std.Warnln(a...)
+}
+
+// Infoln logs a message using the default global logger
+func Infoln(a ...any) {
+	std.Infoln(a...)
+}
+
+// Debugln logs a message using the default global logger
+func Debugln(a ...any) {
+	std.Debugln(a...)
+}
+
+func Fatal(a ...any) {
+	std.Errorln(a...)
 }
