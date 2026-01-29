@@ -1,4 +1,4 @@
-const { Bomber, PlayerMove } = require('./pkg/bomber/bomber');
+const { Bomber, PlayerMove } = require("./pkg/bomber/bomber");
 
 /**
  * @typedef {import('./pkg/bomber/message').ClassicStatePayload} ClassicStatePayload
@@ -6,20 +6,21 @@ const { Bomber, PlayerMove } = require('./pkg/bomber/bomber');
  */
 
 class Bot {
-    /**
-     * @param {ClassicStatePayload} state
-     * @returns {PlayerMove}
-     */
-    calcNextMove(state) {
-        // Currently a pretty lazy player :(
-        return PlayerMove.DO_NOTHING;
-    }
+  /**
+   * @param {String} botId
+   * @param {ClassicStatePayload} state
+   * @returns {PlayerMove}
+   */
+  calcNextMove(botId, state) {
+    // Currently a pretty lazy player :(
+    return PlayerMove.DO_NOTHING;
+  }
 }
 
 function main() {
-    const newBot = new Bot();
-    const b = new Bomber(newBot);
-    b.start('ws://localhost:8038/ws');
+  const newBot = new Bot();
+  const b = new Bomber(newBot);
+  b.start("ws://localhost:8038/ws");
 }
 
 main();

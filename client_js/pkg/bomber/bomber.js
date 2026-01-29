@@ -120,7 +120,7 @@ class Bomber {
       }
       case MessageType.ClassicState: {
         const classicState = msg.payload;
-        const nextMove = this.bot.calcNextMove(classicState);
+        const nextMove = this.bot.calcNextMove(this.bomberID, classicState);
         const newPayload = {
           move: nextMove,
         };
