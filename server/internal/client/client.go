@@ -1,4 +1,4 @@
-package hub
+package client
 
 import (
 	"encoding/json"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/N3moAhead/bomberman/server/internal/game"
+	"github.com/N3moAhead/bomberman/server/internal/hub"
 	"github.com/N3moAhead/bomberman/server/internal/message"
 	"github.com/gorilla/websocket"
 )
@@ -17,24 +18,74 @@ const (
 	maxMessageSize = 1024
 )
 
+// Client is a WebSocket client that communicates with a Hub
 type Client struct {
-	Hub     *Hub
+	Hub     hub.HubConnection
 	Conn    *websocket.Conn
 	Send    chan []byte
 	ID      string
 	Score   int
-	IsReady bool   // Displays if the bot or player is ready
-	gameID  string // The id of the game the user is inside
+	isReady bool
+	gameID  string
 }
 
-/// --- Implementing the game.Player Interface
+// Assure Client implements the interface from the hub package
+var _ hub.Client = (*Client)(nil)
 
+// NewClient creates a new client instance
+func NewClient(hub hub.HubConnection, conn *websocket.Conn, id string) *Client {
+	return &Client{
+		Hub:     hub,
+		Conn:    conn,
+		Send:    make(chan []byte, 256),
+		ID:      id,
+		isReady: false,
+	}
+}
+
+// StartPumps starts the client's read and write pumps in separate goroutines
+func (c *Client) StartPumps() {
+	go c.WritePump()
+	go c.ReadPump()
+}
+
+// GetID returns the client's unique identifier
 func (c *Client) GetID() string {
 	return c.ID
 }
 
-// sendMessage formats and sends a structured message to the client
-// Uses non-blocking send to prevent deadlocks if buffer is full
+// IsReady indicates if the client is ready to start a game
+func (c *Client) IsReady() bool {
+	return c.isReady
+}
+
+// SetReady sets the client's ready status
+func (c *Client) SetReady(ready bool) {
+	c.isReady = ready
+}
+
+// GetScore returns the client's current score
+func (c *Client) GetScore() int {
+	return c.Score
+}
+
+// IncrementScore adds a value to the client's score
+func (c *Client) IncrementScore(delta int) {
+	c.Score += delta
+}
+
+// SetGameID sets the ID of the game the client is currently in
+func (c *Client) SetGameID(id string) {
+	c.gameID = id
+}
+
+// Close closes the client's send channel. The connection itself is closed
+// by the read/write pumps when they exit
+func (c *Client) Close() {
+	close(c.Send)
+}
+
+// SendMessage formats and sends a structured message to the client
 func (c *Client) SendMessage(msgType message.MessageType, payload any) error {
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
@@ -59,16 +110,12 @@ func (c *Client) SendMessage(msgType message.MessageType, payload any) error {
 	return nil
 }
 
-/// --- End of implementing the game.Player interface
-
 var _ game.Player = (*Client)(nil)
 
-// ReadPump transfers messages from the WebSocket to the Hub.
-// Runs in a separate goroutine for each connection, ensuring only one
-// read operation occurs per connection at a time.
+// ReadPump transfers messages from the WebSocket to the Hub
 func (c *Client) ReadPump() {
 	defer func() {
-		c.Hub.unregister <- c
+		c.Hub.UnregisterClient(c)
 		c.Conn.Close()
 		log.Printf("Client %s disconnected (readPump closed)", c.ID)
 	}()
@@ -91,17 +138,11 @@ func (c *Client) ReadPump() {
 			continue
 		}
 
-		hubMsg := hubMessage{
-			client:  c,
-			message: msg,
-		}
-		c.Hub.incoming <- hubMsg
+		c.Hub.HandleIncomingMessage(c, msg)
 	}
 }
 
-// WritePump transfers messages from the Hub to the WebSocket connection.
-// Ensures that there is at most one writer to a connection by
-// multiplexing all messages through the client's Send channel.
+// WritePump transfers messages from the Hub to the WebSocket connection
 func (c *Client) WritePump() {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {

@@ -12,12 +12,25 @@ import (
 	"github.com/google/uuid"
 )
 
+// Client defines the interface for a client connecting to the hub.
+// This allows the hub to manage clients without depending on a concrete implementation.
+type Client interface {
+	game.Player // Embeds GetID() and SendMessage()
+	IsReady() bool
+	SetReady(bool)
+	GetScore() int
+	IncrementScore(delta int)
+	SetGameID(id string)
+	Close()
+	StartPumps()
+}
+
 type hubMessage struct {
-	client  *Client
+	client  Client
 	message message.Message
 }
 
-// Game definitions can later be used for diffrent versions
+// GameDefinition can later be used for diffrent versions
 // or variants for bomberman games...
 type GameDefinition struct {
 	Name        string `json:"name"`
@@ -25,41 +38,51 @@ type GameDefinition struct {
 }
 
 type Hub struct {
-	clients        map[*Client]bool
+	clients        map[Client]bool
 	incoming       chan hubMessage
-	Register       chan *Client
-	unregister     chan *Client
+	Register       chan Client
+	unregister     chan Client
 	activeGames    map[string]game.Game
 	availableGames []message.GameInfo
-	clientToGame   map[*Client]string
+	clientToGame   map[Client]string
 	gameMutex      sync.RWMutex
 }
 
 func NewHub() *Hub {
 	return &Hub{
 		incoming:   make(chan hubMessage, 2048),
-		Register:   make(chan *Client),
-		unregister: make(chan *Client),
+		Register:   make(chan Client),
+		unregister: make(chan Client),
 		availableGames: []message.GameInfo{
 			{Name: "Classic", Description: "The classic and simple bomberman game!"},
 		},
-		clients:      make(map[*Client]bool),
+		clients:      make(map[Client]bool),
 		activeGames:  make(map[string]game.Game),
-		clientToGame: make(map[*Client]string),
+		clientToGame: make(map[Client]string),
 	}
 }
 
+// Unregister allows a client to request to be unregistered from the hub.
+func (h *Hub) UnregisterClient(c Client) {
+	h.unregister <- c
+}
+
+// HandleIncomingMessage is called by clients to pass a message to the hub for processing.
+func (h *Hub) HandleIncomingMessage(c Client, msg message.Message) {
+	h.incoming <- hubMessage{client: c, message: msg}
+}
+
 func (h *Hub) Run() {
-	log.Println("Hub is running...")
+	hub.Info("Hub is running...")
 	for {
 		select {
 		case client := <-h.Register:
 			h.gameMutex.Lock()
 			h.clients[client] = true
 			h.gameMutex.Unlock()
-			log.Printf("Client %s registered. Total clients: %d", client.ID, len(h.clients))
+			hub.Info("Client %s registered. Total clients: %d", client.GetID(), len(h.clients))
 			welcomePayload := message.WelcomeMessage{
-				ClientID:     client.ID,
+				ClientID:     client.GetID(),
 				CurrentGames: h.availableGames,
 			}
 			client.SendMessage(message.Welcome, welcomePayload)
@@ -72,18 +95,16 @@ func (h *Hub) Run() {
 				if inGame {
 					if activeGame, gameExists := h.activeGames[gameID]; gameExists {
 						activeGame.RemovePlayer(client)
-						log.Printf("Removed client %s from game %s", client.GetID(), activeGame.GetID())
+						hub.Info("Removed client %s from game %s", client.GetID(), activeGame.GetID())
 					}
 					delete(h.clientToGame, client)
 				}
 				delete(h.clients, client)
-				close(client.Send)
-				log.Printf("Client %s unregistered. Total clients: %d", client.ID, len(h.clients))
+				client.Close()
+				hub.Warn("Client %s unregistered. Total clients: %d", client.GetID(), len(h.clients))
 			}
 			h.gameMutex.Unlock()
 			h.broadcastLobbyUpdate()
-			// Because a client has unregisterd it could be that all requirements are fullfilled to start a new game
-			// So thats exactly what we are doing right here ;)
 			h.checkAndPotentiallyStartGame()
 
 		case hubMsg := <-h.incoming:
@@ -97,10 +118,9 @@ func (h *Hub) Run() {
 				h.gameMutex.RUnlock()
 
 				if gameExists {
-					// Redirect the incoming message to the currently running game
 					currentGame.HandleMessage(hubMsg.client, hubMsg.message)
 				} else {
-					log.Printf("Client %s mapped to game %s, but game does not exist.", hubMsg.client.GetID(), gameID)
+					hub.Error("Client %s mapped to game %s, but game does not exist.", hubMsg.client.GetID(), gameID)
 					h.gameMutex.Lock()
 					delete(h.clientToGame, hubMsg.client)
 					h.gameMutex.Unlock()
@@ -112,58 +132,55 @@ func (h *Hub) Run() {
 	}
 }
 
-// Handles all messages from clients that are not inside a game
-func (h *Hub) handleLobbyMessage(client *Client, msg message.Message) {
+func (h *Hub) handleLobbyMessage(client Client, msg message.Message) {
 	switch msg.Type {
 	case message.PlayerStatusUpdate:
 		var payload message.PlayerStatusUpdatePayload
 		if err := json.Unmarshal(msg.Payload, &payload); err != nil {
-			log.Printf("Error unmarshalling select_game payload from %s: %v", client.ID, err)
+			hub.Error("Error unmarshalling select_game payload from %s: %v", client.GetID(), err)
 			client.SendMessage(message.Error, message.ErrorMessage{Message: "Invalid PlayerStatusUpdatePayload payload"})
 			return
 		}
 
-		client.IsReady = payload.IsReady
+		client.SetReady(payload.IsReady)
 		h.broadcastLobbyUpdate()
 		h.checkAndPotentiallyStartGame()
 	default:
-		log.Printf("Received unhandled lobby message type '%s' from client %s", msg.Type, client.ID)
+		hub.Warn("Received unhandled lobby message type '%s' from client %s", msg.Type, client.GetID())
 	}
 }
 
-// Will use the selected game mode probabyl just classic and will start the game
 func (h *Hub) selectAndStartGame() {
 	h.gameMutex.Lock()
 
-	// Currently its always the classic game
 	gameInfo := h.availableGames[0]
 	gameID := uuid.New().String()
 	newGame := classic.NewClassic(h, gameID)
 	h.activeGames[gameID] = newGame
 
-	clientsInLobby := []*Client{}
+	clientsInLobby := []Client{}
 	for client := range h.clients {
 		if _, inGame := h.clientToGame[client]; !inGame {
 			clientsInLobby = append(clientsInLobby, client)
 		}
 	}
 
-	clientsReady := []*Client{}
+	clientsReady := []Client{}
 	for _, client := range clientsInLobby {
-		if client.IsReady {
+		if client.IsReady() {
 			clientsReady = append(clientsReady, client)
 		}
 	}
 
 	if len(clientsReady) < 2 {
-		log.Printf("[HUB] Not enough players are ready and available to start a new game")
+		hub.Warn("Not enough players are ready and available to start a new game")
 		h.gameMutex.Unlock()
 		h.broadcastLobbyUpdate()
 		return
 	}
 
 	if len(clientsReady) < len(clientsInLobby) {
-		log.Printf("[HUB] Some players are in the lobby but still not ready we are going to wait for them")
+		hub.Info("Some players are in the lobby but still not ready we are going to wait for them")
 		h.gameMutex.Unlock()
 		h.broadcastLobbyUpdate()
 		return
@@ -173,43 +190,39 @@ func (h *Hub) selectAndStartGame() {
 		h.clientToGame[client] = gameID
 		err := newGame.AddPlayer(client)
 		if err != nil {
-			log.Printf("[HUB: Game %s] Error while trying to add player to game %s; %v", gameID, client.ID, err)
+			hub.Error("Error while trying to add player to game %s; %v", client.GetID(), err)
 			delete(h.clientToGame, client)
 		} else {
-			client.gameID = gameID
-			client.IsReady = false // Reset the player ready state
+			client.SetGameID(gameID)
+			client.SetReady(false)
 			startPayload := message.GameStartPayload{Name: gameInfo.Name, Description: gameInfo.Description, GameID: gameID}
 			client.SendMessage(message.GameStart, startPayload)
-			log.Printf("[HUB: Game %s]: Added player %s to game %s", gameID, client.ID, h.availableGames[0].Name)
+			hub.Success("Added player %s to game %s", client.GetID(), h.availableGames[0].Name)
 		}
 	}
 
 	go newGame.Start()
-	log.Printf("[HUB] Started game %s (%s) in a new goroutine", gameInfo.Name, gameID)
+	hub.Success("Started game %s (%s) in a new goroutine", gameInfo.Name, gameID)
 
 	h.gameMutex.Unlock()
 
 	h.broadcastLobbyUpdate()
 }
 
-// Has to be called from a game after it is finished
 func (h *Hub) GameFinished(gameID string, result game.GameResult) {
 	h.gameMutex.Lock()
+	defer h.gameMutex.Unlock()
 
-	log.Printf("Game %s finished. Processing results.", gameID)
+	hub.Info("Game %s finished. Processing results.", gameID)
 
-	// Remove the game from the current active games!
 	if _, exists := h.activeGames[gameID]; exists {
 		delete(h.activeGames, gameID)
 	} else {
-		// If the game has already been finished for some reason...
-		// We just quit the function here :)
-		log.Printf("GameFinished called for non-existent or already finished game %s", gameID)
+		hub.Warn("GameFinished called for non-existent or already finished game %s", gameID)
 		return
 	}
 
-	// Remove clients from the client to game mapping
-	clientsToRemove := []*Client{}
+	clientsToRemove := []Client{}
 	for client, gid := range h.clientToGame {
 		if gid == gameID {
 			clientsToRemove = append(clientsToRemove, client)
@@ -218,40 +231,31 @@ func (h *Hub) GameFinished(gameID string, result game.GameResult) {
 
 	for _, client := range clientsToRemove {
 		delete(h.clientToGame, client)
-		client.gameID = ""                           // the client is back in the lobby
-		client.SendMessage(message.BackToLobby, nil) // notify the client that hes back in the lobby!
-		log.Printf("Client %s removed from finished game %s, returned to lobby.", client.GetID(), gameID)
+		client.SetGameID("")
+		client.SendMessage(message.BackToLobby, nil)
+		hub.Info("Client %s removed from finished game %s, returned to lobby.", client.GetID(), gameID)
 	}
 
-	// Update all scores if scores have been given
 	if len(result.Scores) > 0 {
 		h.updateScoresInternal(result.Scores)
 	}
 
-	// Again unlock before broadcasting a lobby update!!!
-	// By now im sick of myself haha
-	h.gameMutex.Unlock()
-
-	// Notify all players for the lobby update
-	h.broadcastLobbyUpdate()
-
-	// At this point it will again be checked if a new game can be started...
-	// Using time.AfterFunc for a small delay, gives clients time to process
-	// Im not completly sure that this here is the best way to do it, but it
-	// works fine for now so i will come back to it if it creates some problems
-	time.AfterFunc(500*time.Millisecond, h.checkAndPotentiallyStartGame)
+	// Using a goroutine to avoid blocking and potential deadlocks
+	go func() {
+		h.broadcastLobbyUpdate()
+		time.AfterFunc(500*time.Millisecond, h.checkAndPotentiallyStartGame)
+	}()
 }
 
-// WARNING needs read gameMutex to be unlocked!
 func (h *Hub) broadcastLobbyUpdate() {
 	playerInfos := make(map[string]message.PlayerInfo)
 	h.gameMutex.RLock()
 	for client := range h.clients {
 		_, inGame := h.clientToGame[client]
-		playerInfos[client.ID] = message.PlayerInfo{
+		playerInfos[client.GetID()] = message.PlayerInfo{
 			InGame:  inGame,
-			IsReady: client.IsReady,
-			Score:   client.Score,
+			IsReady: client.IsReady(),
+			Score:   client.GetScore(),
 		}
 	}
 	h.gameMutex.RUnlock()
@@ -262,8 +266,8 @@ func (h *Hub) broadcastLobbyUpdate() {
 
 func (h *Hub) broadcastMessageInternal(msgType message.MessageType, payload any) {
 	h.gameMutex.RLock()
-	log.Printf("Broadcasting message type '%s' to %d clients", msgType, len(h.clients))
-	clientList := make([]*Client, 0, len(h.clients))
+	hub.Info("Broadcasting message type '%s' to %d clients", msgType, len(h.clients))
+	clientList := make([]Client, 0, len(h.clients))
 	for client := range h.clients {
 		clientList = append(clientList, client)
 	}
@@ -272,12 +276,11 @@ func (h *Hub) broadcastMessageInternal(msgType message.MessageType, payload any)
 	for _, client := range clientList {
 		err := client.SendMessage(msgType, payload)
 		if err != nil {
-			log.Printf("Error broadcasting message type %s to client %s: %v", msgType, client.ID, err)
+			hub.Error("Error broadcasting message type %s to client %s: %v", msgType, client.GetID(), err)
 		}
 	}
 }
 
-// Checks if possible and starts a game
 func (h *Hub) checkAndPotentiallyStartGame() {
 	h.gameMutex.RLock()
 	lobbyClientsCount := 0
@@ -290,7 +293,7 @@ func (h *Hub) checkAndPotentiallyStartGame() {
 	h.gameMutex.RUnlock()
 
 	if canStart {
-		log.Printf("Enough players %d/2 in lobby. Trying to start a game...", lobbyClientsCount)
+		hub.Info("Enough players %d/2 in lobby. Trying to start a game...", lobbyClientsCount)
 		h.selectAndStartGame()
 	} else {
 		log.Printf("Not Enough players %d/2 in lobby. Waiting for more players to join...", lobbyClientsCount)
@@ -299,7 +302,7 @@ func (h *Hub) checkAndPotentiallyStartGame() {
 
 func (h *Hub) updateScoresInternal(scores map[string]int) {
 	for clientID, delta := range scores {
-		var targetClient *Client = nil
+		var targetClient Client
 		for c := range h.clients {
 			if c.GetID() == clientID {
 				targetClient = c
@@ -307,19 +310,18 @@ func (h *Hub) updateScoresInternal(scores map[string]int) {
 			}
 		}
 		if targetClient != nil {
-			targetClient.Score += delta
-			log.Printf("Score updated for %s: new score %d", targetClient.GetID(), targetClient.Score)
+			targetClient.IncrementScore(delta)
+			hub.Info("Score updated for %s: new score %d", targetClient.GetID(), targetClient.GetScore())
 		} else {
-			log.Printf("Could not find client %s to update score", clientID)
+			hub.Warn("Could not find client %s to update score", clientID)
 		}
 	}
 }
 
-// An api that the hub implements which can be passed
-// down to the game
 type GameFinisher interface {
 	GameFinished(gameID string, result game.GameResult)
 }
 
 // Checking if the hub implements the game finished interface correctly
 var _ GameFinisher = (*Hub)(nil)
+var _ HubConnection = (*Hub)(nil)

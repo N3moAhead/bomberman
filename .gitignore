@@ -5,8 +5,8 @@ c_game/.vscode
 c_game/*.o
 
 # server
-server/devel/server.env
 server/bomberman-server
+server/bomberman-one-shot-server
 
 # client_go
 client_go/client_go

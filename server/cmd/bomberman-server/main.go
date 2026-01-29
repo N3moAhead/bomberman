@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/N3moAhead/bomberman/server/internal/client"
 	"github.com/N3moAhead/bomberman/server/internal/hub"
 	"github.com/N3moAhead/bomberman/server/pkg/logger"
 	"github.com/google/uuid"
@@ -13,7 +14,7 @@ import (
 
 var addr = flag.String("addr", ":8038", "http service address")
 
-var l = logger.New("[MAIN]")
+var l = logger.New("[Live-Server]")
 
 var Upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -41,19 +42,9 @@ func main() {
 		}
 		l.Success("Client connected from: %s", conn.RemoteAddr())
 
-		client := &hub.Client{
-			Hub:     hubInstance,
-			Conn:    conn,
-			Send:    make(chan []byte, 1024), // Use a buffered channel
-			ID:      uuid.New().String(),
-			Score:   0,
-			IsReady: false,
-		}
-
-		client.Hub.Register <- client // Use the Register channel from the hub instance
-
-		go client.WritePump()
-		go client.ReadPump()
+		client := client.NewClient(hubInstance, conn, uuid.NewString())
+		hubInstance.Register <- client
+		client.StartPumps()
 	})
 
 	// Simple handler for the root path
