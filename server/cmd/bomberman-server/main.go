@@ -6,17 +6,20 @@ import (
 	"net/http"
 
 	"github.com/N3moAhead/bomberman/server/internal/hub"
+	"github.com/N3moAhead/bomberman/server/pkg/logger"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
 var addr = flag.String("addr", ":8038", "http service address")
 
+var l = logger.New("[MAIN]")
+
 var Upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		log.Printf("Checking origin: %s", r.Header.Get("Origin"))
+		l.Info("Checking origin: %s", r.Header.Get("Origin"))
 		// TODO: Implement proper origin check for security
 		return true
 	},
@@ -33,10 +36,10 @@ func main() {
 		// Pass the single hub instance to the handler
 		conn, err := Upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			log.Printf("WebSocket upgrade error: %v", err)
+			l.Error("WebSocket upgrade error: %v", err)
 			return
 		}
-		log.Println("Client connected from:", conn.RemoteAddr())
+		l.Success("Client connected from: %s", conn.RemoteAddr())
 
 		client := &hub.Client{
 			Hub:     hubInstance,
@@ -63,6 +66,6 @@ func main() {
 		w.Write([]byte("[BOMBERMAN-SERVER] is running. Connect via WebSocket on /ws"))
 	})
 
-	log.Printf("Bomberman-Server starting on %s\n", *addr)
+	l.Info("Bomberman-Server starting on %s\n", *addr)
 	log.Fatal(http.ListenAndServe(*addr, nil))
 }
