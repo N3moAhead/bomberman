@@ -4,7 +4,7 @@ use url::Url;
 struct Bot;
 
 impl BomberBot for Bot {
-    fn calc_next_move(&self, _state: &ClassicStatePayload) -> PlayerMove {
+    fn calc_next_move(&self, _bot_id: &str, _state: &ClassicStatePayload) -> PlayerMove {
         // Currently a pretty lazy player :(
         PlayerMove::Nothing
     }

@@ -16,7 +16,7 @@ pub mod types;
 pub use types::*;
 
 pub trait BomberBot: Send + Sync + 'static {
-    fn calc_next_move(&self, state: &ClassicStatePayload) -> PlayerMove;
+    fn calc_next_move(&self, bot_id: &str, state: &ClassicStatePayload) -> PlayerMove;
 }
 
 type BomberId = String;
@@ -154,19 +154,19 @@ impl Bomber {
                 if let Ok(classic_state) =
                     serde_json::from_value::<ClassicStatePayload>(msg.payload)
                 {
-                    let next_move = bot.calc_next_move(&classic_state);
-                    let payload = json!({
-                        "type": MessageType::ClassicInput,
-                        "payload": { "move": next_move.to_string() }
-                    });
-                    if let Ok(msg_str) = serde_json::to_string(&payload) {
-                        if tx.send(TungsteniteMessage::Text(msg_str)).is_err() {
-                            eprintln!("Failed to send move");
-                        }
-                    }
-
                     let id_lock = bomber_id.lock().await;
                     if let Some(id) = &*id_lock {
+                        let next_move = bot.calc_next_move(id, &classic_state);
+                        let payload = json!({
+                            "type": MessageType::ClassicInput,
+                            "payload": { "move": next_move.to_string() }
+                        });
+                        if let Ok(msg_str) = serde_json::to_string(&payload) {
+                            if tx.send(TungsteniteMessage::Text(msg_str)).is_err() {
+                                eprintln!("Failed to send move");
+                            }
+                        }
+
                         print_classic_state(&classic_state, id);
                     }
                 }
