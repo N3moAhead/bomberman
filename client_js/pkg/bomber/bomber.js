@@ -216,10 +216,7 @@ function printClassicState(s, ownID) {
 
   let sb = "";
 
-  var lines = process.stdout.getWindowSize()[1];
-  for (var i = 0; i < lines; i++) {
-    sb += "\r\n";
-  }
+  console.clear();
 
   sb += "╔" + "══".repeat(width) + "╗\n";
 
