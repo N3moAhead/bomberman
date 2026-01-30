@@ -208,13 +208,27 @@ func (c *Classic) Stop() {
 	}
 
 	result := game.GameResult{
+		Winner: "",
 		Scores: make(map[string]int),
 	}
 
-	playersSnapshot := make([]game.Player, 0, len(c.playerMap))
-	for _, p := range c.playerMap {
-		playersSnapshot = append(playersSnapshot, p)
+	// There can only be one winner
+	// The field will be left empty, if
+	// it's a draw
+	for pId, player := range c.players {
+		if player.Health > 0 {
+			if result.Winner != "" {
+				result.Winner = ""
+				break
+			}
+			result.Winner = pId
+		}
 	}
+
+	if result.Winner != "" {
+		result.Scores[result.Winner] = WIN_SCORE_POINTS
+	}
+
 	c.playerMux.Unlock()
 
 	log.Info("[Game %s] Stopping game.", c.gameID)

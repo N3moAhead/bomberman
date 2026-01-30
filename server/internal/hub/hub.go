@@ -239,6 +239,10 @@ func (h *Hub) GameFinished(gameID string, result game.GameResult) {
 		h.updateScoresInternal(result.Scores)
 	}
 
+	if result.Winner != "" {
+		log.Info("The winner of the game is %s", result.Winner)
+	}
+
 	// Using a goroutine to avoid blocking and potential deadlocks
 	go func() {
 		h.broadcastLobbyUpdate()

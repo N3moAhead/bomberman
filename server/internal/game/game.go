@@ -12,6 +12,7 @@ type Player interface {
 // After a game is finished a game result should be returned
 // To help us update all the scores
 type GameResult struct {
+	Winner string
 	Scores map[string]int // Map from PlayerID to game scores
 }
 
