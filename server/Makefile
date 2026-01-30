@@ -1,35 +1,52 @@
+.PHONY: all build build-os clean fmt image image-os image-os-public image-public run run-os vet
+
 .DEFAULT_GOAL := run
 
+# Go parameters
+BINARY_NAME := bomberman-server
+BINARY_NAME_OS := bomberman-one-shot-server
+
+# Docker parameters
+IMAGE_NAME := docker.io/nemoahead/bomberman-server
+IMAGE_NAME_OS := docker.io/nemoahead/bomberman-os-server
+
+# Build rules
+all: build build-os
+
+build: vet
+	go build -o $(BINARY_NAME) ./cmd/bomberman-server/main.go
+
+build-os: vet
+	go build -o $(BINARY_NAME_OS) ./cmd/bomberman-one-shot-server/main.go
+
+# Run rules
+run: build
+	./$(BINARY_NAME)
+
+run-os: build-os
+	./$(BINARY_NAME_OS)
+
+# Docker rules
+image: vet
+	podman build -f Dockerfile.server -t $(IMAGE_NAME) .
+
+image-public: image
+	podman push $(IMAGE_NAME):latest
+
+image-os: vet
+	podman build -f Dockerfile.os-server -t $(IMAGE_NAME_OS) .
+
+image-os-public: image-os
+	podman push $(IMAGE_NAME_OS):latest
+
+# Code quality rules
 fmt:
 	go fmt ./...
 
 vet: fmt
 	go vet ./...
 
-build: vet
-	go build -o bomberman-server ./cmd/bomberman-server/main.go
-
-image: vet
-	podman build -f Dockerfile.server -t docker.io/nemoahead/bomberman-server .
-
-image-public: image
-	podman push docker.io/nemoahead/bomberman-server:latest
-
-build-os: vet
-	go build -o bomberman-one-shot-server ./cmd/bomberman-one-shot-server/main.go
-
-image-os: vet
-	podman build -f Dockerfile.os-server -t docker.io/nemoahead/bomberman-os-server .
-
-image-os-public: image-os
-	podman push docker.io/nemoahead/bomberman-os-server:latest
-
-run: build
-	./bomberman-server
-
-run-os: build-one-shot
-	./bomberman-one-shot-server
-
+# Cleanup
 clean:
-	rm -f ./bomberman-server
-	rm -f ./bomberman-one-shot-server
+	rm -f $(BINARY_NAME)
+	rm -f $(BINARY_NAME_OS)
