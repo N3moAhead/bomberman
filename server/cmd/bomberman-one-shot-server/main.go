@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"net/http"
+	"time"
 
 	"github.com/N3moAhead/bomberman/server/internal/client"
 	"github.com/N3moAhead/bomberman/server/internal/hub"
@@ -24,11 +26,20 @@ func main() {
 	oneShotHub := hub.NewOneShotHub()
 	go oneShotHub.Run()
 
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			log.Errorln(err)
 			return
+		}
+
+		select {
+		case <-oneShotHub.Done:
+			log.Warn("Refusing new connection, server is shutting down.")
+			conn.Close()
+			return
+		default:
 		}
 
 		client := client.NewClient(oneShotHub, conn, uuid.New().String())
@@ -36,6 +47,27 @@ func main() {
 		client.StartPumps()
 	})
 
-	log.Info("One-shot server starting on %s\n", *addr)
-	log.Fatal(http.ListenAndServe(*addr, nil))
+	server := &http.Server{
+		Addr:    *addr,
+		Handler: mux,
+	}
+
+	go func() {
+		log.Info("One-shot server starting on %s\n", *addr)
+		if err := server.ListenAndServe(); err != http.ErrServerClosed {
+			log.Fatal("ListenAndServe:", err)
+		}
+	}()
+
+	<-oneShotHub.Done
+	log.Info("Hub has shut down, initiating server shutdown...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatal("Server Shutdown Failed:", err)
+	}
+
+	log.Success("Server has shut down gracefully.")
 }

@@ -22,6 +22,7 @@ type OneShotHub struct {
 	game       game.Game
 	gameMutex  sync.Mutex
 	shutdown   chan struct{}
+	Done       chan struct{}
 }
 
 // NewOneShotHub creates a new OneShotHub
@@ -32,11 +33,13 @@ func NewOneShotHub() *OneShotHub {
 		unregister: make(chan Client),
 		incoming:   make(chan hubMessage),
 		shutdown:   make(chan struct{}),
+		Done:       make(chan struct{}),
 	}
 }
 
 // Run starts the hubs main loop
 func (h *OneShotHub) Run() {
+	defer close(h.Done)
 	log.Info("Is running, waiting for 2 players...")
 	gameStarted := false
 
