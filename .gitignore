@@ -16,3 +16,9 @@ client_rust/target
 
 # client_js
 client_js/node_modules
+
+# match_runner
+match_runner/.env
+
+#deployment
+deployment/.env
