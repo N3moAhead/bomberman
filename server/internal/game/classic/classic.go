@@ -3,6 +3,7 @@ package classic
 import (
 	"encoding/json"
 	"fmt"
+	stdlog "log"
 	"sync"
 	"time"
 
@@ -240,7 +241,7 @@ func (c *Classic) Stop() {
 		if err != nil {
 			log.Error("Failed to marshal game history: %v", err)
 		} else {
-			fmt.Printf("GameHistory:%s\n", string(b))
+			stdlog.Printf("GameHistory:%s\n", string(b))
 		}
 	}
 
