@@ -22,6 +22,7 @@ type Classic struct {
 	players   map[string]*Player     // ClientID -> ClassicPlayer
 	playerMap map[string]game.Player // ClientID -> game.Player
 	playerMux sync.RWMutex
+	history   *History
 
 	field      *Field
 	bombs      map[string]*Bomb      // Bomb.Pos -> Bomb
@@ -134,6 +135,8 @@ func (c *Classic) Start() {
 	}
 
 	c.isRunning = true
+	// Initialize history recording at the start of the game
+	c.history = NewHistory(c.getGameState().Field)
 	c.lastTickTime = time.Now()
 	c.ticker = time.NewTicker(TICK_RATE)
 
@@ -162,8 +165,10 @@ func (c *Classic) Start() {
 			// Lock the mutex to ensure exclusive access to
 			// the game state during the update.
 			c.playerMux.Lock()
-			c.update()
+			destroyedBoxes := c.update()
+			c.history.RecordTick(c.players, c.bombs, c.explosions, destroyedBoxes)
 			gameState := c.getGameState()
+			c.resetPlayerInputs()
 			c.playerMux.Unlock()
 
 			// Now, with the mutex released, we can safely send the new state to all players.
@@ -227,6 +232,16 @@ func (c *Classic) Stop() {
 
 	if result.Winner != "" {
 		result.Scores[result.Winner] = WIN_SCORE_POINTS
+	}
+
+	if c.history != nil {
+		gameHistoryForSerialization := c.history.ToGameHistory()
+		b, err := json.Marshal(gameHistoryForSerialization)
+		if err != nil {
+			log.Error("Failed to marshal game history: %v", err)
+		} else {
+			fmt.Println(string(b))
+		}
 	}
 
 	c.playerMux.Unlock()

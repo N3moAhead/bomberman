@@ -4,16 +4,18 @@ import (
 	"github.com/N3moAhead/bomberman/server/pkg/types"
 )
 
-func (c *Classic) update() {
+func (c *Classic) update() []types.Vec2 {
 	// Process player inputs first to ensure their actions are part of this tick's calculations
 	c.applyPlayerInput()
 
 	// Gotta clean up the mess from last tick
 	c.resetExplosions()
 
-	c.updateBombs()
+	destroyedBoxes := c.updateBombs()
 
 	c.damagePlayersInExplosions()
+
+	return destroyedBoxes
 }
 
 func (c *Classic) damagePlayersInExplosions() {
@@ -57,19 +59,31 @@ func (c *Classic) applyPlayerInput() {
 			// Is the do nothing move
 			// or the user has not defined input move
 		}
-		// Reset player input
-		player.NextMove = NO_INPUT_DEFINED
 	}
 }
 
-func (c *Classic) updateBombs() {
-	for _, bomb := range c.bombs {
+func (c *Classic) updateBombs() []types.Vec2 {
+	var allDestroyedBoxes []types.Vec2
+	// Iterate over a copy of keys, as `explodeBomb` can modify c.bombs in a chain reaction.
+	bombKeys := make([]string, 0, len(c.bombs))
+	for k := range c.bombs {
+		bombKeys = append(bombKeys, k)
+	}
+
+	for _, key := range bombKeys {
+		bomb, exists := c.bombs[key]
+		if !exists { // It might have been destroyed by another bomb in the same tick
+			continue
+		}
+
 		bomb.Fuse -= 1
 		if bomb.Fuse < 1 {
 			delete(c.bombs, bomb.Pos.String())
-			c.explodeBomb(bomb.Pos, bomb_explosion_radius)
+			destroyedBoxes := c.explodeBomb(bomb.Pos, bomb_explosion_radius)
+			allDestroyedBoxes = append(allDestroyedBoxes, destroyedBoxes...)
 		}
 	}
+	return allDestroyedBoxes
 }
 
 func (c *Classic) resetExplosions() {
@@ -78,41 +92,49 @@ func (c *Classic) resetExplosions() {
 	}
 }
 
-func (c *Classic) explodeBomb(pos types.Vec2, distance int) {
+func (c *Classic) explodeBomb(pos types.Vec2, distance int) []types.Vec2 {
+	var destroyedBoxes []types.Vec2
 	// Up
-	c.createExplodePath(pos, types.NewVec2(0, -1), distance)
+	destroyedBoxes = append(destroyedBoxes, c.createExplodePath(pos, types.NewVec2(0, -1), distance)...)
 	// Right
-	c.createExplodePath(pos, types.NewVec2(1, 0), distance)
+	destroyedBoxes = append(destroyedBoxes, c.createExplodePath(pos, types.NewVec2(1, 0), distance)...)
 	// Down
-	c.createExplodePath(pos, types.NewVec2(0, 1), distance)
+	destroyedBoxes = append(destroyedBoxes, c.createExplodePath(pos, types.NewVec2(0, 1), distance)...)
 	// Left
-	c.createExplodePath(pos, types.NewVec2(-1, 0), distance)
+	destroyedBoxes = append(destroyedBoxes, c.createExplodePath(pos, types.NewVec2(-1, 0), distance)...)
+	return destroyedBoxes
 }
 
-func (c *Classic) createExplodePath(pos types.Vec2, dir types.Vec2, distance int) {
+func (c *Classic) createExplodePath(pos types.Vec2, dir types.Vec2, distance int) []types.Vec2 {
 	// I won't check if the explosion is out of bounds because a bomb can't be placed
 	// out of bounds so it could not occur...
 	if distance == 0 {
-		return
+		return nil
 	}
 	tile := c.field.getTile(pos.X, pos.Y)
 	if tile == WALL {
-		return
+		return nil
 	}
 	if tile == BOX {
 		c.field.setTile(pos.X, pos.Y, AIR)
 		c.addExplosion(pos)
-		return
+		return []types.Vec2{pos}
 	}
 	if tile == AIR {
+		var destroyedBoxes []types.Vec2
+		// Check if the current tile contains a bomb to trigger a chain reaction
 		if c.containsBomb(pos) {
+			// It is important to delete the bomb before calling `explodeBomb` to prevent infinite recursion
 			delete(c.bombs, pos.String())
-			// Explosion explodes bomb
-			c.explodeBomb(pos, bomb_explosion_radius)
+			// This explosion triggers another bomb
+			destroyedBoxes = c.explodeBomb(pos, bomb_explosion_radius)
 		}
 		c.addExplosion(pos)
-		c.createExplodePath(pos.Add(dir), dir, distance-1)
+		// Continue the explosion path
+		recursiveDestroyedBoxes := c.createExplodePath(pos.Add(dir), dir, distance-1)
+		return append(destroyedBoxes, recursiveDestroyedBoxes...)
 	}
+	return nil
 }
 
 func (c *Classic) addExplosion(pos types.Vec2) {
@@ -175,5 +197,11 @@ func (c *Classic) getGameState() ClassicStatePayload {
 		Field:      fieldState,
 		Bombs:      bombs,
 		Explosions: explosions,
+	}
+}
+
+func (c *Classic) resetPlayerInputs() {
+	for _, player := range c.players {
+		player.NextMove = NO_INPUT_DEFINED
 	}
 }
