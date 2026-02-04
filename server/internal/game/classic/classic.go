@@ -240,7 +240,7 @@ func (c *Classic) Stop() {
 		if err != nil {
 			log.Error("Failed to marshal game history: %v", err)
 		} else {
-			fmt.Println(string(b))
+			fmt.Printf("GameHistory:%s\n", string(b))
 		}
 	}
 
