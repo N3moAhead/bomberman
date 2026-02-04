@@ -93,7 +93,7 @@ func (c *Classic) AddPlayer(player game.Player) error {
 		Pos:      spawnPos,
 		Score:    0,
 		Health:   initial_health,
-		NextMove: DO_NOTHING,
+		NextMove: NO_INPUT_DEFINED,
 	}
 	c.players[playerID] = newPlayer
 	c.playerMap[playerID] = player
@@ -231,7 +231,7 @@ func (c *Classic) Stop() {
 
 	c.playerMux.Unlock()
 
-	log.Info("[Game %s] Stopping game.", c.gameID)
+	log.Info("Stopping game. (Game %s)", c.gameID)
 
 	// Inform the hub that the game is finished and retrieve all
 	// players back to the lobby

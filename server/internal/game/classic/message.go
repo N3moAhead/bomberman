@@ -5,12 +5,13 @@ import "github.com/N3moAhead/bomberman/server/pkg/types"
 type PlayerMove string
 
 const (
-	DO_NOTHING PlayerMove = "nothing" // Do nothing
-	MOVE_UP    PlayerMove = "move_up"
-	MOVE_RIGHT PlayerMove = "move_right"
-	MOVE_DOWN  PlayerMove = "move_down"
-	MOVE_LEFT  PlayerMove = "move_left"
-	PLACE_BOMB PlayerMove = "place_bomb"
+	NO_INPUT_DEFINED            = "undefined"
+	DO_NOTHING       PlayerMove = "nothing" // Do nothing
+	MOVE_UP          PlayerMove = "move_up"
+	MOVE_RIGHT       PlayerMove = "move_right"
+	MOVE_DOWN        PlayerMove = "move_down"
+	MOVE_LEFT        PlayerMove = "move_left"
+	PLACE_BOMB       PlayerMove = "place_bomb"
 )
 
 type ClassicInputPayload struct {

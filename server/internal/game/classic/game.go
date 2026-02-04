@@ -5,17 +5,14 @@ import (
 )
 
 func (c *Classic) update() {
-	// "The player's action is the first priority!" - Arcade wisdom
-	// Process player inputs first to ensure their actions are part of this tick's calculations.
+	// Process player inputs first to ensure their actions are part of this tick's calculations
 	c.applyPlayerInput()
 
-	// Gotta clean up the mess from last tick's fireworks before starting a new show.
+	// Gotta clean up the mess from last tick
 	c.resetExplosions()
 
-	// Tick-tock goes the bomb clock. Let's see if we get some fireworks.
 	c.updateBombs()
 
-	// If you're standing in fire, you're gonna get burned. Simple as that.
 	c.damagePlayersInExplosions()
 }
 
@@ -58,9 +55,10 @@ func (c *Classic) applyPlayerInput() {
 			}
 		default:
 			// Is the do nothing move
+			// or the user has not defined input move
 		}
 		// Reset player input
-		player.NextMove = DO_NOTHING
+		player.NextMove = NO_INPUT_DEFINED
 	}
 }
 
@@ -78,7 +76,6 @@ func (c *Classic) resetExplosions() {
 	for k := range c.explosions {
 		delete(c.explosions, k)
 	}
-
 }
 
 func (c *Classic) explodeBomb(pos types.Vec2, distance int) {
