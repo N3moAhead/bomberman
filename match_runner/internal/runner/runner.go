@@ -1,11 +1,15 @@
 package runner
 
 import (
+	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os/exec"
+	"strings"
 	"time"
 
+	"github.com/N3moAhead/bomberman/match_runner/internal/history"
 	"github.com/N3moAhead/bomberman/match_runner/internal/match"
 	"github.com/N3moAhead/bomberman/match_runner/pkg/logger"
 )
@@ -67,6 +71,14 @@ func (r *Runner) RunMatch(ctx context.Context, details *match.Details) (*match.R
 	serverLogs, err := r.getContainerLogs(context.Background(), serverContainerName)
 	if err != nil {
 		log.Warn("Could not get server logs after match completion: %v", err)
+	} else {
+		// Try to parse the game history from the logs
+		gameHistory, err := parseGameHistory(serverLogs)
+		if err != nil {
+			log.Warn("Failed to parse game history from server logs: %v", err)
+		} else {
+			log.Success("Successfully parsed game history with %d ticks.", len(gameHistory.Ticks))
+		}
 	}
 
 	// TODO: Implement logic to determine the winner from serverLogs
@@ -185,4 +197,26 @@ func (r *Runner) cleanupPod(podName string) {
 	} else {
 		log.Success("Successfully removed pod '%s'", podName)
 	}
+}
+
+func parseGameHistory(logs string) (*history.GameHistory, error) {
+	const prefix = "GameHistory:"
+	scanner := bufio.NewScanner(strings.NewReader(logs))
+	for scanner.Scan() {
+		line := scanner.Text()
+		if after, ok := strings.CutPrefix(line, prefix); ok {
+			jsonBody := after
+			var gameHistory history.GameHistory
+			if err := json.Unmarshal([]byte(jsonBody), &gameHistory); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal game history JSON: %w", err)
+			}
+			return &gameHistory, nil
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("error reading server logs: %w", err)
+	}
+
+	return nil, fmt.Errorf("game history prefix not found in server logs")
 }
