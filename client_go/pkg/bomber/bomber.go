@@ -76,6 +76,8 @@ func (b *Bomber) writePump() {
 func (b *Bomber) Start(u url.URL) {
 	info("Trying to connect to %s...", u.String())
 
+	authToken := os.Getenv("BOMBERMAN_CLIENT_AUTH_TOKEN")
+
 	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
 		error("Error while trying to connect")
@@ -88,7 +90,8 @@ func (b *Bomber) Start(u url.URL) {
 
 	// Let's notify the server that we are ready for a game
 	payload := PlayerStatusUpdatePayload{
-		IsReady: true,
+		IsReady:   true,
+		AuthToken: authToken,
 	}
 	b.send(PlayerStatusUpdate, payload)
 
