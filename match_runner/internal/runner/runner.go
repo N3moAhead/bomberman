@@ -12,6 +12,7 @@ import (
 	"github.com/N3moAhead/bomberman/match_runner/internal/history"
 	"github.com/N3moAhead/bomberman/match_runner/internal/match"
 	"github.com/N3moAhead/bomberman/match_runner/pkg/logger"
+	"github.com/google/uuid"
 )
 
 var log = logger.New("[Runner]")
@@ -30,6 +31,9 @@ func (r *Runner) RunMatch(ctx context.Context, details *match.Details) (*match.R
 	podName := fmt.Sprintf("bomberman-match-%s", details.MatchID)
 	log.Info("Starting match %s in pod %s", details.MatchID, podName)
 
+	client1AuthToken := uuid.NewString()
+	client2AuthToken := uuid.NewString()
+
 	// Cleanup is deferred to ensure it runs even if errors occur
 	defer r.cleanupPod(podName)
 
@@ -45,10 +49,10 @@ func (r *Runner) RunMatch(ctx context.Context, details *match.Details) (*match.R
 	// Run clients concurrently
 	clientErrCh := make(chan error, 2)
 	go func() {
-		clientErrCh <- r.runClient(ctx, podName, "client1", details.Client1Image)
+		clientErrCh <- r.runClient(ctx, podName, "client1", details.Client1Image, client1AuthToken)
 	}()
 	go func() {
-		clientErrCh <- r.runClient(ctx, podName, "client2", details.Client2Image)
+		clientErrCh <- r.runClient(ctx, podName, "client2", details.Client2Image, client2AuthToken)
 	}()
 
 	for range 2 {
@@ -81,7 +85,7 @@ func (r *Runner) RunMatch(ctx context.Context, details *match.Details) (*match.R
 		}
 	}
 
-	// TODO: Implement logic to determine the winner from serverLogs
+	// TODO no fill this struct the gameHistory is already here
 	result := &match.Result{
 		MatchID: details.MatchID,
 		Winner:  "TBD",
@@ -127,7 +131,7 @@ func (r *Runner) runServer(ctx context.Context, podName, containerName, image st
 	return nil
 }
 
-func (r *Runner) runClient(ctx context.Context, podName, containerName, image string) error {
+func (r *Runner) runClient(ctx context.Context, podName, containerName, image, clientAuthToken string) error {
 	log.Info("Starting client container '%s' with image '%s'", containerName, image)
 	if err := r.pullImage(ctx, image); err != nil {
 		return err
@@ -137,8 +141,9 @@ func (r *Runner) runClient(ctx context.Context, podName, containerName, image st
 		"--detach",
 		"--cap-drop=all",
 		"--security-opt=no-new-privileges",
-		"--memory=500m", // Yeal well so that shall be my security haha let's see how far this will bring me XD
+		"--memory=500m", // Yeah well so that shall be my security haha let's see how far this will bring me XD
 		"--cpus=0.5",
+		"--env", "BOMBERMAN_CLIENT_AUTH_TOKEN="+clientAuthToken,
 		image)
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("podman run (client: %s) failed: %s: %w", containerName, string(output), err)

@@ -49,6 +49,7 @@ type TickState struct {
 
 // GameHistory encapsulates the entire history of a game
 type GameHistory struct {
-	InitialField FieldState  `json:"initial_field"`
-	Ticks        []TickState `json:"ticks"`
+	InitialField    FieldState  `json:"initial_field"`
+	Ticks           []TickState `json:"ticks"`
+	WinnerAuthToken string      `json:"winnerAuthToken"`
 }
