@@ -32,7 +32,8 @@ func (h *History) RecordTick(
 				Health: p.Health,
 				Score:  p.Score,
 			},
-			Move: p.NextMove,
+			Move:      p.NextMove,
+			AuthToken: p.AuthToken,
 		})
 	}
 
@@ -57,9 +58,10 @@ func (h *History) RecordTick(
 }
 
 // ToGameHistory converts the internal history representation to the serializable format
-func (h *History) ToGameHistory() GameHistory {
+func (h *History) ToGameHistory(winnerAuthToken string) GameHistory {
 	return GameHistory{
-		InitialField: h.InitialField,
-		Ticks:        h.Ticks,
+		InitialField:    h.InitialField,
+		Ticks:           h.Ticks,
+		WinnerAuthToken: winnerAuthToken,
 	}
 }

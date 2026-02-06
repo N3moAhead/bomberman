@@ -1,6 +1,7 @@
 package hub
 
 import (
+	"encoding/json"
 	"sync"
 
 	"github.com/N3moAhead/bomberman/server/internal/game"
@@ -67,10 +68,20 @@ func (h *OneShotHub) Run() {
 			}
 		case hubMsg := <-h.incoming:
 			h.gameMutex.Lock()
-			if h.game != nil {
-				h.game.HandleMessage(hubMsg.client, hubMsg.message)
+			if hubMsg.message.Type == message.PlayerStatusUpdate {
+				var payload message.PlayerStatusUpdatePayload
+				if err := json.Unmarshal(hubMsg.message.Payload, &payload); err != nil {
+					log.Error("Error while unmarshalling PlayerStatusUpdate %v\n", err)
+					return
+				}
+				hubMsg.client.SetAuthToken(payload.AuthToken)
+				log.Success("Set auth Token %s for client %s", payload.AuthToken, hubMsg.client.GetID())
 			} else {
-				log.Warn("Message from %s received before game start, ignoring.", hubMsg.client.GetID())
+				if h.game != nil {
+					h.game.HandleMessage(hubMsg.client, hubMsg.message)
+				} else {
+					log.Warn("Message from %s received before game start, ignoring.", hubMsg.client.GetID())
+				}
 			}
 			h.gameMutex.Unlock()
 		case <-h.shutdown:

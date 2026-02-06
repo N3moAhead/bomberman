@@ -91,11 +91,12 @@ func (c *Classic) AddPlayer(player game.Player) error {
 	spawnPos := spawnPoints[playerIndex]
 
 	newPlayer := &Player{
-		ID:       playerID,
-		Pos:      spawnPos,
-		Score:    0,
-		Health:   initial_health,
-		NextMove: NO_INPUT_DEFINED,
+		ID:        playerID,
+		Pos:       spawnPos,
+		Score:     0,
+		Health:    initial_health,
+		NextMove:  NO_INPUT_DEFINED,
+		AuthToken: player.GetAuthToken(),
 	}
 	c.players[playerID] = newPlayer
 	c.playerMap[playerID] = player
@@ -236,7 +237,11 @@ func (c *Classic) Stop() {
 	}
 
 	if c.history != nil {
-		gameHistoryForSerialization := c.history.ToGameHistory()
+		var winnerAuthToken string = ""
+		if player, ok := c.players[result.Winner]; ok {
+			winnerAuthToken = player.AuthToken
+		}
+		gameHistoryForSerialization := c.history.ToGameHistory(winnerAuthToken)
 		b, err := json.Marshal(gameHistoryForSerialization)
 		if err != nil {
 			log.Error("Failed to marshal game history: %v", err)
@@ -277,6 +282,32 @@ func (c *Classic) HandleMessage(player game.Player, msg message.Message) {
 				playerID,
 			)
 		}
+	// The message is normally not handled here...
+	// The normal hub will handle this message. But the oneShot hub will
+	// just pass this message down to the game so we can handle it here...
+	// In that case we care about the auth token...
+	case message.PlayerStatusUpdate:
+		var payload message.PlayerStatusUpdatePayload
+		if err := json.Unmarshal(msg.Payload, &payload); err != nil {
+			log.Error("[Game %s] Error while unmarshalling PlayerStatusUpdate %v\n", c.gameID, err)
+			return
+		}
+
+		c.playerMux.Lock()
+		defer c.playerMux.Unlock()
+
+		pState, ok := c.players[playerID]
+		if ok {
+			pState.AuthToken = payload.AuthToken
+			log.Success("Player %s received the auth token %s", playerID, payload.AuthToken)
+		} else {
+			log.Warn(
+				"[Game %s] Received input from player %s who is not in the internal state map.",
+				c.gameID,
+				playerID,
+			)
+		}
+
 	default:
 		log.Warn(
 			"[Game %s] Received unhandled message type '%s' from player %s",

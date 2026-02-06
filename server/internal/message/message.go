@@ -48,7 +48,8 @@ type LobbyUpdateMessage struct {
 }
 
 type PlayerStatusUpdatePayload struct {
-	IsReady bool `json:"isReady"`
+	IsReady   bool   `json:"isReady"`
+	AuthToken string `json:"authToken"`
 }
 
 type GameStartPayload struct {

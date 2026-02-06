@@ -20,13 +20,14 @@ const (
 
 // Client is a WebSocket client that communicates with a Hub
 type Client struct {
-	Hub     hub.HubConnection
-	Conn    *websocket.Conn
-	Send    chan []byte
-	ID      string
-	Score   int
-	isReady bool
-	gameID  string
+	Hub       hub.HubConnection
+	Conn      *websocket.Conn
+	Send      chan []byte
+	ID        string
+	Score     int
+	isReady   bool
+	gameID    string
+	authToken string // Is just important for async bot games and the one shot hub
 }
 
 // Assure Client implements the interface from the hub package
@@ -52,6 +53,14 @@ func (c *Client) StartPumps() {
 // GetID returns the client's unique identifier
 func (c *Client) GetID() string {
 	return c.ID
+}
+
+func (c *Client) SetAuthToken(authToken string) {
+	c.authToken = authToken
+}
+
+func (c *Client) GetAuthToken() string {
+	return c.authToken
 }
 
 // IsReady indicates if the client is ready to start a game

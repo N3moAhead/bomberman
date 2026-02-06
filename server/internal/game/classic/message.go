@@ -27,7 +27,8 @@ type PlayerState struct {
 
 type PlayerHistoryEntry struct {
 	PlayerState
-	Move PlayerMove `json:"move"`
+	Move      PlayerMove `json:"move"`
+	AuthToken string     `json:"authToken"`
 }
 
 type FieldState struct {
@@ -59,6 +60,7 @@ type TickState struct {
 // GameHistory encapsulates the entire history of a game, with an initial field state
 // and a sequence of state changes for each tick
 type GameHistory struct {
-	InitialField FieldState  `json:"initial_field"`
-	Ticks        []TickState `json:"ticks"`
+	InitialField    FieldState  `json:"initial_field"`
+	Ticks           []TickState `json:"ticks"`
+	WinnerAuthToken string      `json:"winnerAuthToken"`
 }

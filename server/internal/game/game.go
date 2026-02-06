@@ -6,6 +6,7 @@ import "github.com/N3moAhead/bomberman/server/internal/message"
 // awaits from a connected player
 type Player interface {
 	GetID() string
+	GetAuthToken() string
 	SendMessage(msgType message.MessageType, payload any) error
 }
 

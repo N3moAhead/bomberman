@@ -22,6 +22,7 @@ type Client interface {
 	SetGameID(id string)
 	Close()
 	StartPumps()
+	SetAuthToken(authToken string)
 }
 
 type hubMessage struct {
