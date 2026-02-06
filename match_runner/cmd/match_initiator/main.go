@@ -17,8 +17,8 @@ var log = logger.New("[Match_Initiator]")
 
 func main() {
 	serverImage := flag.String("server", "docker.io/nemoahead/bomberman-os-server:latest", "Server docker image")
-	client1Image := flag.String("client1", "docker.io/nemoahead/bomberman-client-go:latest", "Client 1 docker image")
-	client2Image := flag.String("client2", "docker.io/nemoahead/bomberman-client-go:latest", "Client 2 docker image")
+	client1Image := flag.String("client1", "docker.io/nemoahead/bomberman-client-go:self-destruct", "Client 1 docker image")
+	client2Image := flag.String("client2", "docker.io/nemoahead/bomberman-client-go:idle", "Client 2 docker image")
 	flag.Parse()
 
 	log.Info("Match Initiator is starting...")
