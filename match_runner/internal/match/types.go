@@ -1,6 +1,10 @@
 package match
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/N3moAhead/bomberman/match_runner/internal/history"
+)
 
 // Details represents the information about a match to be run
 type Details struct {
@@ -12,9 +16,9 @@ type Details struct {
 
 // Result represents the outcome of a match
 type Result struct {
-	MatchID string `json:"match_id"`
-	Winner  string `json:"winner"` // Name of the client image that won
-	Log     string `json:"log"`
+	MatchID string               `json:"match_id"`
+	Winner  string               `json:"winner"` // Name of the client image that won
+	Log     *history.GameHistory `json:"log"`
 }
 
 // ToJSON encodes a Details struct to a JSON byte slice

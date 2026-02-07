@@ -72,6 +72,11 @@ func (r *Runner) RunMatch(ctx context.Context, details *match.Details) (*match.R
 
 	log.Info("Server container exited. Match %s finished.", details.MatchID)
 
+	result := &match.Result{
+		MatchID: details.MatchID,
+		Winner:  "",
+	}
+
 	serverLogs, err := r.getContainerLogs(context.Background(), serverContainerName)
 	if err != nil {
 		log.Warn("Could not get server logs after match completion: %v", err)
@@ -81,15 +86,17 @@ func (r *Runner) RunMatch(ctx context.Context, details *match.Details) (*match.R
 		if err != nil {
 			log.Warn("Failed to parse game history from server logs: %v", err)
 		} else {
+			if gameHistory.WinnerAuthToken != "" {
+				switch gameHistory.WinnerAuthToken {
+				case client1AuthToken:
+					result.Winner = details.Client1Image
+				case client2AuthToken:
+					result.Winner = details.Client2Image
+				}
+			}
+			result.Log = gameHistory
 			log.Success("Successfully parsed game history with %d ticks.", len(gameHistory.Ticks))
 		}
-	}
-
-	// TODO no fill this struct the gameHistory is already here
-	result := &match.Result{
-		MatchID: details.MatchID,
-		Winner:  "TBD",
-		Log:     serverLogs,
 	}
 
 	go r.removeImage(context.Background(), details.Client1Image)
