@@ -21,7 +21,7 @@ func Load() (*Config, error) {
 	// Read the .env file
 	err := godotenv.Load(".env")
 	if err != nil {
-		log.Fatal(err)
+		log.Warn("No .env file found...")
 	}
 
 	// The loader is pretty simple for now because i don't need much
@@ -29,7 +29,7 @@ func Load() (*Config, error) {
 	// for loading config files ord using flags
 	url := os.Getenv("RABBITMQ_URL")
 	if url == "" {
-		url = "amqp://guest:guest@localhost:5672/"
+		log.Fatal("The env Variable RABBITMQ_URL has to be set!")
 	}
 
 	matchQueue := os.Getenv("RABBITMQ_MATCH_QUEUE")
