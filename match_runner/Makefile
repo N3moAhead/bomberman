@@ -7,7 +7,7 @@ VERSION ?= $(shell git describe --tags --always --dirty || echo "dev")
 DOCKER_IMAGE_NAME=bomberman-match-runner
 DOCKER_TAG ?= latest
 
-.PHONY: all build run clean test lint docker-build docker-run help
+.PHONY: all build run clean test lint image image-run help
 
 all: build
 
@@ -38,16 +38,16 @@ lint:
 	@golangci-lint run ./...
 
 # Build the Docker image
-docker-build:
+image:
 	@echo "==> Building Docker image $(DOCKER_IMAGE_NAME):$(DOCKER_TAG)..."
-	@docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_TAG) .
+	podman build -t $(DOCKER_IMAGE_NAME):$(DOCKER_TAG) .
 
 # Run the application inside a Docker container
-docker-run:
+image-run:
 	@echo "==> Running Docker container $(DOCKER_IMAGE_NAME):$(DOCKER_TAG)..."
-	@docker run --rm -it \
+	podman run --rm -it \
 		--network=host \
-		-v /var/run/podman/podman.sock:/var/run/podman/podman.sock \
+		-v /run/user/$(shell id -u)/podman/podman.sock:/var/run/podman/podman.sock \
 		-e RABBITMQ_URL=${RABBITMQ_URL} \
 		$(DOCKER_IMAGE_NAME):$(DOCKER_TAG)
 
