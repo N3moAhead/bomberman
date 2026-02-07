@@ -23,7 +23,8 @@ type PlayerState struct {
 // PlayerHistoryEntry represents the state of a player and their move for a single tick
 type PlayerHistoryEntry struct {
 	PlayerState
-	Move PlayerMove `json:"move"`
+	Move      PlayerMove `json:"move"`
+	AuthToken string     `json:"authToken"`
 }
 
 // FieldState represents the static state of the game field
