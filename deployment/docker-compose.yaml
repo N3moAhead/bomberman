@@ -14,5 +14,24 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq/
 
+  db:
+    image: docker.io/library/postgres:16-alpine
+    container_name: bombdb
+    restart: unless-stopped
+    ports:
+      - "9876:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - bombdb_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   rabbitmq_data:
+  bombdb_postgres_data:
