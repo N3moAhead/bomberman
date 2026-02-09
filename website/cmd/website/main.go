@@ -1,13 +1,13 @@
 package main
 
 import (
-	"context"
-	"os"
-
-	"github.com/N3moAhead/bomberman/website/internal/templates/home"
+	"github.com/N3moAhead/bomberman/website/internal/cfg"
+	"github.com/N3moAhead/bomberman/website/internal/db"
+	"github.com/N3moAhead/bomberman/website/internal/router"
 )
 
 func main() {
-	h := home.Home("Lukas")
-	h.Render(context.Background(), os.Stdout)
+	cfg := cfg.Load()
+	db.Init(cfg)
+	router.Start(cfg)
 }
