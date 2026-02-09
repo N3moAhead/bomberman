@@ -1,5 +1,9 @@
 package home
 
+import "github.com/N3moAhead/bomberman/website/internal/templates/layout"
+
 templ Home(name string) {
-	<div>Hello, {name}</div>
+	@layout.Base() {
+		<h1>Hello There</h1>
+	}
 }

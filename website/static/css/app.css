@@ -1,0 +1,3 @@
+@import "tailwindcss";
+
+@source "../../../internal/templates/**/*.templ";

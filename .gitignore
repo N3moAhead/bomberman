@@ -25,3 +25,4 @@ deployment/.env
 
 #website
 website/.env
+website/node_modules

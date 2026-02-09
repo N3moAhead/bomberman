@@ -1,0 +1,14 @@
+{
+  "name": "website",
+  "version": "0.0.1",
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "^4.1.18"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.18"
+  }
+}
