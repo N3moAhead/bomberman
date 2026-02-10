@@ -103,7 +103,7 @@ func Start(cfg *cfg.Config) {
 	})
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		h := home.Home("Lukas")
+		h := home.Home()
 		h.Render(context.Background(), w)
 	})
 
