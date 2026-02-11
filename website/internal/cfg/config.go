@@ -19,6 +19,8 @@ type Config struct {
 	GithubScopes       []string
 	GithubEndpoint     oauth2.Endpoint
 	NextAuthUrl        string
+	SessionSecret      string
+	IsProduction       bool
 }
 
 func Load() *Config {
@@ -52,6 +54,13 @@ func Load() *Config {
 		hasToBeSet("NEXT_AUTH_URL")
 	}
 
+	sessionSecret := os.Getenv("SESSION_SECRET")
+	if sessionSecret == "" {
+		hasToBeSet("SESSION_SECRET")
+	}
+
+	isProduction := os.Getenv("IS_PRODUCTION") == "true"
+
 	return &Config{
 		DBURI:              dbUri,
 		Port:               port,
@@ -59,6 +68,8 @@ func Load() *Config {
 		GithubClientSecret: githubClientSecret,
 		GithubEndpoint:     github.Endpoint,
 		NextAuthUrl:        nextAuthUrl + "/auth/github/callback",
+		SessionSecret:      sessionSecret,
+		IsProduction:       isProduction,
 	}
 }
 

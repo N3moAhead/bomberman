@@ -1,0 +1,33 @@
+package db
+
+import "github.com/N3moAhead/bomberman/website/internal/models"
+
+func GetUserByUsername(username string) (*models.User, error) {
+	var user models.User
+	if err := db.Where("username = ?", username).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func CreateUser(user *models.User) error {
+	return db.Create(user).Error
+}
+
+func GetOrCreateUser(user *models.User) (*models.User, error) {
+	existingUser, err := GetUserByUsername(user.Username)
+	if err == nil {
+		if existingUser.AvatarURL != user.AvatarURL {
+			existingUser.AvatarURL = user.AvatarURL
+			if err := db.Save(existingUser).Error; err != nil {
+				return nil, err
+			}
+		}
+		return existingUser, nil
+	}
+
+	if err := CreateUser(user); err != nil {
+		return nil, err
+	}
+	return user, nil
+}

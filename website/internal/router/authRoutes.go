@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/N3moAhead/bomberman/website/internal/db"
+	"github.com/N3moAhead/bomberman/website/internal/models"
 	"github.com/go-chi/chi/v5"
 	"github.com/markbates/goth/gothic"
 )
@@ -19,9 +21,19 @@ func githubLoginCallback(w http.ResponseWriter, r *http.Request) {
 	provider := chi.URLParam(r, "provider")
 	r = r.WithContext(context.WithValue(r.Context(), "provider", provider))
 
-	user, err := gothic.CompleteUserAuth(w, r)
+	gothUser, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
 		fmt.Fprintf(w, "Error during Authentication: %v", err)
+		return
+	}
+
+	user, err := db.GetOrCreateUser(&models.User{
+		Username:  gothUser.NickName,
+		AvatarURL: gothUser.AvatarURL,
+		GithubID:  gothUser.UserID,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -31,15 +43,15 @@ func githubLoginCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appSession.Values["user_id"] = user.UserID
-	appSession.Values["nickname"] = user.NickName
+	appSession.Values["user_id"] = user.ID
+	appSession.Values["nickname"] = user.Username
 	appSession.Values["avatar_url"] = user.AvatarURL
 	if err := appSession.Save(r, w); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	log.Info("User '%s' logged in successfully", user.NickName)
+	log.Info("User '%s' logged in successfully", user.Username)
 	http.Redirect(w, r, "/dashboard", http.StatusFound)
 }
 

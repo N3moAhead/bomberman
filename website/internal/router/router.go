@@ -1,14 +1,13 @@
 package router
 
 import (
-	"context"
 	"net/http"
 	"strings"
 
 	"github.com/N3moAhead/bomberman/website/internal/cfg"
 	"github.com/N3moAhead/bomberman/website/internal/templates/dashboard"
 	"github.com/N3moAhead/bomberman/website/internal/templates/home"
-	"github.com/N3moAhead/bomberman/website/internal/templates/scoreboard"
+	"github.com/N3moAhead/bomberman/website/internal/templates/leaderboard"
 	"github.com/N3moAhead/bomberman/website/pkg/logger"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -28,16 +27,13 @@ const appSessionName = "bomberman-session"
 func Start(cfg *cfg.Config) {
 
 	// --- AUTH ---
-	key := "ein-sehr-geheimer-key-der-mindestens-32-bytes-lang-ist-dev-only"
 	maxAge := 86400 * 30
-	isProd := false
-
-	cookieStore := sessions.NewCookieStore([]byte(key))
+	cookieStore := sessions.NewCookieStore([]byte(cfg.SessionSecret))
 	cookieStore.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   maxAge,
 		HttpOnly: true,
-		Secure:   isProd,
+		Secure:   cfg.IsProduction,
 	}
 	store = cookieStore
 	gothic.Store = store
@@ -59,16 +55,16 @@ func Start(cfg *cfg.Config) {
 	/// --- Auth Routes ---
 	r.Get("/auth/{provider}", githubLogin)
 	r.Get("/auth/{provider}/callback", githubLoginCallback)
-	r.Get("/logout", logout)
+	r.Post("/logout", logout)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		h := home.Home()
-		h.Render(context.Background(), w)
+		h.Render(r.Context(), w)
 	})
 
-	r.Get("/scoreboard", func(w http.ResponseWriter, r *http.Request) {
-		s := scoreboard.Scoreboard()
-		s.Render(context.Background(), w)
+	r.Get("/leaderboard", func(w http.ResponseWriter, r *http.Request) {
+		s := leaderboard.Leaderboard()
+		s.Render(r.Context(), w)
 	})
 
 	// --- Secured Routes ---
@@ -82,7 +78,7 @@ func Start(cfg *cfg.Config) {
 				nickname = "User"
 			}
 			d := dashboard.Dashboard(nickname)
-			d.Render(context.Background(), w)
+			d.Render(r.Context(), w)
 		})
 	})
 
