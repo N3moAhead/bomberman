@@ -2,7 +2,6 @@ package router
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -29,13 +28,10 @@ const appSessionName = "bomberman-session"
 func Start(cfg *cfg.Config) {
 
 	// --- AUTH ---
-	// WICHTIG: Der `key` sollte in Produktion aus einer Umgebungsvariable kommen,
-	// damit die Sessions einen Server-Neustart überleben.
-	key := "ein-sehr-geheimer-key-der-mindestens-32-bytes-lang-ist-dev-only" // 64 bytes
-	maxAge := 86400 * 30                                                     // 30 Tage
-	isProd := false                                                          // In Produktion auf true setzen
+	key := "ein-sehr-geheimer-key-der-mindestens-32-bytes-lang-ist-dev-only"
+	maxAge := 86400 * 30
+	isProd := false
 
-	// Wir stellen zurück auf CookieStore.
 	cookieStore := sessions.NewCookieStore([]byte(key))
 	cookieStore.Options = &sessions.Options{
 		Path:     "/",
@@ -57,58 +53,27 @@ func Start(cfg *cfg.Config) {
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 	FileServer(r, "/static", http.Dir("./static"))
 
-	r.Get("/auth/{provider}", func(w http.ResponseWriter, r *http.Request) {
-		provider := chi.URLParam(r, "provider")
-		r = r.WithContext(context.WithValue(r.Context(), "provider", provider))
-		gothic.BeginAuthHandler(w, r)
-	})
-
-	r.Get("/auth/{provider}/callback", func(w http.ResponseWriter, r *http.Request) {
-		provider := chi.URLParam(r, "provider")
-		r = r.WithContext(context.WithValue(r.Context(), "provider", provider))
-
-		user, err := gothic.CompleteUserAuth(w, r)
-		if err != nil {
-			fmt.Fprintf(w, "Fehler bei der Authentifizierung: %v", err)
-			return
-		}
-
-		appSession, err := store.Get(r, appSessionName)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		appSession.Values["user_id"] = user.UserID
-		appSession.Values["nickname"] = user.NickName
-		appSession.Values["avatar_url"] = user.AvatarURL
-		if err := appSession.Save(r, w); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		log.Info("User '%s' logged in successfully", user.NickName)
-		http.Redirect(w, r, "/dashboard", http.StatusFound)
-	})
-
-	r.Get("/logout", func(w http.ResponseWriter, r *http.Request) {
-		appSession, err := store.Get(r, appSessionName)
-		if err == nil {
-			appSession.Options.MaxAge = -1
-			_ = appSession.Save(r, w)
-		}
-		http.Redirect(w, r, "/", http.StatusFound)
-	})
+	/// --- Auth Routes ---
+	r.Get("/auth/{provider}", githubLogin)
+	r.Get("/auth/{provider}/callback", githubLoginCallback)
+	r.Get("/logout", logout)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		h := home.Home()
 		h.Render(context.Background(), w)
 	})
 
+	r.Get("/scoreboard", func(w http.ResponseWriter, r *http.Request) {
+		s := scoreboard.Scoreboard()
+		s.Render(context.Background(), w)
+	})
+
+	// --- Secured Routes ---
 	r.Group(func(r chi.Router) {
-		r.Use(AuthMiddleware)
+		r.Use(authMiddleware)
 
 		r.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) {
 			appSession, _ := store.Get(r, appSessionName)
@@ -121,29 +86,11 @@ func Start(cfg *cfg.Config) {
 		})
 	})
 
-	r.Get("/scoreboard", func(w http.ResponseWriter, r *http.Request) {
-		s := scoreboard.Scoreboard()
-		s.Render(context.Background(), w)
-	})
-
 	log.Info("Starting website on port %s", cfg.Port)
 	err := http.ListenAndServe(cfg.Port, r)
 	if err != nil {
 		log.Error("failed to start website: %v", err)
 	}
-}
-
-func AuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, err := store.Get(r, appSessionName)
-
-		if err != nil || session.IsNew || session.Values["user_id"] == nil {
-			http.Redirect(w, r, "/", http.StatusFound)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
 }
 
 func FileServer(r chi.Router, path string, root http.FileSystem) {
