@@ -21,6 +21,8 @@ type Config struct {
 	NextAuthUrl        string
 	SessionSecret      string
 	IsProduction       bool
+	CSRFAuthKey        string
+	BaseURL            string
 }
 
 func Load() *Config {
@@ -61,6 +63,11 @@ func Load() *Config {
 
 	isProduction := os.Getenv("IS_PRODUCTION") == "true"
 
+	csrfAuthKey := os.Getenv("CSRF_AUTH_KEY")
+	if csrfAuthKey == "" {
+		hasToBeSet("CSRF_AUTH_KEY")
+	}
+
 	return &Config{
 		DBURI:              dbUri,
 		Port:               port,
@@ -70,9 +77,11 @@ func Load() *Config {
 		NextAuthUrl:        nextAuthUrl + "/auth/github/callback",
 		SessionSecret:      sessionSecret,
 		IsProduction:       isProduction,
+		CSRFAuthKey:        csrfAuthKey,
+		BaseURL:            nextAuthUrl,
 	}
 }
 
 func hasToBeSet(name string) {
-	log.Fatal("The env-variable", name, "has to be set!")
+	log.Fatal("The env-variable ", name, " has to be set!")
 }

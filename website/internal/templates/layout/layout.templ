@@ -2,7 +2,7 @@ package layout
 
 import "github.com/N3moAhead/bomberman/website/internal/templates/navbar"
 
-templ Base(children ...templ.Component) {
+templ Base(csrfToken string, children ...templ.Component) {
     <!DOCTYPE html>
     <html lang="en">
         <head>
@@ -14,7 +14,7 @@ templ Base(children ...templ.Component) {
             <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
         </head>
         <body>
-        		@navbar.Navbar()
+        		@navbar.Navbar(csrfToken)
            	{ children... }
             <script src="https://unpkg.com/htmx.org@1.9.10"></script>
             <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>

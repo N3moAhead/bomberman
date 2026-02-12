@@ -2,8 +2,8 @@ package home
 
 import "github.com/N3moAhead/bomberman/website/internal/templates/layout"
 
-templ Home() {
-	@layout.Base() {
+templ Home(csrfToken string) {
+	@layout.Base(csrfToken) {
 		<h1>BombAhead</h1>
 		<p>There is not that much here yet. But it will become interesting in the next commits!</p>
 	}

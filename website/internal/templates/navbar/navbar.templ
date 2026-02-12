@@ -1,6 +1,6 @@
 package navbar
 
-templ Navbar() {
+templ Navbar(csrfToken string) {
 	<div class="navbar bg-base-100 shadow-sm">
 	  <div class="navbar-start">
 	    <div class="dropdown">
@@ -21,6 +21,7 @@ templ Navbar() {
 	  </div>
 	  <div class="navbar-end">
 				<form action="/logout" method="post">
+					<input type="hidden" name="gorilla.csrf.Token" value={ csrfToken }/>
 					<button type="submit">Logout</button>
 				</form>
 			<a href="/auth/github" class="btn">Login with Github</a>

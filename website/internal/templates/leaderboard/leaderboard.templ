@@ -2,8 +2,8 @@ package leaderboard
 
 import "github.com/N3moAhead/bomberman/website/internal/templates/layout"
 
-templ Leaderboard() {
-	@layout.Base() {
+templ Leaderboard(csrfToken string) {
+	@layout.Base(csrfToken) {
 		<h1 class="text-2xl">Leaderboard</h1>
 	}
 }

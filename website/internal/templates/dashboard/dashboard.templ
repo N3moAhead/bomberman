@@ -2,8 +2,8 @@ package dashboard
 
 import "github.com/N3moAhead/bomberman/website/internal/templates/layout"
 
-templ Dashboard(name string) {
-	@layout.Base() {
+templ Dashboard(name, csrfToken string) {
+	@layout.Base(csrfToken) {
 		<h1 class="text-2xl">Welcome to the Dashboards</h1>
 		<p>{ name }</p>
 	}

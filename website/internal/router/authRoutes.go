@@ -5,11 +5,38 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/N3moAhead/bomberman/website/internal/cfg"
 	"github.com/N3moAhead/bomberman/website/internal/db"
 	"github.com/N3moAhead/bomberman/website/internal/models"
 	"github.com/go-chi/chi/v5"
+	"github.com/gorilla/sessions"
+	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
+	"github.com/markbates/goth/providers/github"
 )
+
+func authSetup(cfg *cfg.Config) {
+	// --- AUTH Setup ---
+	maxAge := 86400 * 30
+	cookieStore := sessions.NewCookieStore([]byte(cfg.SessionSecret))
+	cookieStore.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   maxAge,
+		HttpOnly: true,
+		Secure:   cfg.IsProduction,
+	}
+	store = cookieStore
+	gothic.Store = store
+
+	goth.UseProviders(
+		github.New(
+			cfg.GithubCLientId,
+			cfg.GithubClientSecret,
+			cfg.NextAuthUrl,
+			"read:user",
+		),
+	)
+}
 
 func githubLogin(w http.ResponseWriter, r *http.Request) {
 	provider := chi.URLParam(r, "provider")

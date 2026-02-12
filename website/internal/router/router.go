@@ -11,10 +11,8 @@ import (
 	"github.com/N3moAhead/bomberman/website/pkg/logger"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/sessions"
-	"github.com/markbates/goth"
-	"github.com/markbates/goth/gothic"
-	"github.com/markbates/goth/providers/github"
 )
 
 var log = logger.New("[Router]")
@@ -25,31 +23,21 @@ var store sessions.Store
 const appSessionName = "bomberman-session"
 
 func Start(cfg *cfg.Config) {
+	log.Info("Trusted origin: %s", cfg.BaseURL)
 
-	// --- AUTH ---
-	maxAge := 86400 * 30
-	cookieStore := sessions.NewCookieStore([]byte(cfg.SessionSecret))
-	cookieStore.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   maxAge,
-		HttpOnly: true,
-		Secure:   cfg.IsProduction,
-	}
-	store = cookieStore
-	gothic.Store = store
-
-	goth.UseProviders(
-		github.New(
-			cfg.GithubCLientId,
-			cfg.GithubClientSecret,
-			cfg.NextAuthUrl,
-			"read:user",
-		),
-	)
+	authSetup(cfg)
 
 	r := chi.NewRouter()
+
+	// --- Middlewares ---
 	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
+	csrfMiddleware := csrf.Protect(
+		[]byte(cfg.CSRFAuthKey),
+		csrf.Secure(cfg.IsProduction),
+	)
+	r.Use(csrfMiddleware)
+
+	// Serving static files
 	FileServer(r, "/static", http.Dir("./static"))
 
 	/// --- Auth Routes ---
@@ -58,12 +46,12 @@ func Start(cfg *cfg.Config) {
 	r.Post("/logout", logout)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		h := home.Home()
+		h := home.Home(csrf.Token(r))
 		h.Render(r.Context(), w)
 	})
 
 	r.Get("/leaderboard", func(w http.ResponseWriter, r *http.Request) {
-		s := leaderboard.Leaderboard()
+		s := leaderboard.Leaderboard(csrf.Token(r))
 		s.Render(r.Context(), w)
 	})
 
@@ -77,7 +65,7 @@ func Start(cfg *cfg.Config) {
 			if !ok {
 				nickname = "User"
 			}
-			d := dashboard.Dashboard(nickname)
+			d := dashboard.Dashboard(nickname, csrf.Token(r))
 			d.Render(r.Context(), w)
 		})
 	})
