@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/N3moAhead/bomberman/website/internal/cfg"
+	"github.com/N3moAhead/bomberman/website/internal/models"
 	"github.com/N3moAhead/bomberman/website/internal/templates/dashboard"
 	"github.com/N3moAhead/bomberman/website/internal/templates/home"
 	"github.com/N3moAhead/bomberman/website/internal/templates/leaderboard"
@@ -17,7 +18,6 @@ import (
 
 var log = logger.New("[Router]")
 
-// store wird eine package-level Variable, damit die Middleware darauf zugreifen kann.
 var store sessions.Store
 
 const appSessionName = "bomberman-session"
@@ -36,6 +36,7 @@ func Start(cfg *cfg.Config) {
 		csrf.Secure(cfg.IsProduction),
 	)
 	r.Use(csrfMiddleware)
+	r.Use(userMiddleware)
 
 	// Serving static files
 	FileServer(r, "/static", http.Dir("./static"))
@@ -46,12 +47,14 @@ func Start(cfg *cfg.Config) {
 	r.Post("/logout", logout)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		h := home.Home(csrf.Token(r))
+		user, _ := r.Context().Value(UserContextKey).(*models.User)
+		h := home.Home(csrf.Token(r), user)
 		h.Render(r.Context(), w)
 	})
 
 	r.Get("/leaderboard", func(w http.ResponseWriter, r *http.Request) {
-		s := leaderboard.Leaderboard(csrf.Token(r))
+		user, _ := r.Context().Value(UserContextKey).(*models.User)
+		s := leaderboard.Leaderboard(csrf.Token(r), user)
 		s.Render(r.Context(), w)
 	})
 
@@ -60,12 +63,8 @@ func Start(cfg *cfg.Config) {
 		r.Use(authMiddleware)
 
 		r.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) {
-			appSession, _ := store.Get(r, appSessionName)
-			nickname, ok := appSession.Values["nickname"].(string)
-			if !ok {
-				nickname = "User"
-			}
-			d := dashboard.Dashboard(nickname, csrf.Token(r))
+			user, _ := r.Context().Value(UserContextKey).(*models.User)
+			d := dashboard.Dashboard(user, csrf.Token(r))
 			d.Render(r.Context(), w)
 		})
 	})

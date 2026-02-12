@@ -1,9 +1,12 @@
 package home
 
-import "github.com/N3moAhead/bomberman/website/internal/templates/layout"
+import (
+	"github.com/N3moAhead/bomberman/website/internal/templates/layout"
+	"github.com/N3moAhead/bomberman/website/internal/models"
+)
 
-templ Home(csrfToken string) {
-	@layout.Base(csrfToken) {
+templ Home(csrfToken string, user *models.User) {
+	@layout.Base(csrfToken, user) {
 		<h1>BombAhead</h1>
 		<p>There is not that much here yet. But it will become interesting in the next commits!</p>
 	}

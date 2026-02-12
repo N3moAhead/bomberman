@@ -91,15 +91,20 @@ func logout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
+func isAuthenticated(r *http.Request) bool {
+	session, err := store.Get(r, appSessionName)
+	if err != nil || session.IsNew || session.Values["user_id"] == nil {
+		return false
+	}
+	return true
+}
+
 func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, err := store.Get(r, appSessionName)
-
-		if err != nil || session.IsNew || session.Values["user_id"] == nil {
+		if !isAuthenticated(r) {
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
 		}
-
 		next.ServeHTTP(w, r)
 	})
 }

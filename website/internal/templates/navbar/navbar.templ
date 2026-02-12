@@ -1,6 +1,8 @@
 package navbar
 
-templ Navbar(csrfToken string) {
+import "github.com/N3moAhead/bomberman/website/internal/models"
+
+templ Navbar(csrfToken string, user *models.User) {
 	<div class="navbar bg-base-100 shadow-sm">
 	  <div class="navbar-start">
 	    <div class="dropdown">
@@ -12,19 +14,27 @@ templ Navbar(csrfToken string) {
 	        class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
 	        <li><a href="/">Home</a></li>
 	        <li><a href="/leaderboard">Leaderboard</a></li>
-	        <li><a href="/dashboard">Dashboard</a></li>
+					if user != nil {
+	        	<li><a href="/dashboard">Dashboard</a></li>
+					}
 	      </ul>
 	    </div>
 	  </div>
 	  <div class="navbar-center">
-	    <a class="btn btn-ghost text-xl">BombAhead</a>
+	    <a class="text-xl">BombAhead</a>
 	  </div>
-	  <div class="navbar-end">
+	  <div class="navbar-end gap-4">
+			if user != nil {
 				<form action="/logout" method="post">
 					<input type="hidden" name="gorilla.csrf.Token" value={ csrfToken }/>
-					<button type="submit">Logout</button>
+					<button class="btn" type="submit">Logout</button>
 				</form>
-			<a href="/auth/github" class="btn">Login with Github</a>
+				<div class="w-12 rounded-full">
+	    		<img src={ user.AvatarURL } alt="user img" />
+			  </div>
+			} else {
+				<a href="/auth/github" class="btn btn-primary">Login with Github</a>
+			}
 	  </div>
 	</div>
 }
