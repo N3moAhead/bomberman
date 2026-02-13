@@ -1,0 +1,42 @@
+# Config for air, a live-reloader for Go applications.
+# For more information, see https://github.com/cosmtrek/air
+root = "."
+tmp_dir = "tmp"
+
+[build]
+# Command to run when a file changes.
+# It generates Go code from templ files, builds the Tailwind CSS, and compiles the Go application.
+cmd = "go tool templ generate && npx @tailwindcss/cli -i ./static/css/app.css -o ./static/css/dist.css --minify && go build -o ./tmp/bombahead ./cmd/website/main.go"
+
+# The binary to run after building.
+bin = "./tmp/bombahead"
+
+# File extensions to watch.
+include_ext = ["go", "templ"]
+
+# Directories to exclude from watching.
+exclude_dir = ["tmp", "node_modules", "sessions"]
+
+# Regex to exclude files from watching. This is to prevent the rebuild loop.
+exclude_regex = ["_templ.go$"]
+
+# Delay in milliseconds before triggering a rebuild.
+delay = 1000
+
+# Stop the application on a build error.
+stop_on_error = true
+
+[log]
+# Include timestamps in the logs.
+time = true
+
+[color]
+# Customize the colors of the output.
+main = "magenta"
+watcher = "cyan"
+build = "yellow"
+runner = "green"
+
+[misc]
+# Clean up the tmp directory on exit.
+clean_on_exit = true
