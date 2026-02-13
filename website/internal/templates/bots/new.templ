@@ -3,9 +3,10 @@ package bots
 import (
 	"github.com/N3moAhead/bomberman/website/internal/templates/layout"
 	"github.com/N3moAhead/bomberman/website/internal/models"
+	"github.com/N3moAhead/bomberman/website/internal/viewmodels"
 )
 
-templ NewBot(user *models.User, csrfToken string) {
+templ NewBot(user *models.User, csrfToken string, form *viewmodels.NewBotForm) {
 	@layout.Base(csrfToken, user) {
 		<div class="container mx-auto px-4 py-8">
 			<div class="card w-full max-w-lg mx-auto bg-base-100 shadow-xl">
@@ -18,30 +19,42 @@ templ NewBot(user *models.User, csrfToken string) {
 							<label class="label">
 								<span class="label-text">Bot Name</span>
 							</label>
-							<input type="text" placeholder="MyAwesomeBot" id="name" name="name" class="input input-bordered w-full" required/>
+							<input type="text" placeholder="MyAwesomeBot" id="name" name="name" class="input input-bordered w-full" required value={ form.Name }/>
+							if form.Errors != nil && form.Errors["Name"] != "" {
+								<label class="label">
+									<span class="label-text-alt text-error">{ form.Errors["Name"] }</span>
+								</label>
+							}
 						</div>
 
 						<div class="form-control w-full mb-4">
 							<label class="label">
 								<span class="label-text">Description</span>
 							</label><br />
-							<textarea id="description" name="description" class="textarea textarea-bordered h-24" placeholder="A short and catchy description of your bot's behavior."></textarea>
+							<textarea id="description" name="description" class="textarea textarea-bordered h-24" placeholder="A short and catchy description of your bot's behavior.">{ form.Description }</textarea>
+							if form.Errors != nil && form.Errors["Description"] != "" {
+								<label class="label">
+									<span class="label-text-alt text-error">{ form.Errors["Description"] }</span>
+								</label>
+							}
 						</div>
 
 						<div class="form-control w-full mb-4">
 							<label class="label">
 								<span class="label-text">Docker Hub URL</span>
 							</label>
-							<input id="dockerHubUrl" name="dockerHubUrl" type="text" placeholder="docker.io/username/bot:latest" class="input input-bordered w-full" required/>
-							<label class="label">
-								<span class="label-text-alt">e.g., docker.io/username/bot:latest</span>
-							</label>
+							<input id="dockerHubUrl" name="dockerHubUrl" type="text" placeholder="docker.io/username/bot:latest" class="input input-bordered w-full" required value={ form.DockerHubUrl }/>
+							if form.Errors != nil && form.Errors["DockerHubUrl"] != "" {
+								<label class="label">
+									<span class="label-text-alt text-error text-wrap">{ form.Errors["DockerHubUrl"] }</span>
+								</label>
+							}
 						</div>
 
 						<div class="form-control mb-6">
 							<label class="label cursor-pointer">
 								<span class="label-text">Created with AI</span>
-								<input name="ai" id="ai" type="checkbox" class="toggle toggle-primary"/>
+								<input name="ai" id="ai" type="checkbox" class="toggle toggle-primary"  checked?={ form.CreatedWithAi } />
 							</label>
 						</div>
 
@@ -51,6 +64,13 @@ templ NewBot(user *models.User, csrfToken string) {
 							</button>
 						</div>
 					</form>
+					if dbError, ok := form.Errors["db_error"]; ok {
+						<div class="toast">
+						  <div class="alert alert-error">
+						    <span>{ dbError }</span>
+						  </div>
+						</div>
+					}
 				</div>
 			</div>
 		</div>
