@@ -21,7 +21,7 @@ func Init(cfg *cfg.Config) {
 	log.Successln("Successfully connected to the db")
 
 	log.Infoln("Auto-migrating models...")
-	err = Conn.AutoMigrate(&models.User{}, &models.Bot{})
+	err = Conn.AutoMigrate(&models.User{}, &models.Bot{}, &models.Match{})
 	if err != nil {
 		log.Fatal("Could not auto-migrate models", err)
 	}
