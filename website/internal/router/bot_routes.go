@@ -14,7 +14,9 @@ import (
 func botRoutes(botRouter chi.Router) {
 	botRouter.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		user, _ := r.Context().Value(UserContextKey).(*models.User)
-		b := bots.Overview(user, csrf.Token(r))
+		userBots, _ := db.GetBotsForUser(user)
+
+		b := bots.Overview(user, csrf.Token(r), userBots)
 		b.Render(r.Context(), w)
 	})
 

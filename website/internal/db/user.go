@@ -41,3 +41,9 @@ func GetUserByID(id uint) (*models.User, error) {
 	}
 	return &user, nil
 }
+
+func GetBotsForUser(user *models.User) ([]models.Bot, error) {
+	var bots []models.Bot
+	err := Conn.Model(&models.Bot{}).Where("user_id = ?", user.ID).Find(&bots).Error
+	return bots, err
+}

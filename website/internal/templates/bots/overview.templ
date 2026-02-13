@@ -5,41 +5,46 @@ import (
 	"github.com/N3moAhead/bomberman/website/internal/models"
 )
 
-templ Overview(user *models.User, csrfToken string) {
+templ Overview(user *models.User, csrfToken string, userBots []models.Bot) {
 	@layout.Base(csrfToken, user) {
-		<div>
-			<div class="flex flex-row justify-end">
-				<a href="/bots/new" class="btn btn-outline btn-primary">
-					Add Bot
-				</a>
-			</div>
-			<div class="overflow-x-auto">
-			  <table class="table">
-			    <thead>
-			      <tr>
-			        <th>Name</th>
-			        <th>Job</th>
-			        <th>Favorite Color</th>
-			      </tr>
-			    </thead>
-			    <tbody>
-			      <tr>
-			        <td>Cy Ganderton</td>
-			        <td>Quality Control Specialist</td>
-			        <td>Blue</td>
-			      </tr>
-			      <tr>
-			        <td>Hart Hagerty</td>
-			        <td>Desktop Support Technician</td>
-			        <td>Purple</td>
-			      </tr>
-			      <tr>
-			        <td>Brice Swyre</td>
-			        <td>Tax Accountant</td>
-			        <td>Red</td>
-			      </tr>
-			    </tbody>
-			  </table>
+		<div class="flex justify-center p-4">
+			<div class="card w-10/12 bg-base-100 shadow-xl">
+				<div class="card-body">
+					<div class="flex justify-between items-center mb-4">
+						<h2 class="card-title text-2xl">Your Bots</h2>
+						<a href="/bots/new" class="btn btn-outline btn-primary">
+							Add Bot
+						</a>
+					</div>
+					<div class="overflow-x-auto">
+						<table class="table">
+							<thead>
+								<tr>
+									<th>Name</th>
+									<th>Description</th>
+									<th>DockerHub URL</th>
+									<th>Created with AI</th>
+								</tr>
+							</thead>
+							<tbody>
+								for _, bot := range userBots {
+									<tr>
+										<td>{ bot.Name }</td>
+										<td>{ bot.Description }</td>
+										<td>{ bot.DockerHubUrl }</td>
+										<td>
+											if bot.CreatedWithAi {
+												<div class="badge badge-primary">Yes</div>
+											} else {
+												<div class="badge badge-secondary">No</div>
+											}
+										</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
 			</div>
 		</div>
 	}
