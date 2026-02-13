@@ -7,7 +7,33 @@ import (
 
 templ Dashboard(user *models.User, csrfToken string) {
 	@layout.Base(csrfToken, user) {
-		<h1 class="text-2xl">Welcome to the Dashboards</h1>
-		<p>{ user.Username }</p>
+		<div class="overflow-x-auto">
+		  <table class="table">
+		    <thead>
+		      <tr>
+		        <th>Name</th>
+		        <th>Job</th>
+		        <th>Favorite Color</th>
+		      </tr>
+		    </thead>
+		    <tbody>
+		      <tr>
+		        <td>Cy Ganderton</td>
+		        <td>Quality Control Specialist</td>
+		        <td>Blue</td>
+		      </tr>
+		      <tr>
+		        <td>Hart Hagerty</td>
+		        <td>Desktop Support Technician</td>
+		        <td>Purple</td>
+		      </tr>
+		      <tr>
+		        <td>Brice Swyre</td>
+		        <td>Tax Accountant</td>
+		        <td>Red</td>
+		      </tr>
+		    </tbody>
+		  </table>
+		</div>
 	}
 }

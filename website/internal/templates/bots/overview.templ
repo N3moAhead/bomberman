@@ -1,0 +1,46 @@
+package bots
+
+import (
+	"github.com/N3moAhead/bomberman/website/internal/templates/layout"
+	"github.com/N3moAhead/bomberman/website/internal/models"
+)
+
+templ Overview(user *models.User, csrfToken string) {
+	@layout.Base(csrfToken, user) {
+		<div>
+			<div class="flex flex-row justify-end">
+				<a href="/bots/new" class="btn btn-outline btn-primary">
+					Add Bot
+				</a>
+			</div>
+			<div class="overflow-x-auto">
+			  <table class="table">
+			    <thead>
+			      <tr>
+			        <th>Name</th>
+			        <th>Job</th>
+			        <th>Favorite Color</th>
+			      </tr>
+			    </thead>
+			    <tbody>
+			      <tr>
+			        <td>Cy Ganderton</td>
+			        <td>Quality Control Specialist</td>
+			        <td>Blue</td>
+			      </tr>
+			      <tr>
+			        <td>Hart Hagerty</td>
+			        <td>Desktop Support Technician</td>
+			        <td>Purple</td>
+			      </tr>
+			      <tr>
+			        <td>Brice Swyre</td>
+			        <td>Tax Accountant</td>
+			        <td>Red</td>
+			      </tr>
+			    </tbody>
+			  </table>
+			</div>
+		</div>
+	}
+}

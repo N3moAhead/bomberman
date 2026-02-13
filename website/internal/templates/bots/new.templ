@@ -1,0 +1,58 @@
+package bots
+
+import (
+	"github.com/N3moAhead/bomberman/website/internal/templates/layout"
+	"github.com/N3moAhead/bomberman/website/internal/models"
+)
+
+templ NewBot(user *models.User, csrfToken string) {
+	@layout.Base(csrfToken, user) {
+		<div class="container mx-auto px-4 py-8">
+			<div class="card w-full max-w-lg mx-auto bg-base-100 shadow-xl">
+				<div class="card-body">
+					<h1 class="card-title text-2xl mb-4">Create a New Bot</h1>
+					<form action="/bots/new" method="POST">
+						<input type="hidden" name="gorilla.csrf.Token" value={ csrfToken }/>
+
+						<div class="form-control w-full mb-4">
+							<label class="label">
+								<span class="label-text">Bot Name</span>
+							</label>
+							<input type="text" placeholder="MyAwesomeBot" id="name" name="name" class="input input-bordered w-full" required/>
+						</div>
+
+						<div class="form-control w-full mb-4">
+							<label class="label">
+								<span class="label-text">Description</span>
+							</label><br />
+							<textarea id="description" name="description" class="textarea textarea-bordered h-24" placeholder="A short and catchy description of your bot's behavior."></textarea>
+						</div>
+
+						<div class="form-control w-full mb-4">
+							<label class="label">
+								<span class="label-text">Docker Hub URL</span>
+							</label>
+							<input id="dockerHubUrl" name="dockerHubUrl" type="text" placeholder="docker.io/username/bot:latest" class="input input-bordered w-full" required/>
+							<label class="label">
+								<span class="label-text-alt">e.g., docker.io/username/bot:latest</span>
+							</label>
+						</div>
+
+						<div class="form-control mb-6">
+							<label class="label cursor-pointer">
+								<span class="label-text">Created with AI</span>
+								<input name="ai" id="ai" type="checkbox" class="toggle toggle-primary"/>
+							</label>
+						</div>
+
+						<div class="card-actions justify-end">
+							<button class="btn btn-primary" type="submit">
+								Add Bot
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	}
+}

@@ -27,50 +27,52 @@ func Start(cfg *cfg.Config) {
 
 	authSetup(cfg)
 
-	r := chi.NewRouter()
+	router := chi.NewRouter()
 
 	// --- Middlewares ---
-	r.Use(middleware.Logger)
+	router.Use(middleware.Logger)
 	csrfMiddleware := csrf.Protect(
 		[]byte(cfg.CSRFAuthKey),
 		csrf.Secure(cfg.IsProduction),
 	)
-	r.Use(csrfMiddleware)
-	r.Use(userMiddleware)
+	router.Use(csrfMiddleware)
+	router.Use(userMiddleware)
 
 	// Serving static files
-	FileServer(r, "/static", http.Dir("./static"))
+	FileServer(router, "/static", http.Dir("./static"))
 
 	/// --- Auth Routes ---
-	r.Get("/auth/{provider}", githubLogin)
-	r.Get("/auth/{provider}/callback", githubLoginCallback)
-	r.Post("/logout", logout)
+	router.Get("/auth/{provider}", githubLogin)
+	router.Get("/auth/{provider}/callback", githubLoginCallback)
+	router.Post("/logout", logout)
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		user, _ := r.Context().Value(UserContextKey).(*models.User)
 		h := home.Home(csrf.Token(r), user)
 		h.Render(r.Context(), w)
 	})
 
-	r.Get("/leaderboard", func(w http.ResponseWriter, r *http.Request) {
+	router.Get("/leaderboard", func(w http.ResponseWriter, r *http.Request) {
 		user, _ := r.Context().Value(UserContextKey).(*models.User)
 		s := leaderboard.Leaderboard(csrf.Token(r), user)
 		s.Render(r.Context(), w)
 	})
 
 	// --- Secured Routes ---
-	r.Group(func(r chi.Router) {
-		r.Use(authMiddleware)
+	router.Group(func(authRouter chi.Router) {
+		authRouter.Use(authMiddleware)
 
-		r.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) {
+		authRouter.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) {
 			user, _ := r.Context().Value(UserContextKey).(*models.User)
 			d := dashboard.Dashboard(user, csrf.Token(r))
 			d.Render(r.Context(), w)
 		})
+
+		authRouter.Route("/bots", botRoutes)
 	})
 
 	log.Info("Starting website on port %s", cfg.Port)
-	err := http.ListenAndServe(cfg.Port, r)
+	err := http.ListenAndServe(cfg.Port, router)
 	if err != nil {
 		log.Error("failed to start website: %v", err)
 	}
