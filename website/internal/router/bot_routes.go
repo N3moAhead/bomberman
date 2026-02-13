@@ -46,7 +46,7 @@ func botRoutes(botRouter chi.Router) {
 			return
 		}
 
-		err := db.CreateBot(form.ToDbModel())
+		err := db.CreateBot(form.ToDbModel(user.ID))
 		if err != nil {
 			form.Errors["db_error"] = "Error while saving to the database please try again later."
 			w.WriteHeader(http.StatusInternalServerError)

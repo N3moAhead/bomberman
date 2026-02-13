@@ -44,11 +44,12 @@ func (f *NewBotForm) Validate() bool {
 	return len(f.Errors) == 0
 }
 
-func (n *NewBotForm) ToDbModel() *models.Bot {
+func (n *NewBotForm) ToDbModel(userID uint) *models.Bot {
 	return &models.Bot{
 		Name:          n.Name,
 		Description:   n.Description,
 		DockerHubUrl:  n.DockerHubUrl,
 		CreatedWithAi: n.CreatedWithAi,
+		UserID:        userID,
 	}
 }

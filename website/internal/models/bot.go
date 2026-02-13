@@ -8,4 +8,6 @@ type Bot struct {
 	Description   string
 	DockerHubUrl  string
 	CreatedWithAi bool
+	UserID        uint
+	User          User
 }
