@@ -46,7 +46,7 @@ func Dashboard(user *models.User, csrfToken string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th>Name</th><th>Job</th><th>Favorite Color</th></tr></thead> <tbody><tr><td>Cy Ganderton</td><td>Quality Control Specialist</td><td>Blue</td></tr><tr><td>Hart Hagerty</td><td>Desktop Support Technician</td><td>Purple</td></tr><tr><td>Brice Swyre</td><td>Tax Accountant</td><td>Red</td></tr></tbody></table></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex justify-center p-4\"><div class=\"card w-10/12 bg-base-100 shadow-xl\"><div class=\"card-body\"><h2 class=\"card-title text-2xl\">Bot Performance</h2><div class=\"stats shadow\"><div class=\"stat\"><div class=\"stat-title\">Average Win Rate</div><div class=\"stat-value\">62%</div><div class=\"stat-desc\">21% more than last month</div></div></div></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
