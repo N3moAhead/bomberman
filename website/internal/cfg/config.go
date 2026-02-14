@@ -23,6 +23,9 @@ type Config struct {
 	IsProduction       bool
 	CSRFAuthKey        string
 	BaseURL            string
+	RabbitMQURL        string
+	MatchQueue         string
+	ResultQueue        string
 }
 
 func Load() *Config {
@@ -39,6 +42,21 @@ func Load() *Config {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = ":3000"
+	}
+
+	rabbitMqUrl := os.Getenv("RABBITMQ_URL")
+	if rabbitMqUrl == "" {
+		log.Error("The env Variable RABBITMQ_URL has to be set!")
+	}
+
+	matchQueue := os.Getenv("RABBITMQ_MATCH_QUEUE")
+	if matchQueue == "" {
+		matchQueue = "bomberman.matches.pending"
+	}
+
+	resultQueue := os.Getenv("RABBITMQ_RESULT_QUEUE")
+	if resultQueue == "" {
+		resultQueue = "bomberman.matches.results"
 	}
 
 	githubClientId := os.Getenv("GITHUB_CLIENT_ID")
@@ -79,6 +97,9 @@ func Load() *Config {
 		IsProduction:       isProduction,
 		CSRFAuthKey:        csrfAuthKey,
 		BaseURL:            nextAuthUrl,
+		RabbitMQURL:        rabbitMqUrl,
+		MatchQueue:         matchQueue,
+		ResultQueue:        resultQueue,
 	}
 }
 
