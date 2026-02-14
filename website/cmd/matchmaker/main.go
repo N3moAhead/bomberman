@@ -15,6 +15,8 @@ import (
 	"github.com/N3moAhead/bomberman/website/internal/mq"
 	"github.com/N3moAhead/bomberman/website/pkg/logger"
 	"github.com/google/uuid"
+	"github.com/intinig/go-openskill/rating"
+	"github.com/intinig/go-openskill/types"
 	"github.com/rabbitmq/amqp091-go"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -125,7 +127,7 @@ func startNewMatch(bot1ID uint, bot2ID uint, mqClient *mq.Client, db *gorm.DB) {
 	log.Successln("Successfully created new Match! YAY")
 }
 
-func handleResultMessage(msg amqp091.Delivery, db *gorm.DB) {
+func handleResultMessage(msg amqp091.Delivery, db *gorm.DB) error {
 	log.Info("Received a match result.")
 
 	var matchResult message.Result
@@ -133,20 +135,65 @@ func handleResultMessage(msg amqp091.Delivery, db *gorm.DB) {
 	if err != nil {
 		log.Error("Failed to process Match Results")
 		msg.Nack(false, false)
-		return
+		return err
 	}
 
-	var dbMatch models.Match
-	err = db.Where("match_id = ?", matchResult.MatchID).First(&dbMatch).Error
-	if err != nil {
-		log.Error("Failed to find the corresponding db match to the received match result")
-		msg.Nack(false, false)
-		return
-	}
+	return db.Transaction(func(tx *gorm.DB) error {
+		var dbMatch models.Match
+		err = tx.Where("match_id = ?", matchResult.MatchID).Preload("Bot1").Preload("Bot2").First(&dbMatch).Error
+		if err != nil {
+			log.Error("Failed to find the corresponding db match to the received match result")
+			msg.Nack(false, false)
+			return err
+		}
+		dbMatch.Status = models.FINISHED
+		tx.Save(&dbMatch)
 
-	dbMatch.Status = models.FINISHED
-	db.Save(&dbMatch)
-	msg.Ack(false)
+		var winner, loser models.Bot
+		var options *types.OpenSkillOptions
+		// Calculate Winner...
+		switch matchResult.Winner {
+		case dbMatch.Bot1.DockerHubUrl:
+			// Bot1 Won
+			winner, loser = dbMatch.Bot1, dbMatch.Bot2
+			options = nil
+		case dbMatch.Bot2.DockerHubUrl:
+			// Bot2 Won
+			winner, loser = dbMatch.Bot1, dbMatch.Bot2
+			options = nil
+		default:
+			// Draw
+			// winner or loser doesnt matter here
+			winner, loser = dbMatch.Bot1, dbMatch.Bot2
+			// both will just receive the same score
+			options = &types.OpenSkillOptions{
+				Score: []int{1, 1},
+			}
+		}
+
+		winnerRating := winner.ToRating()
+		loserRating := loser.ToRating()
+
+		teams := []types.Team{
+			{winnerRating},
+			{loserRating},
+		}
+
+		newRatings := rating.Rate(teams, options)
+
+		winner.ApplyRating(newRatings[0][0])
+		loser.ApplyRating(newRatings[1][0])
+
+		if err := tx.Save(&winner).Error; err != nil {
+			return err
+		}
+		if err := tx.Save(&loser).Error; err != nil {
+			return err
+		}
+
+		msg.Ack(false)
+		return nil
+	})
 }
 
 func connectToMQ(config *cfg.Config) *mq.Client {
