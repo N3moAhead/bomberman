@@ -1,12 +1,51 @@
 package leaderboard
 
 import (
+	"fmt"
+	"strconv"
 	"github.com/N3moAhead/bomberman/website/internal/templates/layout"
 	"github.com/N3moAhead/bomberman/website/internal/models"
 )
 
-templ Leaderboard(csrfToken string, user *models.User) {
+templ Leaderboard(csrfToken string, user *models.User, bots []models.Bot) {
 	@layout.Base(csrfToken, user) {
-		<h1 class="text-2xl">Leaderboard</h1>
+		<div class="flex justify-center p-4">
+			<div class="card w-10/12 bg-base-100 shadow-xl">
+				<div class="card-body">
+					<div class="flex justify-between items-center mb-4">
+						<h2 class="card-title text-2xl">Bot Leaderboard</h2>
+					</div>
+					<div class="overflow-x-auto">
+						<table class="table">
+							<thead>
+								<tr>
+									<th>#</th>
+									<th>Owner</th>
+									<th>Bot Name</th>
+									<th>Score</th>
+									<th>Description</th>
+								</tr>
+							</thead>
+							<tbody>
+								if len(bots) == 0 {
+									<tr>
+										<td colspan="5" class="text-center">No bots on the leaderboard yet.</td>
+									</tr>
+								}
+								for i, bot := range bots {
+									<tr>
+										<th>{ strconv.Itoa(i + 1) }</th>
+										<td><a href={ templ.URL(fmt.Sprintf("https://github.com/%s", bot.User.Username)) } class="link link-hover">{ bot.User.Username }</a></td>
+										<td>{ bot.Name }</td>
+										<td>{ fmt.Sprintf("%.2f", bot.Score) }</td>
+										<td>{ bot.Description }</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
 	}
 }

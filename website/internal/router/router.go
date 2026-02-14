@@ -56,7 +56,8 @@ func Start(cfg *cfg.Config) {
 
 	router.Get("/leaderboard", func(w http.ResponseWriter, r *http.Request) {
 		user, _ := r.Context().Value(UserContextKey).(*models.User)
-		s := leaderboard.Leaderboard(csrf.Token(r), user)
+		bots, _ := db.GetLeaderboard(0, 50)
+		s := leaderboard.Leaderboard(csrf.Token(r), user, bots)
 		s.Render(r.Context(), w)
 	})
 
