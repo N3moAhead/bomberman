@@ -1,6 +1,9 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/datatypes"
+	"gorm.io/gorm"
+)
 
 type MatchStatus string
 
@@ -18,4 +21,5 @@ type Match struct {
 	Bot2ID  uint
 	Bot2    Bot
 	Status  MatchStatus
+	History datatypes.JSON
 }

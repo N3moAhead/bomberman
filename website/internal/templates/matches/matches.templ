@@ -1,6 +1,7 @@
 package matches
 
 import (
+	"fmt"
 	"github.com/N3moAhead/bomberman/website/internal/templates/layout"
 	"github.com/N3moAhead/bomberman/website/internal/models"
 )
@@ -27,7 +28,7 @@ templ Matches(csrfToken string, user *models.User, matches []models.Match) {
 							<tbody>
 								for _, match := range matches {
 									<tr>
-										<td>{ match.MatchID }</td>
+										<td><a href={ templ.URL(fmt.Sprintf("/matches/%s", match.MatchID)) } class="link link-hover">{ match.MatchID }</a></td>
 										<td>{ match.Bot1.Name }</td>
 										<td>{ match.Bot2.Name }</td>
 										<td>

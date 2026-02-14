@@ -146,6 +146,19 @@ func handleResultMessage(msg amqp091.Delivery, db *gorm.DB) error {
 			msg.Nack(false, false)
 			return err
 		}
+
+		// TODO
+		// A probably pretty useless and stupid way to do it
+		// All the time im just marshalling and unmarshalling the same JSON
+		// So i could definitly improve it...
+		// But diffrent things matter more at the moment so i will just leave it for the second...
+		historyJson, err := json.Marshal(matchResult.Log)
+		if err != nil {
+			log.Error("Failed to marshal match history")
+			msg.Nack(false, false)
+			return err
+		}
+		dbMatch.History = historyJson
 		dbMatch.Status = models.FINISHED
 		tx.Save(&dbMatch)
 

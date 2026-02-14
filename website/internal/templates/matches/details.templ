@@ -1,0 +1,131 @@
+package matches
+
+import (
+	"github.com/N3moAhead/bomberman/website/internal/models"
+	"github.com/N3moAhead/bomberman/website/internal/viewmodels"
+	"github.com/N3moAhead/bomberman/website/internal/templates/layout"
+)
+
+templ Details(csrf string, user *models.User, vm *viewmodels.MatchDetail, historyJson string) {
+	@layout.Base(csrf, user) {
+		<div class="container mx-auto p-4">
+			<h1 class="text-2xl font-bold mb-4">Match Review: { vm.Match.MatchID }</h1>
+			<div class="flex flex-col items-center">
+				<canvas id="bomberman-canvas" width="800" height="800" class="border border-gray-500"></canvas>
+				<div class="flex items-center space-x-4 mt-4">
+					<button id="prev-tick" class="btn btn-primary">Prev</button>
+					<span id="tick-counter">Tick: 0 / { len(vm.History.Ticks) - 1 }</span>
+					<button id="next-tick" class="btn btn-primary">Next</button>
+				</div>
+			</div>
+		</div>
+		<input class="hidden" id="historyData" history-data={ templ.JSONString(historyJson) }></input>
+		<script>
+			const historyInput = document.getElementById('historyData');
+			const history = JSON.parse(JSON.parse(historyInput.getAttribute('history-data')));
+			console.log(typeof history)
+			const canvas = document.getElementById('bomberman-canvas');
+			const ctx = canvas.getContext('2d');
+			const tickCounter = document.getElementById('tick-counter');
+			const prevBtn = document.getElementById('prev-tick');
+			const nextBtn = document.getElementById('next-tick');
+
+			let currentTick = 0;
+			const totalTicks = history.ticks.length - 1;
+			const fieldWidth = history.initial_field.width;
+			const fieldHeight = history.initial_field.height;
+			const tileWidth = canvas.width / fieldWidth;
+			const tileHeight = canvas.height / fieldHeight;
+
+			const tileColors = {
+				"AIR": "lightgray", // Empty
+				"WALL": "gray",      // Wall
+				"BOX": "sandybrown" // Box
+			};
+
+			function drawField(field) {
+				for (let y = 0; y < fieldHeight; y++) {
+					for (let x = 0; x < fieldWidth; x++) {
+						const tile = field[y * fieldWidth + x];
+						ctx.fillStyle = tileColors[tile] || "lightgray";
+						ctx.fillRect(x * tileWidth, y * tileHeight, tileWidth, tileHeight);
+					}
+				}
+			}
+
+			function drawPlayers(players) {
+				players.forEach(player => {
+					ctx.fillStyle = player.id === "0" ? "blue" : "red";
+					ctx.fillRect(player.pos.x * tileWidth, player.pos.y * tileHeight, tileWidth, tileHeight);
+				});
+			}
+
+            function getPlayerById(id) {
+                // Find the player with the given id in the first tick
+                const firstTick = history.ticks[0];
+                return firstTick.players.find(p => p.id === id);
+            }
+
+
+			function drawBombs(bombs) {
+				ctx.fillStyle = "black";
+				bombs.forEach(bomb => {
+					ctx.beginPath();
+					ctx.arc(bomb.pos.x * tileWidth + tileWidth / 2, bomb.pos.y * tileHeight + tileHeight / 2, tileWidth / 3, 0, 2 * Math.PI);
+					ctx.fill();
+				});
+			}
+
+			function drawExplosions(explosions) {
+				ctx.fillStyle = "orange";
+				explosions.forEach(exp => {
+					ctx.fillRect(exp.x * tileWidth, exp.y * tileHeight, tileWidth, tileHeight);
+				});
+			}
+
+			function drawDestroyedBoxes(boxes, field) {
+				boxes.forEach(box => {
+					field[box.y * fieldWidth + box.x] = " ";
+				});
+			}
+
+			function renderTick(tickIndex) {
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				const tick = history.ticks[tickIndex];
+				if (!tick) return;
+
+				// Rebuild field state up to the current tick
+				let field = [...history.initial_field.field];
+				for (let i = 0; i <= tickIndex; i++) {
+					const pastTick = history.ticks[i];
+					if (pastTick.destroyed_boxes) {
+						drawDestroyedBoxes(pastTick.destroyed_boxes, field);
+					}
+				}
+
+				drawField(field);
+				drawPlayers(tick.players);
+				drawBombs(tick.bombs);
+				drawExplosions(tick.explosions);
+
+				tickCounter.textContent = `Tick: ${tickIndex} / ${totalTicks}`;
+				currentTick = tickIndex;
+			}
+
+			prevBtn.addEventListener('click', () => {
+				if (currentTick > 0) {
+					renderTick(currentTick - 1);
+				}
+			});
+
+			nextBtn.addEventListener('click', () => {
+				if (currentTick < totalTicks) {
+					renderTick(currentTick + 1);
+				}
+			});
+
+			// Initial render
+			renderTick(0);
+		</script>
+	}
+}

@@ -10,7 +10,6 @@ import (
 	"github.com/N3moAhead/bomberman/website/internal/templates/dashboard"
 	"github.com/N3moAhead/bomberman/website/internal/templates/home"
 	"github.com/N3moAhead/bomberman/website/internal/templates/leaderboard"
-	"github.com/N3moAhead/bomberman/website/internal/templates/matches"
 	"github.com/N3moAhead/bomberman/website/pkg/logger"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -61,12 +60,7 @@ func Start(cfg *cfg.Config) {
 		s.Render(r.Context(), w)
 	})
 
-	router.Get("/matches", func(w http.ResponseWriter, r *http.Request) {
-		user, _ := r.Context().Value(UserContextKey).(*models.User)
-		botMatches, _ := db.GetMatches(0, 50)
-		s := matches.Matches(csrf.Token(r), user, botMatches)
-		s.Render(r.Context(), w)
-	})
+	router.Mount("/matches", MatchRoutes())
 
 	// --- Secured Routes ---
 	router.Group(func(authRouter chi.Router) {
