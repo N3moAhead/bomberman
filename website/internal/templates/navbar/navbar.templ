@@ -14,6 +14,7 @@ templ Navbar(csrfToken string, user *models.User) {
 	        class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
 	        <li><a href="/">Home</a></li>
 	        <li><a href="/leaderboard">Leaderboard</a></li>
+	        <li><a href="/matches">Matches</a></li>
 					if user != nil {
 	        	<li><a href="/dashboard">Dashboard</a></li>
 	        	<li><a href="/bots">Bots</a></li>

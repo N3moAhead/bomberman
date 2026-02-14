@@ -1,0 +1,55 @@
+package matches
+
+import (
+	"github.com/N3moAhead/bomberman/website/internal/templates/layout"
+	"github.com/N3moAhead/bomberman/website/internal/models"
+)
+
+templ Matches(csrfToken string, user *models.User, matches []models.Match) {
+	@layout.Base(csrfToken, user) {
+		<div class="flex justify-center p-4">
+			<div class="card w-10/12 bg-base-100 shadow-xl">
+				<div class="card-body">
+					<div class="flex justify-between items-center mb-4">
+						<h2 class="card-title text-2xl">Matches</h2>
+					</div>
+					<div class="overflow-x-auto">
+						<table class="table">
+							<thead>
+								<tr>
+									<th>Match ID</th>
+									<th>Bot 1</th>
+									<th>Bot 2</th>
+									<th>Status</th>
+									<th>Created At</th>
+								</tr>
+							</thead>
+							<tbody>
+								for _, match := range matches {
+									<tr>
+										<td>{ match.MatchID }</td>
+										<td>{ match.Bot1.Name }</td>
+										<td>{ match.Bot2.Name }</td>
+										<td>
+											switch match.Status {
+												case models.PENDING:
+													<div class="badge badge-warning">pending</div>
+												case models.RUNNING:
+													<div class="badge badge-info">running</div>
+												case models.FINISHED:
+													<div class="badge badge-success">finished</div>
+												default:
+													<div class="badge">{ string(match.Status) }</div>
+											}
+										</td>
+										<td>{ match.CreatedAt.Format("02 Jan 2006 15:04") }</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+}

@@ -5,10 +5,12 @@ import (
 	"strings"
 
 	"github.com/N3moAhead/bomberman/website/internal/cfg"
+	"github.com/N3moAhead/bomberman/website/internal/db"
 	"github.com/N3moAhead/bomberman/website/internal/models"
 	"github.com/N3moAhead/bomberman/website/internal/templates/dashboard"
 	"github.com/N3moAhead/bomberman/website/internal/templates/home"
 	"github.com/N3moAhead/bomberman/website/internal/templates/leaderboard"
+	"github.com/N3moAhead/bomberman/website/internal/templates/matches"
 	"github.com/N3moAhead/bomberman/website/pkg/logger"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -55,6 +57,13 @@ func Start(cfg *cfg.Config) {
 	router.Get("/leaderboard", func(w http.ResponseWriter, r *http.Request) {
 		user, _ := r.Context().Value(UserContextKey).(*models.User)
 		s := leaderboard.Leaderboard(csrf.Token(r), user)
+		s.Render(r.Context(), w)
+	})
+
+	router.Get("/matches", func(w http.ResponseWriter, r *http.Request) {
+		user, _ := r.Context().Value(UserContextKey).(*models.User)
+		botMatches, _ := db.GetMatches(0, 50)
+		s := matches.Matches(csrf.Token(r), user, botMatches)
 		s.Render(r.Context(), w)
 	})
 
