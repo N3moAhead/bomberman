@@ -42,6 +42,10 @@ image:
 	@echo "==> Building Docker image $(DOCKER_IMAGE_NAME):$(DOCKER_TAG)..."
 	podman build -t $(DOCKER_IMAGE_NAME):$(DOCKER_TAG) .
 
+image-public:
+	@echo "==> Pushing Docker image $(DOCKER_IMAGE_NAME):$(DOCKER_TAG)..."
+	podman push $(DOCKER_IMAGE_NAME):$(DOCKER_TAG)
+
 # Run the application inside a podman container
 image-run:
 	@echo "==> Running Docker container $(DOCKER_IMAGE_NAME):$(DOCKER_TAG)..."
