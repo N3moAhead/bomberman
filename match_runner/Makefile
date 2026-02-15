@@ -4,7 +4,7 @@ CMD_PATH=./cmd/match_runner
 VERSION ?= $(shell git describe --tags --always --dirty || echo "dev")
 
 # Docker parameters
-DOCKER_IMAGE_NAME=bomberman-match-runner
+DOCKER_IMAGE_NAME=docker.io/nemoahead/bomberman-match-runner
 DOCKER_TAG ?= latest
 
 .PHONY: all build run clean test lint image image-run help
@@ -42,13 +42,14 @@ image:
 	@echo "==> Building Docker image $(DOCKER_IMAGE_NAME):$(DOCKER_TAG)..."
 	podman build -t $(DOCKER_IMAGE_NAME):$(DOCKER_TAG) .
 
-# Run the application inside a Docker container
+# Run the application inside a podman container
 image-run:
 	@echo "==> Running Docker container $(DOCKER_IMAGE_NAME):$(DOCKER_TAG)..."
 	podman run --rm -it \
 		--network=host \
 		-v /run/user/$(shell id -u)/podman/podman.sock:/var/run/podman/podman.sock \
 		-e RABBITMQ_URL=${RABBITMQ_URL} \
+		-e CONTAINER_HOST=unix:///run/podman/podman.sock \
 		$(DOCKER_IMAGE_NAME):$(DOCKER_TAG)
 
 # Display help
