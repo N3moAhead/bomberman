@@ -21,6 +21,18 @@ build: templ tailwind vet
 run: build
 	./bombahead
 
+image-website:
+	podman build -f Dockerfile.Website -t docker.io/nemoahead/bomberman-website
+
+image-website-public: image-website
+	podman push docker.io/nemoahead/bomberman-website:latest
+
+image-matchmaker:
+	podman build -f Dockerfile.Matchmaker -t docker.io/nemoahead/bomberman-matchmaker
+
+image-matchmaker-public: image-matchmaker
+	podman push docker.io/nemoahead/bomberman-matchmaker:latest
+
 dev:
 	@if ! command -v air > /dev/null 2>&1; then \
 		echo "air is not installed. Installing..."; \
