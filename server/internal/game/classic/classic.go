@@ -32,6 +32,7 @@ type Classic struct {
 	isRunning  bool
 	minPlayers int
 	maxPLayers int
+	isTimeOut  bool
 
 	ticker       *time.Ticker
 	lastTickTime time.Time // for delta time
@@ -53,6 +54,7 @@ func NewClassic(finisher game.GameFinisher, id string) *Classic {
 		isRunning:  false,
 		minPlayers: MIN_PLAYERS,
 		maxPLayers: MAX_PLAYERS,
+		isTimeOut:  false,
 	}
 }
 
@@ -141,7 +143,6 @@ func (c *Classic) Start() {
 	c.history = NewHistory(c.getGameState().Field)
 	c.lastTickTime = time.Now()
 	c.ticker = time.NewTicker(TICK_RATE)
-
 	c.playerMux.Unlock()
 
 	log.Info("[Game %s] Starting game loop.", c.gameID)
@@ -151,6 +152,9 @@ func (c *Classic) Start() {
 		}
 		log.Info("[Game %s] Game loop stopped.", c.gameID)
 	}()
+
+	maxGameTimer := time.NewTimer(MAX_GAME_TIME)
+	defer maxGameTimer.Stop()
 
 	for {
 		select {
@@ -187,6 +191,12 @@ func (c *Classic) Start() {
 			if c.isGameOver() {
 				go c.Stop()
 			}
+		case <-maxGameTimer.C:
+			c.playerMux.Lock()
+			c.isTimeOut = true
+			c.playerMux.Unlock()
+			go c.Stop()
+
 		case <-c.stopChan:
 			// When receiving a stop signal we stop the goroutine
 			return
@@ -219,16 +229,34 @@ func (c *Classic) Stop() {
 		Scores: make(map[string]int),
 	}
 
-	// There can only be one winner
-	// The field will be left empty, if
-	// it's a draw
-	for pId, player := range c.players {
-		if player.Health > 0 {
-			if result.Winner != "" {
-				result.Winner = ""
-				break
+	if c.isTimeOut {
+		var healthiestPlayer *Player = nil
+		isUnique := true
+		// The time ran out so we will check if one of the
+		// players has more health left then the others
+		for _, player := range c.players {
+			if healthiestPlayer == nil || player.Health > healthiestPlayer.Health {
+				healthiestPlayer = player
+			} else if player.Health == healthiestPlayer.Health {
+				isUnique = false
 			}
-			result.Winner = pId
+		}
+
+		if isUnique {
+			result.Winner = healthiestPlayer.ID
+		}
+	} else {
+		// There can only be one winner
+		// The field will be left empty, if
+		// it's a draw
+		for pId, player := range c.players {
+			if player.Health > 0 {
+				if result.Winner != "" {
+					result.Winner = ""
+					break
+				}
+				result.Winner = pId
+			}
 		}
 	}
 

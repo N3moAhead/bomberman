@@ -17,6 +17,7 @@ const (
 	MAX_PLAYERS      = 4
 	TICK_RATE        = 200 * time.Millisecond
 	WIN_SCORE_POINTS = 250
+	MAX_GAME_TIME    = 3 * time.Minute
 
 	// --- Player ---
 	initial_health = 3
