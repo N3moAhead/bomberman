@@ -41,7 +41,7 @@ func Navbar(csrfToken string, user *models.User) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</ul></div></div><div class=\"navbar-center\"><a class=\"text-xl\">BombAhead</a></div><div class=\"navbar-end gap-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</ul></div></div><div class=\"navbar-center\"><a href=\"/\" class=\"text-xl font-bold link-hover\">BombAhead</a></div><div class=\"navbar-end gap-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

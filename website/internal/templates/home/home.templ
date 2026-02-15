@@ -7,7 +7,79 @@ import (
 
 templ Home(csrfToken string, user *models.User) {
 	@layout.Base(csrfToken, user) {
-		<h1>BombAhead</h1>
-		<p>There is not that much here yet. But it will become interesting in the next commits!</p>
+		<div>
+			<div class="hero min-h-screen bg-base-200">
+				<div class="container mx-auto px-4">
+					<div class="hero-content flex-col lg:flex-row-reverse">
+						<img src="/static/images/game_example_image.png" class="max-w-sm rounded-lg shadow-2xl" alt="Bomberman Gameplay"/>
+						<div>
+							<h1 class="text-5xl font-bold">Welcome to BombAhead!</h1>
+							<p class="py-6">A simple Bomberman Bot competition plattform. Write your own Bot, compete against others, and climb the leaderboard. Just have some fun!</p>
+							<a href="#getting-started" class="btn btn-outline btn-primary">Get Started</a>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="bg-neutral text-neutral-content py-25 mb-10 shadow-xl">
+				<div class="container mx-auto px-4 text-center">
+					<h2 class="text-3xl font-bold mb-4">Completely Open Source!</h2>
+					<p class="mb-4">Everything from the game server to this website is open source. I strongly belive in transparency and collaboration.</p>
+					<a href="https://github.com/N3moAhead/bomberman" class="btn btn-outline" target="_blank" rel="noopener noreferrer">
+						<img width="20px" src="/static/images/GitHub_Invertocat_White.svg"alt="Github Icon"/>
+						View on GitHub
+					</a>
+				</div>
+			</div>
+
+
+			<div id="getting-started" class="py-25 my-10">
+				<div class="container mx-auto px-4">
+					<h2 class="text-4xl font-bold text-center mb-8">Getting Started</h2>
+					<ul class="steps steps-vertical lg:steps-horizontal w-full mb-8 py-10">
+						<li class="step step-primary">Choose Your Language</li>
+						<li class="step step-primary">Write Your Bot</li>
+						<li class="step">Compete!</li>
+					</ul>
+
+					<div class="grid md:grid-cols-2 gap-8">
+						<div class="prose">
+							<h3 class="text-2xl font-semibold">1. Choose Your Language</h3>
+							<p>We provide client examples to get you started quickly. Pick your favorite language and clone the repository. Your bot will connect to the game server via WebSockets. The core loop is simple: receive the game state, decide on an action, and send it back.</p>
+						</div>
+
+						<div class="prose">
+							<h3 class="text-2xl font-semibold">2. Understand the Game</h3>
+							<p>On every tick, the server sends the game state, including player positions, health, and scores, the map layout (field), active bombs with their fuse timers and current explosion locations. Your bot can respond with actions like moving (`move_up`, `move_down`, etc.) or `place_bomb`.</p>
+						</div>
+					</div>
+					<div class="text-center mt-16">
+						<p class="text-lg">For detailed API specifications and data structures, check out the project's <a href="https://github.com/N3moAhead/bomberman#how-to-write-a-bot" class="link link-primary" target="_blank" rel="noopener noreferrer">README</a>.</p>
+					</div>
+				</div>
+			</div>
+
+			// Footer Banner
+			<footer class="footer footer-center p-10 py-15 bg-base-300 text-base-content mt-10">
+				<div class="container mx-auto px-4">
+					<div>
+						<img width="35px" src="/static/images/BombAheadLogoSmall.png"alt="BombAhead Logo"/>
+					</div>
+					<div>
+						<p class="font-bold">
+							BombAhead Project by N3moAhead.
+						</p>
+						<p>This is a passion project. I don't want your data. The only information stored is your GitHub user ID, username, and avatar URL, which is necessary for simple authentication. No tracking, no analytics, just Bomberman.</p>
+					</div>
+					<div>
+						<div class="grid grid-flow-col gap-4">
+							<a href="https://github.com/N3moAhead" class="link link-hover" target="_blank" rel="noopener noreferrer">
+								<img width="50px" src="/static/images/GitHub_Invertocat_Black.svg"alt="Github Icon"/>
+							</a>
+						</div>
+					</div>
+				</div>
+			</footer>
+		</div>
 	}
 }
