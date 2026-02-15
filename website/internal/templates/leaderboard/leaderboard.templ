@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"github.com/N3moAhead/bomberman/website/internal/templates/layout"
+	botTemplates "github.com/N3moAhead/bomberman/website/internal/templates/bots"
 	"github.com/N3moAhead/bomberman/website/internal/models"
 )
 
@@ -45,7 +46,7 @@ templ Leaderboard(csrfToken string, user *models.User, bots []models.Bot) {
 											<span class="link-hover">{ bot.User.Username }</span>
 										</a>
 									</td>
-									<td>{ bot.Name }</td>
+									<td> @botTemplates.ListDisplay(bot) </td>
 									<td>{ fmt.Sprintf("%.2f", bot.Score) }</td>
 									<td>{ bot.Description }</td>
 								</tr>

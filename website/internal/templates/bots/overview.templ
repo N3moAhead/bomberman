@@ -29,7 +29,7 @@ templ Overview(user *models.User, csrfToken string, userBots []models.Bot) {
 							<tbody>
 								for _, bot := range userBots {
 									<tr>
-										<td>{ bot.Name }</td>
+										<td> @ListDisplay(bot) </td>
 										<td>{ bot.Description }</td>
 										<td>{ bot.DockerHubUrl }</td>
 										<td>

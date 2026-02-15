@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/N3moAhead/bomberman/website/internal/templates/layout"
 	"github.com/N3moAhead/bomberman/website/internal/models"
+	botTemplates "github.com/N3moAhead/bomberman/website/internal/templates/bots"
 )
 
 templ Matches(csrfToken string, user *models.User, matches []models.Match) {
@@ -29,8 +30,8 @@ templ Matches(csrfToken string, user *models.User, matches []models.Match) {
 								for _, match := range matches {
 									<tr>
 										<td><a href={ templ.URL(fmt.Sprintf("/matches/%s", match.MatchID)) } class="link link-hover">{ match.MatchID }</a></td>
-										<td>{ match.Bot1.Name }</td>
-										<td>{ match.Bot2.Name }</td>
+										<td> @botTemplates.ListDisplay(match.Bot1) </td>
+										<td> @botTemplates.ListDisplay(match.Bot2) </td>
 										<td>
 											switch match.Status {
 												case models.PENDING:
