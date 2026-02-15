@@ -21,111 +21,449 @@ templ Details(csrf string, user *models.User, vm *viewmodels.MatchDetail, histor
 		</div>
 		<input class="hidden" id="historyData" history-data={ templ.JSONString(historyJson) }></input>
 		<script>
-			const historyInput = document.getElementById('historyData');
-			const history = JSON.parse(JSON.parse(historyInput.getAttribute('history-data')));
-			console.log(typeof history)
-			const canvas = document.getElementById('bomberman-canvas');
-			const ctx = canvas.getContext('2d');
-			const tickCounter = document.getElementById('tick-counter');
-			const prevBtn = document.getElementById('prev-tick');
-			const nextBtn = document.getElementById('next-tick');
+      const historyInput = document.getElementById("historyData");
+      const history = JSON.parse(
+        JSON.parse(historyInput.getAttribute("history-data")),
+      );
+      console.log(typeof history);
+      const canvas = document.getElementById("bomberman-canvas");
+      const ctx = canvas.getContext("2d");
+      const tickCounter = document.getElementById("tick-counter");
+      const prevBtn = document.getElementById("prev-tick");
+      const nextBtn = document.getElementById("next-tick");
+      const textureAtlas = new Image();
+      textureAtlas.src = "/static/images/texture_atlas.png";
 
-			let currentTick = 0;
-			const totalTicks = history.ticks.length - 1;
-			const fieldWidth = history.initial_field.width;
-			const fieldHeight = history.initial_field.height;
-			const tileWidth = canvas.width / fieldWidth;
-			const tileHeight = canvas.height / fieldHeight;
+      let currentTick = 0;
+      const totalTicks = history.ticks.length - 1;
+      const fieldWidth = history.initial_field.width;
+      const fieldHeight = history.initial_field.height;
+      const tileWidth = canvas.width / fieldWidth;
+      const tileHeight = canvas.height / fieldHeight;
 
-			const tileColors = {
-				"AIR": "lightgray", // Empty
-				"WALL": "gray",      // Wall
-				"BOX": "sandybrown" // Box
-			};
+      const playerIndexMap = new Map();
+      if (history.ticks[0] && history.ticks[0].players) {
+        history.ticks[0].players.forEach((player, index) => {
+          playerIndexMap.set(player.id, index);
+        });
+      }
 
-			function drawField(field) {
-				for (let y = 0; y < fieldHeight; y++) {
-					for (let x = 0; x < fieldWidth; x++) {
-						const tile = field[y * fieldWidth + x];
-						ctx.fillStyle = tileColors[tile] || "lightgray";
-						ctx.fillRect(x * tileWidth, y * tileHeight, tileWidth, tileHeight);
-					}
-				}
-			}
+      const tileColors = {
+        AIR: "lightgray", // Empty
+        WALL: "gray", // Wall
+        BOX: "sandybrown", // Box
+      };
 
-			function drawPlayers(players) {
-				players.forEach(player => {
-					ctx.fillStyle = player.id === "0" ? "blue" : "red";
-					ctx.fillRect(player.pos.x * tileWidth, player.pos.y * tileHeight, tileWidth, tileHeight);
-				});
-			}
+      function drawField(field) {
+        for (let y = 0; y < fieldHeight; y++) {
+          for (let x = 0; x < fieldWidth; x++) {
+            const tile = field[y * fieldWidth + x];
+            const destX = x * tileWidth;
+            const destY = y * tileHeight;
+            const baseSpriteWidth = 32;
+            const baseSpriteHeight = 32;
 
-            function getPlayerById(id) {
-                // Find the player with the given id in the first tick
-                const firstTick = history.ticks[0];
-                return firstTick.players.find(p => p.id === id);
+            // Always draw floor first
+            ctx.drawImage(
+              textureAtlas,
+              64, // floor sx
+              0, // floor sy
+              baseSpriteWidth,
+              baseSpriteHeight,
+              destX,
+              destY,
+              tileWidth,
+              tileHeight,
+            );
+
+            if (tile === "WALL") {
+              const hasWallUp =
+                y > 0 && field[(y - 1) * fieldWidth + x] === "WALL";
+              const hasWallDown =
+                y < fieldHeight - 1 &&
+                field[(y + 1) * fieldWidth + x] === "WALL";
+              const hasWallLeft =
+                x > 0 && field[y * fieldWidth + (x - 1)] === "WALL";
+              const hasWallRight =
+                x < fieldWidth - 1 &&
+                field[y * fieldWidth + (x + 1)] === "WALL";
+
+              let sx = 0;
+              const sy = 32; // Wall sprites are in the second row
+
+              // The logic to select the correct wall sprite based on neighbors.
+              // Bitmask: 8 (Up), 4 (Down), 2 (Left), 1 (Right)
+              const neighbors =
+                (hasWallUp << 3) |
+                (hasWallDown << 2) |
+                (hasWallLeft << 1) |
+                hasWallRight;
+
+              switch (neighbors) {
+                case 0: // No neighbors: solitary wall
+                  sx = 192;
+                  break;
+                case 1: // Right only
+                case 2: // Left only
+                case 3: // Left and Right: horizontal wall
+                  sx = 0;
+                  break;
+                case 4: // Down only
+                case 8: // Up only
+                case 12: // Up and Down: vertical wall
+                  sx = 32;
+                  break;
+                case 5: // Down and Right: corner ╔
+                  sx = 64;
+                  break;
+                case 6: // Down and Left: corner ╗
+                  sx = 96;
+                  break;
+                case 9: // Up and Right: corner ╚
+                  sx = 128;
+                  break;
+                case 10: // Up and Left: corner ╝
+                  sx = 160;
+                  break;
+                default:
+                  // T-junctions and Crosses
+                  if (neighbors & 3) {
+                    // Has Left or Right, prioritize horizontal
+                    sx = 0;
+                  } else {
+                    // Must be a T-junction pointing left/right, use vertical
+                    sx = 32;
+                  }
+                  break;
+              }
+
+              ctx.drawImage(
+                textureAtlas,
+                sx,
+                sy,
+                baseSpriteWidth,
+                baseSpriteHeight,
+                destX,
+                destY,
+                tileWidth,
+                tileHeight,
+              );
+            } else if (tile === "BOX") {
+              ctx.drawImage(
+                textureAtlas,
+                32, // sx
+                0, // sy
+                baseSpriteWidth,
+                baseSpriteHeight,
+                destX,
+                destY,
+                tileWidth,
+                tileHeight,
+              );
             }
+            // For AIR tiles, the floor is already drawn, so do nothing else.
+          }
+        }
+      }
 
+      function drawPlayers(players) {
+        const MAX_LIVES = 3;
+        const HEART_SPRITE_WIDTH = 16;
+        const HEART_SPRITE_HEIGHT = 16;
+        const FULL_HEART_SX = 96;
+        const EMPTY_HEART_SX = 112;
+        const HEARTS_SY = 0;
+        const SPRITE_WIDTH = 32;
 
-			function drawBombs(bombs) {
-				ctx.fillStyle = "black";
-				bombs.forEach(bomb => {
-					ctx.beginPath();
-					ctx.arc(bomb.pos.x * tileWidth + tileWidth / 2, bomb.pos.y * tileHeight + tileHeight / 2, tileWidth / 3, 0, 2 * Math.PI);
-					ctx.fill();
-				});
-			}
+        players.forEach((player) => {
+          // Determine player state
+          let state = "IDLE";
+          if (player.health === 0) {
+            state = "DEAD";
+          } else if (currentTick > 0) {
+            const prevTick = history.ticks[currentTick - 1];
+            const prevPlayer = prevTick.players.find((p) => p.id === player.id);
+            if (prevPlayer) {
+              if (player.pos.x > prevPlayer.pos.x) state = "RIGHT";
+              else if (player.pos.x < prevPlayer.pos.x) state = "LEFT";
+              else if (player.pos.y > prevPlayer.pos.y) state = "DOWN";
+              else if (player.pos.y < prevPlayer.pos.y) state = "UP";
+            }
+          }
 
-			function drawExplosions(explosions) {
-				ctx.fillStyle = "orange";
-				explosions.forEach(exp => {
-					ctx.fillRect(exp.x * tileWidth, exp.y * tileHeight, tileWidth, tileHeight);
-				});
-			}
+          // Determine sprite coordinates
+          const playerIndex = playerIndexMap.get(player.id) || 0;
+          const sy = playerIndex === 0 ? 96 : 192;
+          let baseSx = 0;
+          switch (state) {
+            case "DOWN":
+              baseSx = 0;
+              break;
+            case "LEFT":
+              baseSx = 3 * SPRITE_WIDTH;
+              break;
+            case "RIGHT":
+              baseSx = 6 * SPRITE_WIDTH;
+              break;
+            case "UP":
+              baseSx = 9 * SPRITE_WIDTH;
+              break;
+            case "DEAD":
+              baseSx = 12 * SPRITE_WIDTH;
+              break;
+            case "IDLE":
+            default:
+              baseSx = 0;
+              break;
+          }
 
-			function drawDestroyedBoxes(boxes, field) {
-				boxes.forEach(box => {
-					field[box.y * fieldWidth + box.x] = " ";
-				});
-			}
+          const sx =
+            state === "IDLE" ? baseSx : baseSx + animationFrame * SPRITE_WIDTH;
 
-			function renderTick(tickIndex) {
-				ctx.clearRect(0, 0, canvas.width, canvas.height);
-				const tick = history.ticks[tickIndex];
-				if (!tick) return;
+          // Draw Player Sprite
+          ctx.drawImage(
+            textureAtlas,
+            sx,
+            sy,
+            SPRITE_WIDTH,
+            SPRITE_WIDTH, // Assuming square sprites
+            player.pos.x * tileWidth,
+            player.pos.y * tileHeight,
+            tileWidth,
+            tileHeight,
+          );
 
-				// Rebuild field state up to the current tick
-				let field = [...history.initial_field.field];
-				for (let i = 0; i <= tickIndex; i++) {
-					const pastTick = history.ticks[i];
-					if (pastTick.destroyed_boxes) {
-						drawDestroyedBoxes(pastTick.destroyed_boxes, field);
-					}
-				}
+          const lives = player.health !== undefined ? player.health : MAX_LIVES;
+          if (lives > 0) {
+            const heartRenderWidth = tileWidth / 2.5;
+            const heartRenderHeight = tileHeight / 2.5;
+            const totalHeartsWidth = MAX_LIVES * heartRenderWidth;
+            const startX =
+              player.pos.x * tileWidth + tileWidth / 2 - totalHeartsWidth / 2;
+            const startY = player.pos.y * tileHeight - heartRenderHeight * 1.1; // Place slightly above the tile
 
-				drawField(field);
-				drawPlayers(tick.players);
-				drawBombs(tick.bombs);
-				drawExplosions(tick.explosions);
+            for (let i = 0; i < MAX_LIVES; i++) {
+              const isFull = i < lives;
+              const heartSx = isFull ? FULL_HEART_SX : EMPTY_HEART_SX;
 
-				tickCounter.textContent = `Tick: ${tickIndex} / ${totalTicks}`;
-				currentTick = tickIndex;
-			}
+              ctx.drawImage(
+                textureAtlas,
+                heartSx,
+                HEARTS_SY,
+                HEART_SPRITE_WIDTH,
+                HEART_SPRITE_HEIGHT,
+                startX + i * heartRenderWidth,
+                startY,
+                heartRenderWidth,
+                heartRenderHeight,
+              );
+            }
+          }
+        });
+      }
 
-			prevBtn.addEventListener('click', () => {
-				if (currentTick > 0) {
-					renderTick(currentTick - 1);
-				}
-			});
+      function getPlayerById(id) {
+        // Find the player with the given id in the first tick
+        const firstTick = history.ticks[0];
+        return firstTick.players.find((p) => p.id === id);
+      }
 
-			nextBtn.addEventListener('click', () => {
-				if (currentTick < totalTicks) {
-					renderTick(currentTick + 1);
-				}
-			});
+      let animationFrame = 0;
+      const FRAME_COUNT = 3;
+      const SPRITE_WIDTH = 32;
 
-			// Initial render
-			renderTick(0);
-		</script>
+      function drawBombs(bombs) {
+        const sx = animationFrame * SPRITE_WIDTH;
+        const sy = 64;
+
+        bombs.forEach((bomb) => {
+          ctx.drawImage(
+            textureAtlas,
+            sx,
+            sy,
+            SPRITE_WIDTH,
+            SPRITE_WIDTH,
+            bomb.pos.x * tileWidth,
+            bomb.pos.y * tileHeight,
+            tileWidth,
+            tileHeight,
+          );
+        });
+      }
+
+      function drawExplosions(explosions) {
+        if (!explosions || explosions.length === 0) {
+          return;
+        }
+        const explosionSet = new Set(
+          explosions.map((exp) => `${exp.x},${exp.y}`),
+        );
+
+        explosions.forEach((exp) => {
+          const hasUp = explosionSet.has(`${exp.x},${exp.y - 1}`);
+          const hasDown = explosionSet.has(`${exp.x},${exp.y + 1}`);
+          const hasLeft = explosionSet.has(`${exp.x - 1},${exp.y}`);
+          const hasRight = explosionSet.has(`${exp.x + 1},${exp.y}`);
+
+          // Bitmask: 8 (U), 4 (D), 2 (L), 1 (R)
+          const neighbors =
+            (hasUp << 3) | (hasDown << 2) | (hasLeft << 1) | hasRight;
+
+          let baseSx = 0;
+          let sy = 0;
+
+          switch (neighbors) {
+            // End-caps
+            case 1: // Right only
+              baseSx = 0;
+              sy = 13 * 32;
+              break;
+            case 2: // Left only
+              baseSx = 0;
+              sy = 11 * 32;
+              break;
+            case 4: // Down only
+              baseSx = 0;
+              sy = 10 * 32;
+              break;
+            case 8: // Up only
+              baseSx = 0;
+              sy = 12 * 32;
+              break;
+
+            // Straight pieces
+            case 3: // Left-Right
+              baseSx = 0;
+              sy = 9 * 32;
+              break;
+            case 12: // Up-Down
+              baseSx = 0;
+              sy = 8 * 32;
+              break; // Fallback to cross
+
+            // Corners
+            case 6: // Down-Left
+              baseSx = 96;
+              sy = 7 * 32;
+              break;
+            case 5: // Down-Right
+              baseSx = 96;
+              sy = 10 * 32;
+              break;
+            case 10: // Up-Left
+              baseSx = 96;
+              sy = 8 * 32;
+              break;
+            case 9: // Up-Right
+              baseSx = 96;
+              sy = 9 * 32;
+              break;
+
+            // T-Junctions
+            case 7: // Down-Left-Right
+              baseSx = 96;
+              sy = 14 * 32;
+              break;
+            case 11: // Up-Left-Right
+              baseSx = 96;
+              sy = 12 * 32;
+              break;
+            case 13: // Up-Down-Right
+              baseSx = 96;
+              sy = 13 * 32;
+              break;
+            case 14: // Up-Down-Left
+              baseSx = 96;
+              sy = 11 * 32;
+              break;
+
+            // Cross and default
+            case 15: // All directions
+            default:
+              baseSx = 0;
+              sy = 7 * 32;
+              break;
+          }
+
+          const sx = baseSx + animationFrame * SPRITE_WIDTH;
+          ctx.drawImage(
+            textureAtlas,
+            sx,
+            sy,
+            SPRITE_WIDTH,
+            SPRITE_WIDTH,
+            exp.x * tileWidth,
+            exp.y * tileHeight,
+            tileWidth,
+            tileHeight,
+          );
+        });
+      }
+
+      function drawDestroyedBoxes(boxes, field) {
+        boxes.forEach((box) => {
+          field[box.y * fieldWidth + box.x] = " ";
+        });
+      }
+
+      function renderTick(tickIndex, isNewTick = true) {
+        if (isNewTick) {
+          currentTick = tickIndex;
+        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const tick = history.ticks[tickIndex];
+        if (!tick) return;
+
+        // Rebuild field state up to the current tick
+        let field = [...history.initial_field.field];
+        for (let i = 0; i <= tickIndex; i++) {
+          const pastTick = history.ticks[i];
+          if (pastTick.destroyed_boxes) {
+            drawDestroyedBoxes(pastTick.destroyed_boxes, field);
+          }
+        }
+
+        drawField(field);
+        drawPlayers(tick.players);
+        drawBombs(tick.bombs);
+        drawExplosions(tick.explosions);
+
+        tickCounter.textContent = `Tick: ${tickIndex} / ${totalTicks}`;
+      }
+
+      prevBtn.addEventListener("click", () => {
+        if (currentTick > 0) {
+          renderTick(currentTick - 1);
+        }
+      });
+
+      nextBtn.addEventListener("click", () => {
+        if (currentTick < totalTicks) {
+          renderTick(currentTick + 1);
+        }
+      });
+
+      let lastFrameTime = 0;
+      const ANIMATION_INTERVAL = 200; // ms per frame
+
+      function animationLoop(currentTime) {
+        const deltaTime = currentTime - lastFrameTime;
+
+        if (deltaTime > ANIMATION_INTERVAL) {
+          lastFrameTime = currentTime;
+          animationFrame = (animationFrame + 1) % FRAME_COUNT;
+          // Re-render the current tick without changing it
+          renderTick(currentTick, false);
+        }
+
+        requestAnimationFrame(animationLoop);
+      }
+
+      // Initial render
+      textureAtlas.onload = () => {
+        renderTick(0);
+        requestAnimationFrame(animationLoop);
+      };
+    </script>
 	}
 }
