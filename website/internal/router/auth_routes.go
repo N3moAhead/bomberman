@@ -79,7 +79,7 @@ func githubLoginCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info("User '%s' logged in successfully", user.Username)
-	http.Redirect(w, r, "/dashboard", http.StatusFound)
+	http.Redirect(w, r, "/bots", http.StatusFound)
 }
 
 func logout(w http.ResponseWriter, r *http.Request) {

@@ -7,7 +7,6 @@ import (
 	"github.com/N3moAhead/bomberman/website/internal/cfg"
 	"github.com/N3moAhead/bomberman/website/internal/db"
 	"github.com/N3moAhead/bomberman/website/internal/models"
-	"github.com/N3moAhead/bomberman/website/internal/templates/dashboard"
 	"github.com/N3moAhead/bomberman/website/internal/templates/home"
 	"github.com/N3moAhead/bomberman/website/internal/templates/leaderboard"
 	"github.com/N3moAhead/bomberman/website/pkg/logger"
@@ -65,12 +64,6 @@ func Start(cfg *cfg.Config) {
 	// --- Secured Routes ---
 	router.Group(func(authRouter chi.Router) {
 		authRouter.Use(authMiddleware)
-
-		authRouter.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) {
-			user, _ := r.Context().Value(UserContextKey).(*models.User)
-			d := dashboard.Dashboard(user, csrf.Token(r))
-			d.Render(r.Context(), w)
-		})
 
 		authRouter.Route("/bots", botRoutes)
 	})
