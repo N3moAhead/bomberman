@@ -3,6 +3,7 @@ package mq
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/N3moAhead/bomberman/match_runner/internal/config"
 	"github.com/N3moAhead/bomberman/match_runner/pkg/logger"
@@ -22,9 +23,21 @@ type Client struct {
 // and prepares the channel and queues
 func NewClient(cfg *config.Config) (*Client, error) {
 	log.Info("Connecting to RabbitMQ at %s", cfg.RabbitMQURL)
-	conn, err := amqp.Dial(cfg.RabbitMQURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to RabbitMQ: %w", err)
+
+	maxTries := 5
+
+	var conn *amqp.Connection
+	for range maxTries {
+		newConn, err := amqp.Dial(cfg.RabbitMQURL)
+		if err == nil {
+			conn = newConn
+			break
+		}
+		log.Warn("Failed to connect to RabbitMQ Trying again in 5 seconds: %v", err)
+		time.Sleep(5 * time.Second)
+	}
+	if conn == nil {
+		return nil, fmt.Errorf("Could not establish a connection to the rabbitMQ")
 	}
 
 	ch, err := conn.Channel()
