@@ -31,9 +31,11 @@ templ Navbar(csrfToken string, user *models.User) {
 					<input type="hidden" name="gorilla.csrf.Token" value={ csrfToken }/>
 					<button class="btn" type="submit">Logout</button>
 				</form>
-				<div class="w-12 rounded-full">
-	    		<img src={ user.AvatarURL } alt="user img" />
-			  </div>
+				<div class="avatar">
+					<div class="w-12 rounded-full">
+		    		<img src={ user.AvatarURL } alt="user img" />
+				  </div>
+				</div>
 			} else {
 				<a href="/auth/github" class="btn btn-primary">Login with Github</a>
 			}
