@@ -51,6 +51,7 @@ pub struct LobbyUpdateMessage {
 #[serde(rename_all = "camelCase")]
 pub struct PlayerStatusUpdatePayload {
     pub is_ready: bool,
+    pub auth_token: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

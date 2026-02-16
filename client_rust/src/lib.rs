@@ -46,9 +46,15 @@ impl Bomber {
         let bomber_id = Arc::new(Mutex::new(None));
 
         // Initial ready status
+        let auth_token =
+            std::env::var("BOMBERMAN_CLIENT_AUTH_TOKEN").unwrap_or_else(|_| "".to_string());
+        let payload = PlayerStatusUpdatePayload {
+            is_ready: true,
+            auth_token,
+        };
         let ready_payload = json!({
             "type": MessageType::PlayerStatusUpdate,
-            "payload": { "isReady": true }
+            "payload": payload
         });
         if let Ok(msg_str) = serde_json::to_string(&ready_payload) {
             if send_tx.send(TungsteniteMessage::Text(msg_str)).is_err() {
@@ -173,11 +179,15 @@ impl Bomber {
             }
             MessageType::BackToLobby => {
                 println!("You are back inside the lobby");
-                let payload = json!({
+                let payload = PlayerStatusUpdatePayload {
+                    is_ready: true,
+                    auth_token: "".to_string(),
+                };
+                let msg = json!({
                     "type": MessageType::PlayerStatusUpdate,
-                    "payload": { "isReady": true }
+                    "payload": payload
                 });
-                if let Ok(msg_str) = serde_json::to_string(&payload) {
+                if let Ok(msg_str) = serde_json::to_string(&msg) {
                     if tx.send(TungsteniteMessage::Text(msg_str)).is_err() {
                         eprintln!("Failed to send ready status");
                     }
