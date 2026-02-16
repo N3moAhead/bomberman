@@ -53,9 +53,90 @@ cargo run
 
 # How to Write a Bot
 
-Your bot will connect to the game server via WebSockets (`ws://localhost:8038/ws`). The core loop for a bot is simple: receive the game state from the server, decide on an action, and send that action back to the server.
+To create a bot, you'll need to grab the basic template from this repository. Once you have that, you can start developing your own logic. I'm planning to streamline the installation process in the future, but for now, this manual approach will get you up and running quickly.
 
-Bots are automatically set to a "ready" state upon connecting, so you don't need to implement that manually.
+First off, clone the main Bomberman repository:
+
+```bash
+# SSH
+git clone git@github.com:N3moAhead/bomberman.git
+# HTTPS
+git clone https://github.com/N3moAhead/bomberman.git
+```
+
+The next steps depend on the language you want to use. You can currently choose between **Golang**, **Rust**, and **Javascript**.
+
+We need to copy the starting template from the cloned repository into a new project directory.
+
+```bash
+mkdir my-own-fantastic-bot
+
+# For Golang
+cp -r bomberman/client_go/* my-own-fantastic-bot 
+# For Rust
+cp -r bomberman/client_rust/* my-own-fantastic-bot
+# For Javascript
+cp -r bomberman/client_js/* my-own-fantastic-bot
+```
+
+You are now basically ready to go. Move into your new bot directory, initialize a new Git repository, and start coding!
+
+## Testing your bot 
+
+It's a good idea to test your bot locally before sending it into the arena to compete against others. You can easily spin up a local testing environment using a few simple Podman commands.
+
+First, start the game server:
+```bash
+podman run --detach -p 8038:8038 docker.io/nemoahead/bomberman-server:latest
+```
+
+Next, start a simple opponent. This "dummy" bot just stands still, allowing you to freely test your code without getting blown up immediately:
+```bash
+podman run --detach --network host docker.io/nemoahead/bomberman-client-go:idle
+```
+
+Now, you can run your own code. The game will start, and you'll see a simple display in your terminal.
+
+```bash
+# Make sure you are inside your bot directory!
+
+# For Golang (or just "make run" if make is installed)
+go run cmd/client_go/main.go
+# For Rust
+cargo run
+# For Javascript 
+npm run start
+```
+
+## Competing with your bot
+
+To participate in the competition, we need to package your code into a Docker image. To simplify this, the templates already include a ready-to-use `Dockerfile`.
+
+You can build your image with the following command:
+```bash
+podman build -t docker.io/your-username/your-bot-name:your-bot-version-tag .
+```
+
+Next, push the image to [Docker Hub](https://hub.docker.com/). You will need to create an account there if you haven't already.
+
+Sign in to Docker Hub using Podman:
+```bash
+podman login docker.io
+```
+
+Once logged in, push your bot using the tag you created:
+```bash
+podman push docker.io/your-username/your-bot-name:your-bot-version-tag
+```
+
+Now, head over to [BombAhead](https://bombahead.n3mo.org/) and sign up with your GitHub account. You will be redirected to the bots page.
+
+Click on **Add Bot**. Here you can give your bot a name and provide a description (perfect if you want to brag about your pathfinding algorithm).
+
+Enter your image tag in the field provided:
+`(docker.io/your-username/your-bot-name:your-bot-version-tag)`
+
+Finally, you can indicate if you used AI to help code your bot. Click **Save**, and your bot will automatically start competing against other bots in the arena. Good luck!
 
 ## Game State (`classic_state`)
 
