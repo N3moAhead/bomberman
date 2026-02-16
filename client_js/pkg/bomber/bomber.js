@@ -33,8 +33,10 @@ class Bomber {
 
     this.conn.on("open", () => {
       logger.info("Connection established");
+      const authToken = process.env.BOMBERMAN_CLIENT_AUTH_TOKEN || "";
       const payload = {
         isReady: true,
+        authToken: authToken,
       };
       this.send(MessageType.PlayerStatusUpdate, payload);
     });
@@ -132,6 +134,7 @@ class Bomber {
         logger.info("You are back inside the lobby");
         const payload = {
           isReady: true,
+          authToken: "",
         };
         this.send(MessageType.PlayerStatusUpdate, payload);
         break;
