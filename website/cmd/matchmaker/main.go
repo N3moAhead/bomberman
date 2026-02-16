@@ -160,7 +160,6 @@ func handleResultMessage(msg amqp091.Delivery, db *gorm.DB) error {
 		}
 		dbMatch.History = historyJson
 		dbMatch.Status = models.FINISHED
-		tx.Save(&dbMatch)
 
 		var winner, loser models.Bot
 		var options *types.OpenSkillOptions
@@ -169,20 +168,25 @@ func handleResultMessage(msg amqp091.Delivery, db *gorm.DB) error {
 		case dbMatch.Bot1.DockerHubUrl:
 			// Bot1 Won
 			winner, loser = dbMatch.Bot1, dbMatch.Bot2
+			dbMatch.WinnerState = models.BOT1WIN
 			options = nil
 		case dbMatch.Bot2.DockerHubUrl:
 			// Bot2 Won
 			winner, loser = dbMatch.Bot1, dbMatch.Bot2
+			dbMatch.WinnerState = models.BOT2WIN
 			options = nil
 		default:
 			// Draw
 			// winner or loser doesnt matter here
 			winner, loser = dbMatch.Bot1, dbMatch.Bot2
+			dbMatch.WinnerState = models.DRAW
 			// both will just receive the same score
 			options = &types.OpenSkillOptions{
 				Score: []int{1, 1},
 			}
 		}
+
+		tx.Save(&dbMatch)
 
 		winnerRating := winner.ToRating()
 		loserRating := loser.ToRating()

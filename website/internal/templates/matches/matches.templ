@@ -2,10 +2,38 @@ package matches
 
 import (
 	"fmt"
-	"github.com/N3moAhead/bomberman/website/internal/templates/layout"
 	"github.com/N3moAhead/bomberman/website/internal/models"
 	botTemplates "github.com/N3moAhead/bomberman/website/internal/templates/bots"
+	"github.com/N3moAhead/bomberman/website/internal/templates/layout"
 )
+
+func getBot1Class(match models.Match) string {
+	if match.Status == models.FINISHED {
+		switch match.WinnerState {
+		case models.BOT1WIN:
+			return "bg-success/20"
+		case models.BOT2WIN:
+			return "bg-error/20"
+		case models.DRAW:
+			return "bg-info/20"
+		}
+	}
+	return ""
+}
+
+func getBot2Class(match models.Match) string {
+	if match.Status == models.FINISHED {
+		switch match.WinnerState {
+		case models.BOT1WIN:
+			return "bg-error/20"
+		case models.BOT2WIN:
+			return "bg-success/20"
+		case models.DRAW:
+			return "bg-info/20"
+		}
+	}
+	return ""
+}
 
 templ Matches(csrfToken string, user *models.User, matches []models.Match) {
 	@layout.Base(csrfToken, user) {
@@ -30,8 +58,8 @@ templ Matches(csrfToken string, user *models.User, matches []models.Match) {
 								for _, match := range matches {
 									<tr>
 										<td><a href={ templ.URL(fmt.Sprintf("/matches/%s", match.MatchID)) } class="link link-hover">{ match.MatchID }</a></td>
-										<td> @botTemplates.ListDisplay(match.Bot1) </td>
-										<td> @botTemplates.ListDisplay(match.Bot2) </td>
+										<td class={ getBot1Class(match) }> @botTemplates.ListDisplay(match.Bot1) </td>
+										<td class={ getBot2Class(match) }> @botTemplates.ListDisplay(match.Bot2) </td>
 										<td>
 											switch match.Status {
 												case models.PENDING:
