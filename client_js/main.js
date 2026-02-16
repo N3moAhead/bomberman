@@ -1,4 +1,4 @@
-const { Bomber, PlayerMove } = require("./pkg/bomber/bomber");
+import { Bomber, PlayerMove } from "./pkg/bomber/bomber.js";
 
 /**
  * @typedef {import('./pkg/bomber/message').ClassicStatePayload} ClassicStatePayload

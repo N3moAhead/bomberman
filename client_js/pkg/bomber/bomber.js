@@ -1,7 +1,7 @@
-const WebSocket = require("ws");
-const { MessageType, PlayerMove } = require("./message");
-const { Tile } = require("./tile");
-const logger = require("./logger");
+import WebSocket from "ws";
+import { MessageType, PlayerMove } from "./message.js";
+import { Tile } from "./tile.js";
+import logger from "./logger.js";
 
 class Bomber {
   constructor(bot) {
@@ -246,4 +246,4 @@ function printClassicState(s, ownID) {
   process.stdout.write(sb);
 }
 
-module.exports = { Bomber, PlayerMove };
+export { Bomber, PlayerMove };
