@@ -7,7 +7,8 @@ import (
 
 templ Home(csrfToken string, user *models.User) {
 	@layout.Base(csrfToken, user) {
-		<div>
+		<div class="bg-base-200">
+			<!-- Hero Section -->
 			<div class="hero min-h-screen bg-base-200">
 				<div class="container mx-auto px-4">
 					<div class="hero-content flex-col lg:flex-row-reverse">
@@ -21,6 +22,8 @@ templ Home(csrfToken string, user *models.User) {
 				</div>
 			</div>
 
+
+			<!-- Open Source Banner -->
 			<div class="bg-neutral text-neutral-content py-25 mb-10 shadow-xl">
 				<div class="container mx-auto px-4 text-center">
 					<h2 class="text-3xl font-bold mb-4">Completely Open Source!</h2>
@@ -32,34 +35,276 @@ templ Home(csrfToken string, user *models.User) {
 				</div>
 			</div>
 
+			<!-- Main Documentation Section -->
+			<div id="getting-started" class="py-20 container mx-auto px-4 max-w-5xl">
+				<h2 class="text-4xl font-bold text-center mb-12">How to Write Your Bot</h2>
 
-			<div id="getting-started" class="py-25 my-10">
-				<div class="container mx-auto px-4">
-					<h2 class="text-4xl font-bold text-center mb-8">Getting Started</h2>
-					<ul class="steps steps-vertical lg:steps-horizontal w-full mb-8 py-10">
-						<li class="step step-primary">Choose Your Language</li>
-						<li class="step step-primary">Write Your Bot</li>
-						<li class="step">Compete!</li>
-					</ul>
+				<ul class="steps w-full mb-16">
+					<li class="step step-primary"><a class="link" href="/#project-setup">Set Up Project</a></li>
+					<li class="step step-primary"><a class="link" href="/#local-testing">Test Locally</a></li>
+					<li class="step step-primary"><a class="link" href="/#compete">Compete</a></li>
+				</ul>
 
-					<div class="grid md:grid-cols-2 gap-8">
-						<div class="prose">
-							<h3 class="text-2xl font-semibold">1. Choose Your Language</h3>
-							<p>We provide client examples to get you started quickly. Pick your favorite language and clone the repository. Your bot will connect to the game server via WebSockets. The core loop is simple: receive the game state, decide on an action, and send it back.</p>
+				<!-- Step 1: Project Setup -->
+				<div class="card bg-base-100 shadow-xl mb-12 border border-base-300">
+					<div class="card-body p-4 sm:p-8">
+						<div class="flex items-center gap-4 mb-4">
+							<div class="badge badge-primary badge-lg font-bold text-white">1</div>
+							<h3 id="project-setup" class="card-title text-2xl">Setting Up Your Project</h3>
 						</div>
 
-						<div class="prose">
-							<h3 class="text-2xl font-semibold">2. Understand the Game</h3>
-							<p>On every tick, the server sends the game state, including player positions, health, and scores, the map layout (field), active bombs with their fuse timers and current explosion locations. Your bot can respond with actions like moving (`move_up`, `move_down`, etc.) or `place_bomb`.</p>
+						<div class="prose max-w-none">
+							<p>First, clone the main Bomberman repository to get the starter code for your bot.</p>
+
+							<!-- CLONE TABS -->
+							<div class="not-prose tabs tabs-lifted mb-6">
+								<input type="radio" name="clone_tab" class="tab" aria-label="SSH" checked="checked" />
+								<div class="tab-content bg-base-100 border-base-300 rounded-b-box p-0 relative group">
+									<button onclick="copyCode('code-clone-ssh', this)" class="btn btn-sm btn-ghost absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">Copy</button>
+									<div class="mockup-code bg-neutral text-neutral-content" id="code-clone-ssh">
+										<pre data-prefix="$"><code><span class="text-warning">git clone</span> git@github.com:N3moAhead/bomberman.git</code></pre>
+									</div>
+								</div>
+
+								<input type="radio" name="clone_tab" class="tab" aria-label="HTTPS" />
+								<div class="tab-content bg-base-100 border-base-300 rounded-b-box p-0 relative group">
+									<button onclick="copyCode('code-clone-https', this)" class="btn btn-sm btn-ghost absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">Copy</button>
+									<div class="mockup-code bg-neutral text-neutral-content" id="code-clone-https">
+										<pre data-prefix="$"><code><span class="text-warning">git clone</span> https://github.com/N3moAhead/bomberman.git</code></pre>
+									</div>
+								</div>
+							</div>
+
+							<p>Next, create a directory and copy the template for your language:</p>
+
+							<!-- LANGUAGE TABS -->
+							<div class="not-prose tabs tabs-lifted mb-6">
+								<input type="radio" name="lang_setup" class="tab" aria-label="Golang" checked="checked" />
+								<div class="tab-content bg-base-100 border-base-300 rounded-b-box p-0 relative group">
+									<button onclick="copyCode('code-setup-go', this)" class="btn btn-sm btn-ghost absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">Copy</button>
+									<div class="mockup-code bg-neutral text-neutral-content" id="code-setup-go">
+										<pre data-prefix="$"><code>mkdir my-own-fantastic-bot</code></pre>
+										<pre data-prefix="$"><code><span class="text-info">cp</span> -r bomberman/client_go/* my-own-fantastic-bot</code></pre>
+									</div>
+								</div>
+
+								<input type="radio" name="lang_setup" class="tab" aria-label="Rust" />
+								<div class="tab-content bg-base-100 border-base-300 rounded-b-box p-0 relative group">
+									<button onclick="copyCode('code-setup-rust', this)" class="btn btn-sm btn-ghost absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">Copy</button>
+									<div class="mockup-code bg-neutral text-neutral-content" id="code-setup-rust">
+										<pre data-prefix="$"><code>mkdir my-own-fantastic-bot</code></pre>
+										<pre data-prefix="$"><code><span class="text-info">cp</span> -r bomberman/client_rust/* my-own-fantastic-bot</code></pre>
+									</div>
+								</div>
+
+								<input type="radio" name="lang_setup" class="tab" aria-label="JavaScript" />
+								<div class="tab-content bg-base-100 border-base-300 rounded-b-box p-0 relative group">
+									<button onclick="copyCode('code-setup-js', this)" class="btn btn-sm btn-ghost absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">Copy</button>
+									<div class="mockup-code bg-neutral text-neutral-content" id="code-setup-js">
+										<pre data-prefix="$"><code>mkdir my-own-fantastic-bot</code></pre>
+										<pre data-prefix="$"><code><span class="text-info">cp</span> -r bomberman/client_js/* my-own-fantastic-bot</code></pre>
+									</div>
+								</div>
+							</div>
 						</div>
-					</div>
-					<div class="text-center mt-16">
-						<p class="text-lg">For detailed API specifications and data structures, check out the project's <a href="https://github.com/N3moAhead/bomberman#how-to-write-a-bot" class="link link-primary" target="_blank" rel="noopener noreferrer">README</a>.</p>
 					</div>
 				</div>
+
+				<!-- Step 2: Local Testing -->
+				<div class="card bg-base-100 shadow-xl mb-12 border border-base-300">
+					<div class="card-body p-4 sm:p-8">
+						<div class="flex items-center gap-4 mb-4">
+							<div class="badge badge-primary badge-lg font-bold text-white">2</div>
+							<h3 id="local-testing" class="card-title text-2xl">Testing Your Bot Locally</h3>
+						</div>
+						<div class="prose max-w-none">
+							<p>First, start the game server and a "dummy" opponent to have someone to play against:</p>
+					    <div class="not-prose tabs tabs-lifted mb-6">
+				        <!-- Podman Tab -->
+				        <input type="radio" name="test_tool" class="tab" aria-label="Podman" checked="checked" />
+				        <div class="tab-content bg-base-100 border-base-300 rounded-b-box p-0 relative group">
+				            <button onclick="copyCode('code-test-podman', this)" class="btn btn-sm btn-ghost absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">Copy</button>
+				            <div class="mockup-code bg-neutral text-neutral-content" id="code-test-podman">
+				                <pre data-prefix="#"><code># Start the server</code></pre>
+				                <pre data-prefix="$"><code><span class="text-info">podman</span> run --detach -p 8038:8038 docker.io/nemoahead/bomberman-server:latest</code></pre>
+				                <pre data-prefix=" "><code></code></pre> <!-- Leerzeile für Optik -->
+				                <pre data-prefix="#"><code># Start the dummy opponent</code></pre>
+				                <pre data-prefix="$"><code><span class="text-info">podman</span> run --detach --network host docker.io/nemoahead/bomberman-client-go:idle</code></pre>
+				            </div>
+				        </div>
+				        <!-- Docker Tab -->
+				        <input type="radio" name="test_tool" class="tab" aria-label="Docker" />
+				        <div class="tab-content bg-base-100 border-base-300 rounded-b-box p-0 relative group">
+				            <button onclick="copyCode('code-test-docker', this)" class="btn btn-sm btn-ghost absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">Copy</button>
+				            <div class="mockup-code bg-neutral text-neutral-content" id="code-test-docker">
+				                <pre data-prefix="#"><code># Start the server</code></pre>
+				                <pre data-prefix="$"><code><span class="text-info">docker</span> run --detach -p 8038:8038 nemoahead/bomberman-server:latest</code></pre>
+				                <pre data-prefix=" "><code></code></pre> <!-- Leerzeile für Optik -->
+				                <pre data-prefix="#"><code># Start the dummy opponent</code></pre>
+				                <pre data-prefix="$"><code><span class="text-info">docker</span> run --detach --network host nemoahead/bomberman-client-go:idle</code></pre>
+				            </div>
+				        </div>
+							</div>
+
+							<p class="mt-6">Finally, run your own bot:</p>
+
+							<div class="not-prose tabs tabs-lifted mb-6">
+								<input type="radio" name="lang_run" class="tab" aria-label="Golang" checked="checked" />
+								<div class="tab-content bg-base-100 border-base-300 rounded-b-box p-0 relative group">
+									<button onclick="copyCode('code-run-go', this)" class="btn btn-sm btn-ghost absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">Copy</button>
+									<div class="mockup-code bg-neutral text-neutral-content" id="code-run-go">
+										<pre data-prefix="$"><code><span class="text-success">go run</span> cmd/client_go/main.go</code></pre>
+									</div>
+								</div>
+
+								<input type="radio" name="lang_run" class="tab" aria-label="Rust" />
+								<div class="tab-content bg-base-100 border-base-300 rounded-b-box p-0 relative group">
+									<button onclick="copyCode('code-run-rust', this)" class="btn btn-sm btn-ghost absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">Copy</button>
+									<div class="mockup-code bg-neutral text-neutral-content" id="code-run-rust">
+										<pre data-prefix="$"><code><span class="text-success">cargo run</span></code></pre>
+									</div>
+								</div>
+
+								<input type="radio" name="lang_run" class="tab" aria-label="JavaScript" />
+								<div class="tab-content bg-base-100 border-base-300 rounded-b-box p-0 relative group">
+									<button onclick="copyCode('code-run-js', this)" class="btn btn-sm btn-ghost absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">Copy</button>
+									<div class="mockup-code bg-neutral text-neutral-content" id="code-run-js">
+										<pre data-prefix="$"><code><span class="text-success">npm run</span> start</code></pre>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Step 3: Competing -->
+				<div class="card bg-base-100 shadow-xl mb-12 border border-base-300">
+				    <div class="card-body p-4 sm:p-8">
+				        <div class="flex items-center gap-4 mb-4">
+				            <div class="badge badge-primary badge-lg font-bold text-white">3</div>
+				            <h3 id="compete" class="card-title text-2xl">Compete!</h3>
+				        </div>
+				        <div class="prose max-w-none">
+				            <p>To participate in the competition, you need to package your code into an image and push it to Docker Hub.</p>
+				            <div class="not-prose tabs tabs-lifted mb-6">
+				                <input type="radio" name="compete_tool" class="tab" aria-label="Podman" checked="checked" />
+				                <div class="tab-content bg-base-100 border-base-300 rounded-b-box p-0 relative group">
+				                    <button onclick="copyCode('code-push-podman', this)" class="btn btn-sm btn-ghost absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">Copy</button>
+				                    <div class="mockup-code bg-neutral text-neutral-content" id="code-push-podman">
+				                        <pre data-prefix="$"><code><span class="text-info">podman</span> build -t docker.io/username/bot-name:tag .</code></pre>
+				                        <pre data-prefix="$"><code><span class="text-info">podman</span> login docker.io</code></pre>
+				                        <pre data-prefix="$"><code><span class="text-info">podman</span> push docker.io/username/bot-name:tag</code></pre>
+				                    </div>
+				                </div>
+				                <input type="radio" name="compete_tool" class="tab" aria-label="Docker" />
+				                <div class="tab-content bg-base-100 border-base-300 rounded-b-box p-0 relative group">
+				                    <button onclick="copyCode('code-push-docker', this)" class="btn btn-sm btn-ghost absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">Copy</button>
+				                    <div class="mockup-code bg-neutral text-neutral-content" id="code-push-docker">
+				                        <pre data-prefix="$"><code><span class="text-info">docker</span> build -t username/bot-name:tag .</code></pre>
+				                        <pre data-prefix="$"><code><span class="text-info">docker</span> login</code></pre>
+				                        <pre data-prefix="$"><code><span class="text-info">docker</span> push username/bot-name:tag</code></pre>
+				                    </div>
+				                </div>
+				            </div>
+										<p class="mt-4">
+											Once the image is pushed you can add it here in BombAhead to compete with it.
+											if user != nil {
+												As you are already logged in, you can just <a class="link link-primary font-bold" href="/bots/new">add your bot here</a>.
+											} else {
+												Login first and then you can add your bot in the bots page.
+											}
+										</p>
+				        </div>
+				    </div>
+				</div>
+
+				<!-- API Documentation / Game State -->
+<div class="collapse collapse-arrow bg-base-100 border border-base-300 shadow-md">
+    <input type="checkbox" checked />
+    <div class="collapse-title text-xl font-medium text-primary">
+        Game State API Reference
+    </div>
+    <div class="collapse-content overflow-x-auto">
+        <div class="prose max-w-none pt-4">
+            <p>Every game tick, your bot receives a <code>state</code> object. It contains the complete map and all active entities.</p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
+
+                <!-- Left Column: The JSON Code Block -->
+                <div class="not-prose relative group">
+                    <div class="flex justify-between items-center mb-2 px-1">
+                        <span class="text-xs font-bold uppercase opacity-50 font-mono">Example Game State (JSON)</span>
+                        <button onclick="copyCode('json-state', this)" class="btn btn-xs btn-ghost opacity-0 group-hover:opacity-100 transition-opacity">Copy JSON</button>
+                    </div>
+
+                    <div class="mockup-code bg-neutral text-neutral-content text-sm" id="json-state">
+                        <pre data-prefix="1"><code>&lbrace;</code></pre>
+                        <pre data-prefix="2"><code>&nbsp;&nbsp;<span class="text-secondary">"players"</span>: [</code></pre>
+                        <pre data-prefix="3"><code>&nbsp;&nbsp;&nbsp;&nbsp;&lbrace;</code></pre>
+                        <pre data-prefix="4"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-secondary">"id"</span>: <span class="text-success">"bda20cd7-..."</span>,</code></pre>
+                        <pre data-prefix="5"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-secondary">"pos"</span>: &lbrace; <span class="text-secondary">"x"</span>: <span class="text-warning">1</span>, <span class="text-secondary">"y"</span>: <span class="text-warning">1</span> &rbrace;,</code></pre>
+                        <pre data-prefix="6"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-secondary">"health"</span>: <span class="text-warning">3</span>,</code></pre>
+                        <pre data-prefix="7"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-secondary">"score"</span>: <span class="text-warning">0</span></code></pre>
+                        <pre data-prefix="8"><code>&nbsp;&nbsp;&nbsp;&nbsp;&rbrace;</code></pre>
+                        <pre data-prefix="9"><code>&nbsp;&nbsp;],</code></pre>
+                        <pre data-prefix="10"><code>&nbsp;&nbsp;<span class="text-secondary">"field"</span>: &lbrace;</code></pre>
+                        <pre data-prefix="11"><code>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-secondary">"width"</span>: <span class="text-warning">11</span>,</code></pre>
+                        <pre data-prefix="12"><code>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-secondary">"height"</span>: <span class="text-warning">11</span>,</code></pre>
+                        <pre data-prefix="13"><code>&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-secondary">"field"</span>: [<span class="text-success">"WALL"</span>, <span class="text-success">"AIR"</span>, <span class="text-success">"BOX"</span>, ...]</code></pre>
+                        <pre data-prefix="14"><code>&nbsp;&nbsp;&rbrace;,</code></pre>
+                        <pre data-prefix="15"><code>&nbsp;&nbsp;<span class="text-secondary">"bombs"</span>: [</code></pre>
+                        <pre data-prefix="16"><code>&nbsp;&nbsp;&nbsp;&nbsp;&lbrace;</code></pre>
+                        <pre data-prefix="17"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-secondary">"pos"</span>: &lbrace; <span class="text-secondary">"x"</span>: <span class="text-warning">4</span>, <span class="text-secondary">"y"</span>: <span class="text-warning">3</span> &rbrace;,</code></pre>
+                        <pre data-prefix="18"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-secondary">"fuse"</span>: <span class="text-warning">5</span></code></pre>
+                        <pre data-prefix="19"><code>&nbsp;&nbsp;&nbsp;&nbsp;&rbrace;</code></pre>
+                        <pre data-prefix="20"><code>&nbsp;&nbsp;],</code></pre>
+                        <pre data-prefix="21"><code>&nbsp;&nbsp;<span class="text-secondary">"explosions"</span>: [</code></pre>
+                        <pre data-prefix="22"><code>&nbsp;&nbsp;&nbsp;&nbsp;&lbrace; <span class="text-secondary">"x"</span>: <span class="text-warning">2</span>, <span class="text-secondary">"y"</span>: <span class="text-warning">5</span> &rbrace;</code></pre>
+                        <pre data-prefix="23"><code>&nbsp;&nbsp;]</code></pre>
+                        <pre data-prefix="24"><code>&rbrace;</code></pre>
+                    </div>
+                </div>
+
+                <!-- Right Column: Explanations -->
+                <div class="space-y-6">
+                    <div class="border-l-4 border-secondary pl-4">
+                        <h4 class="font-bold text-secondary">players []</h4>
+                        <p class="text-sm">List of all bots. Use the <code>id</code> to find your own bot. <code>pos</code> is the current grid position.</p>
+                    </div>
+
+                    <div class="border-l-4 border-secondary pl-4">
+                        <h4 class="font-bold text-secondary">field {}</h4>
+                        <p class="text-sm">
+                            The map. The <code>field</code> array is <strong>1-dimensional</strong>.
+                            To find a tile at (x, y), use: <br/>
+                            <code class="bg-base-200 px-1 rounded">index = y * width + x</code>
+                        </p>
+                        <div class="flex gap-2 mt-2">
+                            <span class="badge badge-outline badge-sm text-xs opacity-70">WALL: Indestructible</span>
+                            <span class="badge badge-outline badge-sm text-xs opacity-70">BOX: Destructible</span>
+                        </div>
+                    </div>
+
+                    <div class="border-l-4 border-warning pl-4">
+                        <h4 class="font-bold text-warning">bombs []</h4>
+                        <p class="text-sm">A list of active bombs on the map. The <code>fuse</code> represents the remaining game ticks until detonation (starting at 9 and exploding at 0). Each explosion extends 2 tiles from the center, destroying a single box in its path while being blocked by walls. Note: Explosions can trigger chain reactions by detonating other bombs in their range.</p>
+                    </div>
+
+                    <div class="border-l-4 border-error pl-4">
+                        <h4 class="font-bold text-error">explosions []</h4>
+                        <p class="text-sm">Danger zones! These coordinates indicate active fire. Any bot present at these coordinates during the current tick will lose health. However, since explosions dissipate after exactly one tick, you can safely move into a exploding tile. By the time your bot arrives in the next tick, the fire will already be gone.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 			</div>
 
-			// Footer Banner
+			<!-- Footer -->
 			<footer class="footer footer-center p-10 py-15 bg-base-300 text-base-content mt-10">
 				<div class="container mx-auto px-4">
 					<div>
@@ -81,5 +326,25 @@ templ Home(csrfToken string, user *models.User) {
 				</div>
 			</footer>
 		</div>
+
+		<script>
+			function copyCode(id, btn) {
+				const el = document.getElementById(id);
+				const text = el.innerText.split('\n').map(line => {
+					return line.replace(/^\s*\$\s?|^\s*#\s?/, '').trim();
+				}).join('\n').trim();
+
+				navigator.clipboard.writeText(text).then(() => {
+					const originalText = btn.innerText;
+					btn.innerText = "Copied!";
+					btn.classList.add("btn-success", "text-white");
+
+					setTimeout(() => {
+						btn.innerText = originalText;
+						btn.classList.remove("btn-success", "text-white");
+					}, 2000);
+				});
+			}
+		</script>
 	}
 }
