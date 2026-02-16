@@ -32,6 +32,52 @@ services:
       timeout: 5s
       retries: 5
 
+  website:
+    image: docker.io/nemoahead/bomberman-website:latest
+    container_name: bombahead
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DBURI: ${DBURI}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      NEXT_AUTH_URL: ${NEXT_AUTH_URL}
+      SESSION_SECRET: ${SESSION_SECRET}
+      IS_PRODUCTION: ${IS_PRODUCTION}
+      CSRF_AUTH_KEY: ${CSRF_AUTH_KEY}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      RABBITMQ_MATCH_QUEUE: ${RABBITMQ_MATCH_QUEUE}
+      RABBITMQ_RESULT_QUEUE: ${RABBITMQ_RESULT_QUEUE}
+
+  matchmaker:
+    image: docker.io/nemoahead/bomberman-matchmaker:latest
+    container_name: matchmaker
+    restart: unless-stopped
+    environment:
+      DBURI: ${DBURI}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      NEXT_AUTH_URL: ${NEXT_AUTH_URL}
+      SESSION_SECRET: ${SESSION_SECRET}
+      IS_PRODUCTION: ${IS_PRODUCTION}
+      CSRF_AUTH_KEY: ${CSRF_AUTH_KEY}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      RABBITMQ_MATCH_QUEUE: ${RABBITMQ_MATCH_QUEUE}
+      RABBITMQ_RESULT_QUEUE: ${RABBITMQ_RESULT_QUEUE}
+
+  matchrunner:
+    image: docker.io/nemoahead/bomberman-match-runner:latest
+    container_name: matchrunner
+    restart: unless-stopped
+    environment:
+      CONTAINER_HOST: ${CONTAINER_HOST}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      RABBITMQ_MATCH_QUEUE: ${RABBITMQ_MATCH_QUEUE}
+      RABBITMQ_RESULT_QUEUE: ${RABBITMQ_RESULT_QUEUE}
+    volumes:
+      - /run/user/1000/podman/podman.sock:/run/podman/podman.sock
+
 volumes:
   rabbitmq_data:
   bombdb_postgres_data:
