@@ -73,8 +73,10 @@ func (r *Runner) RunMatch(ctx context.Context, details *match.Details) (*match.R
 	log.Info("Server container exited. Match %s finished.", details.MatchID)
 
 	result := &match.Result{
-		MatchID: details.MatchID,
-		Winner:  "",
+		MatchID:       details.MatchID,
+		Winner:        "",
+		Client1GameID: client1AuthToken,
+		Client2GameID: client2AuthToken,
 	}
 
 	serverLogs, err := r.getContainerLogs(context.Background(), serverContainerName)

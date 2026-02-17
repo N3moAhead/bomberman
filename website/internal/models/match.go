@@ -23,12 +23,14 @@ const (
 
 type Match struct {
 	gorm.Model
-	MatchID     string
-	Bot1ID      uint
-	Bot1        Bot
-	Bot2ID      uint
-	Bot2        Bot
-	WinnerState WinnerState
-	Status      MatchStatus
-	History     datatypes.JSON
+	MatchID       string
+	Bot1ID        uint
+	Bot1          Bot
+	Bot1AuthToken string
+	Bot2ID        uint
+	Bot2          Bot
+	Bot2AuthToken string
+	WinnerState   WinnerState
+	Status        MatchStatus
+	History       datatypes.JSON
 }

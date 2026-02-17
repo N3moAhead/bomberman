@@ -16,9 +16,11 @@ type Details struct {
 
 // Result represents the outcome of a match
 type Result struct {
-	MatchID string               `json:"match_id"`
-	Winner  string               `json:"winner"` // Name of the client image that won
-	Log     *history.GameHistory `json:"log"`
+	MatchID       string               `json:"match_id"`
+	Winner        string               `json:"winner"` // Name of the client image that won
+	Client1GameID string               `json:"client1GameId"`
+	Client2GameID string               `json:"client2GameId"`
+	Log           *history.GameHistory `json:"log"`
 }
 
 // ToJSON encodes a Details struct to a JSON byte slice

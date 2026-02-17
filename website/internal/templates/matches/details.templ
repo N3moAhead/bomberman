@@ -57,25 +57,13 @@ templ Details(csrf string, user *models.User, vm *viewmodels.MatchDetail, histor
         JSON.parse(historyInput.getAttribute("history-data")),
       );
 
-      // TODO: The mapping from player ID to bot name is currently based on the order of players in the first tick.
-      // This is not reliable. A stable identifier should be provided from the backend to link players in the history to the bots in the match.
-      const playerIDToName = {};
       const bot1Name = "{{ vm.Match.Bot1.Name }}";
       const bot2Name = "{{ vm.Match.Bot2.Name }}";
-      let player1Id, player2Id;
+      const playerIDToName = {
+        "{{ vm.Match.Bot1AuthToken }}":"{{ vm.Match.Bot1.Name }}",
+        "{{ vm.Match.Bot2AuthToken }}":"{{ vm.Match.Bot2.Name }}"
+      };
 
-      if (history.ticks[0] && history.ticks[0].players) {
-        if (history.ticks[0].players[0]) {
-            player1Id = history.ticks[0].players[0].id;
-            playerIDToName[player1Id] = bot1Name;
-        }
-        if (history.ticks[0].players[1]) {
-            player2Id = history.ticks[0].players[1].id;
-            playerIDToName[player2Id] = bot2Name;
-        }
-      }
-
-      console.log(history)
       const canvas = document.getElementById("bomberman-canvas");
       const ctx = canvas.getContext("2d");
       const tickCounter = document.getElementById("tick-counter");
@@ -101,38 +89,36 @@ templ Details(csrf string, user *models.User, vm *viewmodels.MatchDetail, histor
 
       function populateMoveList() {
         if (!history.ticks) return;
+
+        const bot1Id = "{{ vm.Match.Bot1AuthToken }}";
+        const bot2Id = "{{ vm.Match.Bot2AuthToken }}";
+
         history.ticks.forEach((tick, index) => {
           const moveEntry = document.createElement("tr");
           moveEntry.classList.add("hover"); // DaisyUI class for hover effect
           moveEntry.dataset.tick = index;
 
-          let player1Move = "";
-          let player2Move = "";
-
           const prevTick = index > 0 ? history.ticks[index - 1] : null;
+          const moves = {};
 
           if (tick.players) {
             tick.players.forEach((player) => {
               const prevPlayer = prevTick ? prevTick.players.find(p => p.id === player.id) : null;
-
+              let move = "";
               // Check for death
               if (prevPlayer && prevPlayer.health > 0 && player.health === 0) {
-                  if (player.id === player1Id) {
-                      player1Move = '💀';
-                  } else if (player.id === player2Id) {
-                      player2Move = '💀';
-                  }
+                  move = '💀';
               }
               // If not dead, show the move
               else if (player.move) {
-                  if (player.id === player1Id) {
-                      player1Move = player.move;
-                  } else if (player.id === player2Id) {
-                      player2Move = player.move;
-                  }
+                  move = player.move;
               }
+              moves[player.authToken] = move;
             });
           }
+
+          const player1Move = moves[bot1Id] || "";
+          const player2Move = moves[bot2Id] || "";
 
           const numBombs = tick.bombs ? tick.bombs.length : 0;
           const numExplosions = tick.explosions ? tick.explosions.length : 0;
@@ -380,6 +366,18 @@ templ Details(csrf string, user *models.User, vm *viewmodels.MatchDetail, histor
             const startX =
               player.pos.x * tileWidth + tileWidth / 2 - totalHeartsWidth / 2;
             const startY = player.pos.y * tileHeight - heartRenderHeight * 1.1; // Place slightly above the tile
+
+            const playerName = playerIDToName[player.authToken];
+            if (playerName) {
+              ctx.fillStyle = "#FFF";
+              ctx.font = "bold 10px monospace";
+              ctx.textAlign = "center";
+              ctx.fillText(
+                playerName,
+                player.pos.x * tileWidth + tileWidth / 2,
+                startY + 35,
+              );
+            }
 
             for (let i = 0; i < MAX_LIVES; i++) {
               const isFull = i < lives;

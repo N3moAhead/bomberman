@@ -160,6 +160,8 @@ func handleResultMessage(msg amqp091.Delivery, db *gorm.DB) error {
 		}
 		dbMatch.History = historyJson
 		dbMatch.Status = models.FINISHED
+		dbMatch.Bot1AuthToken = matchResult.Client1GameID
+		dbMatch.Bot2AuthToken = matchResult.Client2GameID
 
 		var winner, loser models.Bot
 		var options *types.OpenSkillOptions
