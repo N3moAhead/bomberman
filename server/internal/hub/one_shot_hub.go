@@ -53,11 +53,6 @@ func (h *OneShotHub) Run() {
 				welcomePayload := message.WelcomeMessage{ClientID: client.GetID()}
 				client.SendMessage(message.Welcome, welcomePayload)
 			}
-			if len(h.clients) == 2 && !gameStarted {
-				log.Info("Two players connected, starting game...")
-				h.startGame()
-				gameStarted = true
-			}
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
@@ -67,15 +62,22 @@ func (h *OneShotHub) Run() {
 				// The game logic itself handles player disconnection
 			}
 		case hubMsg := <-h.incoming:
-			h.gameMutex.Lock()
 			if hubMsg.message.Type == message.PlayerStatusUpdate {
+				h.gameMutex.Lock()
 				var payload message.PlayerStatusUpdatePayload
 				if err := json.Unmarshal(hubMsg.message.Payload, &payload); err != nil {
 					log.Error("Error while unmarshalling PlayerStatusUpdate %v\n", err)
 					return
 				}
 				hubMsg.client.SetAuthToken(payload.AuthToken)
+				hubMsg.client.SetReady(true)
 				log.Success("Set auth Token %s for client %s", payload.AuthToken, hubMsg.client.GetID())
+				h.gameMutex.Unlock()
+				if h.canStartGame() && !gameStarted {
+					log.Info("Two players connected and are ready, starting game...")
+					h.startGame()
+					gameStarted = true
+				}
 			} else {
 				if h.game != nil {
 					h.game.HandleMessage(hubMsg.client, hubMsg.message)
@@ -83,7 +85,6 @@ func (h *OneShotHub) Run() {
 					log.Warn("Message from %s received before game start, ignoring.", hubMsg.client.GetID())
 				}
 			}
-			h.gameMutex.Unlock()
 		case <-h.shutdown:
 			log.Info("Game finished, OneShotHub is shutting down.")
 			h.gameMutex.Lock()
@@ -95,6 +96,19 @@ func (h *OneShotHub) Run() {
 			return // Exit Run loop
 		}
 	}
+}
+
+func (h *OneShotHub) canStartGame() bool {
+	if len(h.clients) == 2 {
+		canStart := true
+		for client := range h.clients {
+			if !client.IsReady() {
+				canStart = false
+			}
+		}
+		return canStart
+	}
+	return false
 }
 
 func (h *OneShotHub) startGame() {
