@@ -10,6 +10,11 @@ jobs:
   lint:
     name: Lint Go Code
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Running lint/fmt per module is much more stable than running from root
+        module: [match_runner, server, website]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,58 +25,40 @@ jobs:
           go-version: "1.25"
 
       - name: Check Go formatting
+        working-directory: ${{ matrix.module }}
         run: |
-          # Find all go module directories
-          for mod in $(find . -name go.mod); do
-            dir=$(dirname "${mod}")
-            echo "Checking format in ${dir}"
-            # Skip empty or non-Go directories
-            if ! ls "${dir}"/*.go &> /dev/null; then
-              continue
-            fi
-            if [ -n "$(gofmt -l "${dir}")" ]; then
-              echo "Go files in ${dir} are not formatted:"
-              gofmt -d "${dir}"
-              exit 1
-            fi
-          done
-          echo "All Go files are formatted."
+          echo "Checking format in ${{ matrix.module }}"
+          # -l lists files whose formatting differs from gofmt's
+          if [ -n "$(gofmt -l .)" ]; then
+            echo "Go files in ${{ matrix.module }} are not formatted:"
+            gofmt -d .
+            exit 1
+          fi
+          echo "All Go files in ${{ matrix.module }} are formatted."
 
       - name: Install and run golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.59.1
-          args: --timeout=5m ./...
-          working-directory: |
-            match_runner
-            server
-            website
+          version: latest
+          args: --timeout=5m
+          working-directory: ${{ matrix.module }}
 
   build-and-push:
     name: Build and Conditionally Push Images
     needs: lint
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write # needed for docker/login-action
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v44
+        uses: tj-actions/changed-files@v45
         with:
-          files: |
-            match_runner/**
-            server/**
-            website/**
-
-      - name: Set up podman
-        run: |
-          sudo apt-get update
-          sudo apt-get -y install podman
+          files_yaml: |
+            match_runner: match_runner/**
+            server: server/**
+            website: website/**
 
       - name: Set Make Target
         id: make-target
