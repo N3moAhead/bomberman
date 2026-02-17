@@ -8,29 +8,80 @@ import (
 
 templ Details(csrf string, user *models.User, vm *viewmodels.MatchDetail, historyJson string) {
 	@layout.Base(csrf, user) {
-		<div class="container mx-auto p-4">
-			<h1 class="text-2xl font-bold mb-4">Match Review: { vm.Match.MatchID }</h1>
-			<div class="flex flex-col items-center">
-				<canvas id="bomberman-canvas" width="800" height="800" class="border border-gray-500"></canvas>
-				<div class="flex items-center space-x-4 mt-4">
-					<button id="prev-tick" class="btn btn-primary">Prev</button>
-					<span id="tick-counter">Tick: 0 / { len(vm.History.Ticks) - 1 }</span>
-					<button id="next-tick" class="btn btn-primary">Next</button>
+		<div class="flex justify-center p-4">
+			<div class="card w-11/12 bg-base-100 shadow-xl">
+				<div class="card-body">
+					<div class="flex justify-between items-center mb-4">
+						<h2 class="card-title text-2xl">Game Review: { vm.Match.Bot1.Name } vs { vm.Match.Bot2.Name }</h2>
+					</div>
+
+					<div class="flex flex-row gap-8">
+						// Game view
+						<div class="flex flex-col items-center">
+							<canvas id="bomberman-canvas" width="600" height="600" class="border border-gray-500 rounded-lg"></canvas>
+							<div class="flex items-center space-x-4 mt-4">
+								<button id="prev-tick" class="btn btn-primary">Prev</button>
+								<span id="tick-counter">Tick: 0 / { len(vm.History.Ticks) - 1 }</span>
+								<button id="next-tick" class="btn btn-primary">Next</button>
+							</div>
+						</div>
+
+						// Moves List
+						<div class="w-1/3">
+							<h3 class="text-lg font-bold mb-2">Moves</h3>
+							<div class="h-[600px] overflow-y-auto border border-gray-300 rounded-lg bg-base-200">
+								<table class="table table-sm">
+									<thead>
+										<tr>
+											<th>Tick</th>
+											<th>{ vm.Match.Bot1.Name }</th>
+											<th>{ vm.Match.Bot2.Name }</th>
+											<th>Events</th>
+										</tr>
+									</thead>
+									<tbody id="move-list-tbody">
+										// Rows will be dynamically inserted here
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
+
 		<input class="hidden" id="historyData" history-data={ templ.JSONString(historyJson) }></input>
 		<script>
       const historyInput = document.getElementById("historyData");
       const history = JSON.parse(
         JSON.parse(historyInput.getAttribute("history-data")),
       );
-      console.log(typeof history);
+
+      // TODO: The mapping from player ID to bot name is currently based on the order of players in the first tick.
+      // This is not reliable. A stable identifier should be provided from the backend to link players in the history to the bots in the match.
+      const playerIDToName = {};
+      const bot1Name = "{{ vm.Match.Bot1.Name }}";
+      const bot2Name = "{{ vm.Match.Bot2.Name }}";
+      let player1Id, player2Id;
+
+      if (history.ticks[0] && history.ticks[0].players) {
+        if (history.ticks[0].players[0]) {
+            player1Id = history.ticks[0].players[0].id;
+            playerIDToName[player1Id] = bot1Name;
+        }
+        if (history.ticks[0].players[1]) {
+            player2Id = history.ticks[0].players[1].id;
+            playerIDToName[player2Id] = bot2Name;
+        }
+      }
+
+      console.log(history)
       const canvas = document.getElementById("bomberman-canvas");
       const ctx = canvas.getContext("2d");
       const tickCounter = document.getElementById("tick-counter");
       const prevBtn = document.getElementById("prev-tick");
       const nextBtn = document.getElementById("next-tick");
+      const moveListTbody = document.getElementById("move-list-tbody");
       const textureAtlas = new Image();
       textureAtlas.src = "/static/images/texture_atlas.png";
 
@@ -46,6 +97,94 @@ templ Details(csrf string, user *models.User, vm *viewmodels.MatchDetail, histor
         history.ticks[0].players.forEach((player, index) => {
           playerIndexMap.set(player.id, index);
         });
+      }
+
+      function populateMoveList() {
+        if (!history.ticks) return;
+        history.ticks.forEach((tick, index) => {
+          const moveEntry = document.createElement("tr");
+          moveEntry.classList.add("hover"); // DaisyUI class for hover effect
+          moveEntry.dataset.tick = index;
+
+          let player1Move = "";
+          let player2Move = "";
+
+          const prevTick = index > 0 ? history.ticks[index - 1] : null;
+
+          if (tick.players) {
+            tick.players.forEach((player) => {
+              const prevPlayer = prevTick ? prevTick.players.find(p => p.id === player.id) : null;
+
+              // Check for death
+              if (prevPlayer && prevPlayer.health > 0 && player.health === 0) {
+                  if (player.id === player1Id) {
+                      player1Move = '💀';
+                  } else if (player.id === player2Id) {
+                      player2Move = '💀';
+                  }
+              }
+              // If not dead, show the move
+              else if (player.move) {
+                  if (player.id === player1Id) {
+                      player1Move = player.move;
+                  } else if (player.id === player2Id) {
+                      player2Move = player.move;
+                  }
+              }
+            });
+          }
+
+          const numBombs = tick.bombs ? tick.bombs.length : 0;
+          const numExplosions = tick.explosions ? tick.explosions.length : 0;
+
+          let livesLost = 0;
+          if (index > 0) {
+            const prevTick = history.ticks[index - 1];
+            if (tick.players && prevTick.players) {
+                tick.players.forEach(currentPlayer => {
+                    const prevPlayer = prevTick.players.find(p => p.id === currentPlayer.id);
+                    if (prevPlayer && currentPlayer.health < prevPlayer.health) {
+                        livesLost += (prevPlayer.health - currentPlayer.health);
+                    }
+                });
+            }
+          }
+
+          let eventsStr = "";
+          if (livesLost > 0) {
+              eventsStr += `${livesLost}💔 `;
+          }
+          if (numBombs > 0) {
+              eventsStr += `${numBombs}💣 `;
+          }
+          if (numExplosions > 0) {
+              eventsStr += `${numExplosions}💥`;
+          }
+
+          moveEntry.innerHTML = `
+            <th>${index}</th>
+            <td><span class="font-mono">${player1Move}</span></td>
+            <td><span class="font-mono">${player2Move}</span></td>
+            <td>${eventsStr}</td>
+          `;
+
+          moveEntry.addEventListener("click", () => {
+            renderTick(index);
+          });
+          moveListTbody.appendChild(moveEntry);
+        });
+      }
+
+      function updateMoveHighlight(tickIndex) {
+        const moveEntries = moveListTbody.children;
+        for (let i = 0; i < moveEntries.length; i++) {
+          if (parseInt(moveEntries[i].dataset.tick) === tickIndex) {
+            moveEntries[i].classList.add("active", "outline", "outline-2", "outline-primary");
+            moveEntries[i].scrollIntoView({ block: 'center', behavior: 'smooth' });
+          } else {
+            moveEntries[i].classList.remove("active", "outline", "outline-2", "outline-primary");
+          }
+        }
       }
 
       const tileColors = {
@@ -193,7 +332,7 @@ templ Details(csrf string, user *models.User, vm *viewmodels.MatchDetail, histor
 
           // Determine sprite coordinates
           const playerIndex = playerIndexMap.get(player.id) || 0;
-          const sy = playerIndex === 0 ? 96 : 192;
+          const sy = playerIndex === 0 ? 192 : 160;
           let baseSx = 0;
           switch (state) {
             case "DOWN":
@@ -429,6 +568,7 @@ templ Details(csrf string, user *models.User, vm *viewmodels.MatchDetail, histor
         drawExplosions(tick.explosions);
 
         tickCounter.textContent = `Tick: ${tickIndex} / ${totalTicks}`;
+        updateMoveHighlight(tickIndex);
       }
 
       prevBtn.addEventListener("click", () => {
@@ -461,6 +601,7 @@ templ Details(csrf string, user *models.User, vm *viewmodels.MatchDetail, histor
 
       // Initial render
       textureAtlas.onload = () => {
+        populateMoveList();
         renderTick(0);
         requestAnimationFrame(animationLoop);
       };

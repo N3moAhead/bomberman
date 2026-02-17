@@ -29,7 +29,7 @@ func openSourceBanner() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"bg-neutral text-neutral-content py-25 mb-10 shadow-xl\"><div class=\"container mx-auto px-4 text-center\"><h2 class=\"text-3xl font-bold mb-4\">Completely Open Source!</h2><p class=\"mb-4\">Everything from the game server to this website is open source. I strongly belive in transparency and collaboration.</p><a href=\"https://github.com/N3moAhead/bomberman\" class=\"btn btn-outline\" target=\"_blank\" rel=\"noopener noreferrer\"><img width=\"20px\" src=\"/static/images/GitHub_Invertocat_White.svg\" alt=\"Github Icon\"> View on GitHub</a></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"bg-neutral text-neutral-content py-25 mb-10 shadow-xl\"><div class=\"container mx-auto px-4 text-center\"><h2 class=\"text-3xl font-bold mb-4\">Completely Open Source!</h2><p class=\"mb-4\">Everything from the game server to this website is open source. Make it your own, collaborate or just have some fun!</p><a href=\"https://github.com/N3moAhead/bomberman\" class=\"btn btn-outline\" target=\"_blank\" rel=\"noopener noreferrer\"><img width=\"20px\" src=\"/static/images/GitHub_Invertocat_White.svg\" alt=\"Github Icon\"> View on GitHub</a></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

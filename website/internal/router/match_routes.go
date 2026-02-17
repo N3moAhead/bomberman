@@ -38,13 +38,11 @@ func handleGetMatch(w http.ResponseWriter, r *http.Request) {
 
 	match, err := db.GetMatchByMatchID(matchID)
 	if err != nil {
-		// handle error
 		http.Error(w, "failed to get match", http.StatusInternalServerError)
 		return
 	}
 
 	if len(match.History) == 0 {
-		// Or render a page indicating history is not available
 		http.Error(w, "match history not available", http.StatusNotFound)
 		return
 	}
