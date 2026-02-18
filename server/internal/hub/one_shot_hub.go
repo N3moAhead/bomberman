@@ -51,7 +51,10 @@ func (h *OneShotHub) Run() {
 				h.clients[client] = true
 				log.Info("Client %s registered. Total clients: %d/2", client.GetID(), len(h.clients))
 				welcomePayload := message.WelcomeMessage{ClientID: client.GetID()}
-				client.SendMessage(message.Welcome, welcomePayload)
+				err := client.SendMessage(message.Welcome, welcomePayload)
+				if err != nil {
+					log.Errorln("Error while trying to send WelcomeMessage to client", err)
+				}
 			}
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
@@ -127,7 +130,10 @@ func (h *OneShotHub) startGame() {
 		} else {
 			log.Info("Added player %s to game %s", client.GetID(), gameID)
 			startPayload := message.GameStartPayload{Name: "Classic (One-Shot)", Description: "The classic bomberman game, one-shot style!", GameID: gameID}
-			client.SendMessage(message.GameStart, startPayload)
+			err := client.SendMessage(message.GameStart, startPayload)
+			if err != nil {
+				log.Errorln("Error while trying to send gamestart payload to client", err)
+			}
 		}
 	}
 	go h.game.Start()
