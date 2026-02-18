@@ -28,7 +28,6 @@ var Upgrader = websocket.Upgrader{
 
 func main() {
 	flag.Parse()
-	log.Println("Welcome to the Bomberman-Server (I'm just a CI Pipeline test)")
 
 	hubInstance := hub.NewHub()
 	go hubInstance.Run()
