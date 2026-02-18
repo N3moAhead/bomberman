@@ -86,7 +86,10 @@ func (w *Worker) handleMessage(ctx context.Context, msg amqp.Delivery) {
 	var details match.Details
 	if err := details.FromJSON(msg.Body); err != nil {
 		log.Error("Failed to decode match details JSON: %v", err)
-		msg.Nack(false, false)
+		err := msg.Nack(false, false)
+		if err != nil {
+			log.Errorln("Failed to nack msg ", err)
+		}
 		return
 	}
 
@@ -98,7 +101,10 @@ func (w *Worker) handleMessage(ctx context.Context, msg amqp.Delivery) {
 	if err != nil {
 		log.Error("Failed to run match '%s': %v", details.MatchID, err)
 		// Reject the message. Don't requeue to avoid poison pills
-		msg.Nack(false, false)
+		err := msg.Nack(false, false)
+		if err != nil {
+			log.Errorln("Failed to nack msg ", err)
+		}
 		return
 	}
 
@@ -109,14 +115,20 @@ func (w *Worker) handleMessage(ctx context.Context, msg amqp.Delivery) {
 		log.Error("Failed to encode match result: %v", err)
 		// This is a weird state. The match ran, but we can't report it
 		// Nack and don't requeue
-		msg.Nack(false, false)
+		err := msg.Nack(false, false)
+		if err != nil {
+			log.Errorln("Failed to nack msg ", err)
+		}
 		return
 	}
 
 	if err := w.mq.PublishResultMessage(ctx, resultJSON); err != nil {
 		log.Error("Failed to publish match result: %v", err)
 		// Requeue the message so we can try publishing the result again
-		msg.Nack(false, true)
+		err := msg.Nack(false, true)
+		if err != nil {
+			log.Errorln("Failed to nack message ", err)
+		}
 		return
 	}
 
@@ -124,5 +136,8 @@ func (w *Worker) handleMessage(ctx context.Context, msg amqp.Delivery) {
 
 	// Everything worked so we can just
 	// acknowledge the message to delete it from the queue
-	msg.Ack(false)
+	err = msg.Ack(false)
+	if err != nil {
+		log.Errorln("Failed to Ack the msg ", err)
+	}
 }
