@@ -192,7 +192,7 @@ func handleResultMessage(msg amqp091.Delivery, db *gorm.DB) error {
 		default:
 			// Draw
 			// winner or loser doesnt matter here
-			winner, loser = dbMatch.Bot1, dbMatch.Bot2
+			winner, loser = dbMatch.Bot2, dbMatch.Bot1
 			dbMatch.WinnerState = models.DRAW
 			// both will just receive the same score
 			options = &types.OpenSkillOptions{
