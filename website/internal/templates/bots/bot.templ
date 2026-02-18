@@ -6,15 +6,17 @@ import (
 )
 
 templ ListDisplay(bot models.Bot) {
-	<div class="flex gap-2 items-center">
-		<div class="avatar">
-			<div class="w-10 rounded-full">
-    		<img
-      		src={ fmt.Sprintf("https://api.dicebear.com/9.x/bottts/svg?seed=%s", bot.Name) }
-        	alt="user img"
-      	/>
-		  </div>
-		</div>
-		<span>{ bot.Name }</span>
+	<div>
+		<a href={ templ.URL(fmt.Sprintf("/bots/%d", bot.ID)) } class="link flex gap-2 items-center">
+			<div class="avatar">
+				<div class="w-10 rounded-full">
+	    		<img
+	      		src={ fmt.Sprintf("https://api.dicebear.com/9.x/bottts/svg?seed=%s", bot.Name) }
+	        	alt="user img"
+	      	/>
+			  </div>
+			</div>
+			<span>{ bot.Name }</span>
+		</a>
 	</div>
 }
