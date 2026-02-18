@@ -40,6 +40,10 @@ func botRoutes(botRouter chi.Router) {
 		}
 
 		vm, err := viewmodels.NewBotDetail(bot, matches)
+		if err != nil {
+			log.Error("Error while trying to create a new bot detail")
+			http.Error(w, "Failed to render bot details", http.StatusInternalServerError)
+		}
 
 		botDetailTemplate := bots.Detail(csrf.Token(r), user, vm)
 		err = botDetailTemplate.Render(r.Context(), w)
