@@ -186,7 +186,7 @@ func handleResultMessage(msg amqp091.Delivery, db *gorm.DB) error {
 			options = nil
 		case dbMatch.Bot2.DockerHubUrl:
 			// Bot2 Won
-			winner, loser = dbMatch.Bot1, dbMatch.Bot2
+			winner, loser = dbMatch.Bot2, dbMatch.Bot1
 			dbMatch.WinnerState = models.BOT2WIN
 			options = nil
 		default:
