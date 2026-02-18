@@ -33,6 +33,11 @@ image-matchmaker:
 image-matchmaker-public: image-matchmaker
 	podman push docker.io/nemoahead/bomberman-matchmaker:latest
 
+lint:
+	@echo "==> Running linter..."
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	@golangci-lint run ./...
+
 dev:
 	@if ! command -v air > /dev/null 2>&1; then \
 		echo "air is not installed. Installing..."; \

@@ -39,6 +39,11 @@ image-os: vet
 image-os-public: image-os
 	podman push $(IMAGE_NAME_OS):latest
 
+lint:
+	@echo "==> Running linter..."
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	@golangci-lint run ./...
+
 # Code quality rules
 fmt:
 	go fmt ./...

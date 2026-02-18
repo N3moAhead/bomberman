@@ -40,13 +40,13 @@ func authSetup(cfg *cfg.Config) {
 
 func githubLogin(w http.ResponseWriter, r *http.Request) {
 	provider := chi.URLParam(r, "provider")
-	r = r.WithContext(context.WithValue(r.Context(), "provider", provider))
+	r = r.WithContext(context.WithValue(r.Context(), providerContextKey, provider))
 	gothic.BeginAuthHandler(w, r)
 }
 
 func githubLoginCallback(w http.ResponseWriter, r *http.Request) {
 	provider := chi.URLParam(r, "provider")
-	r = r.WithContext(context.WithValue(r.Context(), "provider", provider))
+	r = r.WithContext(context.WithValue(r.Context(), providerContextKey, provider))
 
 	gothUser, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {

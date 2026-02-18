@@ -13,18 +13,20 @@ import (
 
 func botRoutes(botRouter chi.Router) {
 	botRouter.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		user, _ := r.Context().Value(UserContextKey).(*models.User)
+		user, _ := r.Context().Value(userContextKey).(*models.User)
 		userBots, _ := db.GetBotsForUser(user)
 
 		b := bots.Overview(user, csrf.Token(r), userBots)
-		b.Render(r.Context(), w)
+		err := b.Render(r.Context(), w)
+		renderError(err, w)
 	})
 
 	botRouter.Get("/new", func(w http.ResponseWriter, r *http.Request) {
-		user, _ := r.Context().Value(UserContextKey).(*models.User)
+		user, _ := r.Context().Value(userContextKey).(*models.User)
 		form := &viewmodels.NewBotForm{}
 		b := bots.NewBot(user, csrf.Token(r), form)
-		b.Render(r.Context(), w)
+		err := b.Render(r.Context(), w)
+		renderError(err, w)
 	})
 
 	botRouter.Post("/new", func(w http.ResponseWriter, r *http.Request) {
@@ -40,11 +42,12 @@ func botRoutes(botRouter chi.Router) {
 			CreatedWithAi: r.FormValue("ai") == "on",
 		}
 
-		user, _ := r.Context().Value(UserContextKey).(*models.User)
+		user, _ := r.Context().Value(userContextKey).(*models.User)
 		if !form.Validate() {
 			w.WriteHeader(http.StatusBadRequest)
 			b := bots.NewBot(user, csrf.Token(r), &form)
-			b.Render(r.Context(), w)
+			err := b.Render(r.Context(), w)
+			renderError(err, w)
 			return
 		}
 
@@ -53,7 +56,8 @@ func botRoutes(botRouter chi.Router) {
 			form.Errors["db_error"] = "Error while saving to the database please try again later."
 			w.WriteHeader(http.StatusInternalServerError)
 			b := bots.NewBot(user, csrf.Token(r), &form)
-			b.Render(r.Context(), w)
+			err := b.Render(r.Context(), w)
+			renderError(err, w)
 			return
 		}
 

@@ -7,10 +7,6 @@ import (
 	"github.com/N3moAhead/bomberman/website/internal/db"
 )
 
-type userContextKey string
-
-const UserContextKey = userContextKey("user")
-
 func userMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, err := store.Get(r, appSessionName)
@@ -37,7 +33,7 @@ func userMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), UserContextKey, user)
+		ctx := context.WithValue(r.Context(), userContextKey, user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

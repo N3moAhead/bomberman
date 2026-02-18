@@ -64,7 +64,10 @@ func main() {
 				log.Info("Message channel closed by broker. Shutting down.")
 				return
 			}
-			handleResultMessage(msg, db)
+			err := handleResultMessage(msg, db)
+			if err != nil {
+				log.Errorln("Error while trying to handle result message: ", err)
+			}
 		case <-ticker.C:
 			unmatchedBots := getUnmatchedBots(db)
 			for _, match := range unmatchedBots {
@@ -133,8 +136,11 @@ func handleResultMessage(msg amqp091.Delivery, db *gorm.DB) error {
 	var matchResult message.Result
 	err := json.Unmarshal(msg.Body, &matchResult)
 	if err != nil {
-		log.Error("Failed to process Match Results")
-		msg.Nack(false, false)
+		log.Errorln("Failed to process Match Results", err)
+		err := msg.Nack(false, false)
+		if err != nil {
+			log.Errorln("Error while trying to nack msg", err)
+		}
 		return err
 	}
 
@@ -143,7 +149,10 @@ func handleResultMessage(msg amqp091.Delivery, db *gorm.DB) error {
 		err = tx.Where("match_id = ?", matchResult.MatchID).Preload("Bot1").Preload("Bot2").First(&dbMatch).Error
 		if err != nil {
 			log.Error("Failed to find the corresponding db match to the received match result")
-			msg.Nack(false, false)
+			err := msg.Nack(false, false)
+			if err != nil {
+				log.Errorln("Error while trying to nack msg", err)
+			}
 			return err
 		}
 
@@ -155,7 +164,10 @@ func handleResultMessage(msg amqp091.Delivery, db *gorm.DB) error {
 		historyJson, err := json.Marshal(matchResult.Log)
 		if err != nil {
 			log.Error("Failed to marshal match history")
-			msg.Nack(false, false)
+			err := msg.Nack(false, false)
+			if err != nil {
+				log.Errorln("Error while trying to nack msg", err)
+			}
 			return err
 		}
 		dbMatch.History = historyJson
@@ -210,7 +222,10 @@ func handleResultMessage(msg amqp091.Delivery, db *gorm.DB) error {
 			return err
 		}
 
-		msg.Ack(false)
+		err = msg.Ack(false)
+		if err != nil {
+			log.Errorln("Error while trying to ack message", err)
+		}
 		return nil
 	})
 }

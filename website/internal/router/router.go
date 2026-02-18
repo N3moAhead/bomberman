@@ -47,16 +47,18 @@ func Start(cfg *cfg.Config) {
 	router.Post("/logout", logout)
 
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		user, _ := r.Context().Value(UserContextKey).(*models.User)
+		user, _ := r.Context().Value(userContextKey).(*models.User)
 		h := home.Home(csrf.Token(r), user)
-		h.Render(r.Context(), w)
+		err := h.Render(r.Context(), w)
+		renderError(err, w)
 	})
 
 	router.Get("/leaderboard", func(w http.ResponseWriter, r *http.Request) {
-		user, _ := r.Context().Value(UserContextKey).(*models.User)
+		user, _ := r.Context().Value(userContextKey).(*models.User)
 		bots, _ := db.GetLeaderboard(0, 50)
 		s := leaderboard.Leaderboard(csrf.Token(r), user, bots)
-		s.Render(r.Context(), w)
+		err := s.Render(r.Context(), w)
+		renderError(err, w)
 	})
 
 	router.Mount("/matches", MatchRoutes())

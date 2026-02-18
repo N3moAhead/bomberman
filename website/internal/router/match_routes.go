@@ -18,17 +18,18 @@ func MatchRoutes() chi.Router {
 	matchRouter.Get("/{matchID}", handleGetMatch)
 
 	matchRouter.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		user, _ := r.Context().Value(UserContextKey).(*models.User)
+		user, _ := r.Context().Value(userContextKey).(*models.User)
 		botMatches, _ := db.GetMatches(0, 50)
 		s := matches.Matches(csrf.Token(r), user, botMatches)
-		s.Render(r.Context(), w)
+		err := s.Render(r.Context(), w)
+		renderError(err, w)
 	})
 
 	return matchRouter
 }
 
 func handleGetMatch(w http.ResponseWriter, r *http.Request) {
-	user, _ := r.Context().Value(UserContextKey).(*models.User)
+	user, _ := r.Context().Value(userContextKey).(*models.User)
 	matchID := chi.URLParam(r, "matchID")
 	if matchID == "" {
 		// Or handle error appropriately
@@ -59,5 +60,6 @@ func handleGetMatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	matches.Details(csrf.Token(r), user, vm, string(historyJson)).Render(r.Context(), w)
+	err = matches.Details(csrf.Token(r), user, vm, string(historyJson)).Render(r.Context(), w)
+	renderError(err, w)
 }
