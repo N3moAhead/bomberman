@@ -54,7 +54,10 @@ func main() {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("[BOMBERMAN-SERVER] is running. Connect via WebSocket on /ws"))
+		_, err := w.Write([]byte("[BOMBERMAN-SERVER] is running. Connect via WebSocket on /ws"))
+		if err != nil {
+			l.Errorln("Failed to write status message")
+		}
 	})
 
 	l.Info("Bomberman-Server starting on %s\n", *addr)

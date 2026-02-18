@@ -85,7 +85,10 @@ func (h *Hub) Run() {
 				ClientID:     client.GetID(),
 				CurrentGames: h.availableGames,
 			}
-			client.SendMessage(message.Welcome, welcomePayload)
+			err := client.SendMessage(message.Welcome, welcomePayload)
+			if err != nil {
+				log.Errorln("Failed to send message to client ", err)
+			}
 			h.broadcastLobbyUpdate()
 
 		case client := <-h.unregister:
@@ -138,7 +141,10 @@ func (h *Hub) handleLobbyMessage(client Client, msg message.Message) {
 		var payload message.PlayerStatusUpdatePayload
 		if err := json.Unmarshal(msg.Payload, &payload); err != nil {
 			log.Error("Error unmarshalling select_game payload from %s: %v", client.GetID(), err)
-			client.SendMessage(message.Error, message.ErrorMessage{Message: "Invalid PlayerStatusUpdatePayload payload"})
+			err := client.SendMessage(message.Error, message.ErrorMessage{Message: "Invalid PlayerStatusUpdatePayload payload"})
+			if err != nil {
+				log.Errorln("Failed to send Error Message to client ", err)
+			}
 			return
 		}
 
@@ -196,7 +202,10 @@ func (h *Hub) selectAndStartGame() {
 			client.SetGameID(gameID)
 			client.SetReady(false)
 			startPayload := message.GameStartPayload{Name: gameInfo.Name, Description: gameInfo.Description, GameID: gameID}
-			client.SendMessage(message.GameStart, startPayload)
+			err := client.SendMessage(message.GameStart, startPayload)
+			if err != nil {
+				log.Errorln("Error while trying to send gameStartPayload to client ", err)
+			}
 			log.Success("Added player %s to game %s", client.GetID(), h.availableGames[0].Name)
 		}
 	}
@@ -232,7 +241,10 @@ func (h *Hub) GameFinished(gameID string, result game.GameResult) {
 	for _, client := range clientsToRemove {
 		delete(h.clientToGame, client)
 		client.SetGameID("")
-		client.SendMessage(message.BackToLobby, nil)
+		err := client.SendMessage(message.BackToLobby, nil)
+		if err != nil {
+			log.Errorln("Error while trying to send \"BackToLobby\" message to client: ", err)
+		}
 		log.Info("Client %s removed from finished game %s, returned to lobby.", client.GetID(), gameID)
 	}
 

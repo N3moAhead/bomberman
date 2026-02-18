@@ -2,12 +2,12 @@ package client
 
 import (
 	"encoding/json"
-	"log"
 	"time"
 
 	"github.com/N3moAhead/bomberman/server/internal/game"
 	"github.com/N3moAhead/bomberman/server/internal/hub"
 	"github.com/N3moAhead/bomberman/server/internal/message"
+	"github.com/N3moAhead/bomberman/server/pkg/logger"
 	"github.com/gorilla/websocket"
 )
 
@@ -17,6 +17,8 @@ const (
 	pingPeriod     = (pongWait * 9) / 10
 	maxMessageSize = 1024
 )
+
+var log = logger.New("[Client]")
 
 // Client is a WebSocket client that communicates with a Hub
 type Client struct {
@@ -98,7 +100,7 @@ func (c *Client) Close() {
 func (c *Client) SendMessage(msgType message.MessageType, payload any) error {
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		log.Printf("Error marshalling payload for client %s: %v", c.ID, err)
+		log.Error("Error marshalling payload for client %s: %v", c.ID, err)
 		return err
 	}
 	message := message.Message{
@@ -107,14 +109,14 @@ func (c *Client) SendMessage(msgType message.MessageType, payload any) error {
 	}
 	messageBytes, err := json.Marshal(message)
 	if err != nil {
-		log.Printf("Error marshalling message for client %s: %v", c.ID, err)
+		log.Error("Error marshalling message for client %s: %v", c.ID, err)
 		return err
 	}
 
 	select {
 	case c.Send <- messageBytes:
 	default:
-		log.Printf("Client %s send buffer full. Dropping message.", c.ID)
+		log.Error("Client %s send buffer full. Dropping message.", c.ID)
 	}
 	return nil
 }
@@ -126,24 +128,34 @@ func (c *Client) ReadPump() {
 	defer func() {
 		c.Hub.UnregisterClient(c)
 		c.Conn.Close()
-		log.Printf("Client %s disconnected (readPump closed)", c.ID)
+		log.Info("Client %s disconnected (readPump closed)", c.ID)
 	}()
 	c.Conn.SetReadLimit(maxMessageSize)
-	c.Conn.SetReadDeadline(time.Now().Add(pongWait))
-	c.Conn.SetPongHandler(func(string) error { c.Conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	err := c.Conn.SetReadDeadline(time.Now().Add(pongWait))
+	if err != nil {
+		log.Errorln("Readdeadline has expired: ", err)
+	}
+	c.Conn.SetPongHandler(
+		func(string) error {
+			err := c.Conn.SetReadDeadline(time.Now().Add(pongWait))
+			if err != nil {
+				log.Errorln("Read deadline in ponghandler has expired: ", err)
+			}
+			return nil
+		})
 
 	for {
 		_, messageBytes, err := c.Conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("error reading message for client %s: %v", c.ID, err)
+				log.Error("error reading message for client %s: %v", c.ID, err)
 			}
 			break
 		}
 
 		var msg message.Message
 		if err := json.Unmarshal(messageBytes, &msg); err != nil {
-			log.Printf("error unmarshalling message from client %s: %v", c.ID, err)
+			log.Error("error unmarshalling message from client %s: %v", c.ID, err)
 			continue
 		}
 
@@ -157,25 +169,31 @@ func (c *Client) WritePump() {
 	defer func() {
 		ticker.Stop()
 		c.Conn.Close()
-		log.Printf("Client %s writePump closed", c.ID)
+		log.Info("Client %s writePump closed", c.ID)
 	}()
 	for {
 		select {
 		case message, ok := <-c.Send:
-			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
+			err := c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
+			if err != nil {
+				log.Errorln("WriteDeadline is due and now corrupted", err)
+			}
 			if !ok {
-				c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
-				log.Printf("Client %s send channel closed by hub", c.ID)
+				err := c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+				if err != nil {
+					log.Errorln("Failed to write messsage to client", err)
+				}
+				log.Info("Client %s send channel closed by hub", c.ID)
 				return
 			}
 			if err := c.Conn.WriteMessage(websocket.TextMessage, message); err != nil {
-				log.Printf("error writing message to client %s: %v", c.ID, err)
+				log.Error("error writing message to client %s: %v", c.ID, err)
 				return
 			}
 		case <-ticker.C:
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-				log.Printf("error sending ping to client %s: %v", c.ID, err)
+				log.Error("error sending ping to client %s: %v", c.ID, err)
 				return
 			}
 		}

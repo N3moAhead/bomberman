@@ -38,16 +38,6 @@ func (f *Field) setTile(x, y int, tile Tile) {
 	f[y*field_height+x] = tile
 }
 
-func (f *Field) isWall(x, y int) bool {
-	tile := f.getTile(x, y)
-	return tile == WALL
-}
-
-func (f *Field) isBox(x, y int) bool {
-	tile := f.getTile(x, y)
-	return tile == BOX
-}
-
 func (f *Field) isTileBlocked(x, y int) bool {
 	tile := f.getTile(x, y)
 	if tile == WALL || tile == BOX {
