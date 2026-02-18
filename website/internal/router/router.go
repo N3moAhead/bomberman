@@ -63,12 +63,7 @@ func Start(cfg *cfg.Config) {
 
 	router.Mount("/matches", MatchRoutes())
 
-	// --- Secured Routes ---
-	router.Group(func(authRouter chi.Router) {
-		authRouter.Use(authMiddleware)
-
-		authRouter.Route("/bots", botRoutes)
-	})
+	router.Route("/bots", botRoutes)
 
 	log.Info("Starting website on port %s", cfg.Port)
 	err := http.ListenAndServe(cfg.Port, router)

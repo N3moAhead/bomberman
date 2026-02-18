@@ -1,0 +1,229 @@
+package bots
+
+import (
+	"fmt"
+	"github.com/N3moAhead/bomberman/website/internal/templates/layout"
+	"github.com/N3moAhead/bomberman/website/internal/models"
+	"github.com/N3moAhead/bomberman/website/internal/viewmodels"
+)
+
+func getMatchOutcome(bot *models.Bot, match models.Match) string {
+	if match.Status != models.FINISHED {
+		return string(match.Status)
+	}
+	isBot1 := match.Bot1.ID == bot.ID
+	switch match.WinnerState {
+	case models.BOT1WIN:
+		if isBot1 {
+			return "win"
+		}
+		return "loss"
+	case models.BOT2WIN:
+		if isBot1 {
+			return "loss"
+		}
+		return "win"
+	case models.DRAW:
+		return "draw"
+	default:
+		return "unknown"
+	}
+}
+
+func getOutcomeRowClass(bot *models.Bot, match models.Match) string {
+	switch getMatchOutcome(bot, match) {
+	case "win":
+		return "bg-success/10"
+	case "loss":
+		return "bg-error/10"
+	case "draw":
+		return "bg-info/10"
+	default:
+		return ""
+	}
+}
+
+func getOutcomeBadgeClass(bot *models.Bot, match models.Match) string {
+	switch getMatchOutcome(bot, match) {
+	case "win":
+		return "badge badge-success"
+	case "loss":
+		return "badge badge-error"
+	case "draw":
+		return "badge badge-info"
+	case string(models.PENDING):
+		return "badge badge-warning"
+	case string(models.RUNNING):
+		return "badge badge-primary"
+	default:
+		return "badge"
+	}
+}
+
+func getOutcomeLabel(bot *models.Bot, match models.Match) string {
+	switch getMatchOutcome(bot, match) {
+	case "win":
+		return "Win"
+	case "loss":
+		return "Loss"
+	case "draw":
+		return "Draw"
+	case string(models.PENDING):
+		return "Pending"
+	case string(models.RUNNING):
+		return "Running"
+	default:
+		return "Unknown"
+	}
+}
+
+func getOpponent(bot *models.Bot, match models.Match) models.Bot {
+	if match.Bot1.ID == bot.ID {
+		return match.Bot2
+	}
+	return match.Bot1
+}
+
+func getCreator(bot *models.Bot) string {
+	if bot.User.Username != "" {
+		return bot.User.Username
+	}
+	return fmt.Sprintf("User #%d", bot.UserID)
+}
+
+templ Detail(csrfToken string, user *models.User, vm *viewmodels.BotDetail) {
+	@layout.Base(csrfToken, user) {
+		<div class="flex items-center flex-col p-4 gap-8">
+			<div class="card w-10/12 bg-base-100 shadow-xl">
+				<div class="card-body">
+					<div class="flex flex-col md:flex-row gap-6">
+						<div class="flex-1">
+							<div class="flex items-start justify-between gap-4">
+								<div class="flex gap-4 items-center justify-start min-w-0">
+									<div class="avatar">
+										<div class="w-24">
+											<img
+												src={ fmt.Sprintf("https://api.dicebear.com/9.x/bottts/svg?seed=%s", vm.Bot.Name) }
+												alt="bot avatar"
+											/>
+										</div>
+									</div>
+									<h1 class="card-title text-3xl">{ vm.Bot.Name }</h1>
+									<p class="text-base-content/70 mt-1">{ vm.Bot.Description }</p>
+								</div>
+								if vm.Bot.CreatedWithAi {
+									<span class="badge badge-primary badge-lg">Built with AI</span>
+								} else {
+									<span class="badge badge-ghost badge-lg">Human Built</span>
+								}
+							</div>
+							<div class="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-3 text-sm">
+								<div class="bg-base-200 rounded-lg p-3">
+									<p class="text-base-content/60">Creator</p>
+									if vm.Bot.User.Username != "" {
+										<a
+											class="flex gap-2 mt-2 items-center w-fit"
+											href={ templ.URL(fmt.Sprintf("https://github.com/%s", vm.Bot.User.Username)) }
+											target="_blank"
+										>
+											if vm.Bot.User.AvatarURL != "" {
+												<div class="avatar">
+													<div class="w-8 rounded-full">
+														<img src={ vm.Bot.User.AvatarURL } alt="creator avatar" />
+													</div>
+												</div>
+											}
+											<span class="link link-hover">{ vm.Bot.User.Username }</span>
+										</a>
+									} else {
+										<p class="font-semibold mt-2">{ getCreator(vm.Bot) }</p>
+									}
+								</div>
+								<div class="bg-base-200 rounded-lg p-3">
+									<p class="text-base-content/60">Created</p>
+									<p class="font-semibold mt-2">{ vm.Bot.CreatedAt.Format("02 Jan 2006 15:04") }</p>
+								</div>
+								<div class="bg-base-200 rounded-lg p-3 lg:col-span-2">
+									<p class="text-base-content/60">Docker Image</p>
+									if vm.Bot.DockerHubUrl != "" {
+										<p class="font-semibold mt-2">{ vm.Bot.DockerHubUrl }</p>
+									} else {
+										<p class="font-semibold mt-2">Not provided</p>
+									}
+								</div>
+							</div>
+							<div class="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+								<div class="stat bg-success/15 rounded-box p-4">
+									<div class="stat-title">Wins</div>
+									<div class="stat-value text-success text-3xl">{ vm.Bot.Wins }</div>
+								</div>
+								<div class="stat bg-error/15 rounded-box p-4">
+									<div class="stat-title">Losses</div>
+									<div class="stat-value text-error text-3xl">{ vm.Bot.Losses }</div>
+								</div>
+								<div class="stat bg-info/15 rounded-box p-4">
+									<div class="stat-title">Draws</div>
+									<div class="stat-value text-info text-3xl">{ vm.Bot.Draws }</div>
+								</div>
+								<div class="stat bg-base-200 rounded-box p-4">
+									<div class="stat-title">Winrate</div>
+									<div class="stat-value text-primary text-3xl">{ fmt.Sprintf("%.1f%%", vm.Bot.WinRate) }</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="card w-10/12 bg-base-100 shadow-xl">
+				<div class="card-body">
+					<div class="flex justify-between items-center mb-4">
+						<h2 class="card-title text-2xl">Matches</h2>
+						<div class="text-sm text-base-content/70">
+							Wins are green, losses red, draws blue.
+						</div>
+					</div>
+					<div class="overflow-x-auto">
+						<table class="table">
+							<thead>
+								<tr>
+									<th>Match ID</th>
+									<th>Result</th>
+									<th>Opponent</th>
+									<th>Status</th>
+									<th>Created At</th>
+								</tr>
+							</thead>
+							<tbody>
+								for _, match := range vm.Matches {
+									{{ opponent := getOpponent(vm.Bot, match) }}
+									<tr class={ getOutcomeRowClass(vm.Bot, match) }>
+										<td>
+											<a href={ templ.URL(fmt.Sprintf("/matches/%s", match.MatchID)) } class="link">
+												{ match.MatchID }
+											</a>
+										</td>
+										<td><div class={ getOutcomeBadgeClass(vm.Bot, match) }>{ getOutcomeLabel(vm.Bot, match) }</div></td>
+										<td> @ListDisplay(opponent) </td>
+										<td>
+											switch match.Status {
+												case models.PENDING:
+													<div class="badge badge-warning">pending</div>
+												case models.RUNNING:
+													<div class="badge badge-info">running</div>
+												case models.FINISHED:
+													<div class="badge badge-success">finished</div>
+												default:
+													<div class="badge">{ string(match.Status) }</div>
+											}
+										</td>
+										<td>{ match.CreatedAt.Format("02 Jan 2006 15:04") }</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+}
