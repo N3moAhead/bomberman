@@ -193,7 +193,7 @@ func (c *Client) WritePump() {
 		case <-ticker.C:
 			err := c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err != nil {
-				log.Error("WriteDeadline has expired and is now corrupted: ", err)
+				log.Errorln("WriteDeadline has expired and is now corrupted: ", err)
 			}
 			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				log.Error("error sending ping to client %s: %v", c.ID, err)
