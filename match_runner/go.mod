@@ -1,6 +1,6 @@
 module github.com/N3moAhead/bomberman/match_runner
 
-go 1.25.6
+go 1.24.5
 
 require (
 	github.com/google/uuid v1.6.0

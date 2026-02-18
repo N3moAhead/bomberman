@@ -1,6 +1,6 @@
 module github.com/N3moAhead/bomberman/website
 
-go 1.25.6
+go 1.24.5
 
 tool github.com/a-h/templ/cmd/templ
 
@@ -15,6 +15,7 @@ require (
 	github.com/markbates/goth v1.82.0
 	github.com/rabbitmq/amqp091-go v1.10.0
 	golang.org/x/oauth2 v0.35.0
+	gorm.io/datatypes v1.2.7
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1
 )
@@ -51,6 +52,5 @@ require (
 	golang.org/x/text v0.31.0 // indirect
 	golang.org/x/tools v0.38.0 // indirect
 	gonum.org/v1/gonum v0.17.0 // indirect
-	gorm.io/datatypes v1.2.7 // indirect
 	gorm.io/driver/mysql v1.5.6 // indirect
 )
