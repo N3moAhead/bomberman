@@ -22,16 +22,16 @@ run: build
 	./bombahead
 
 image-website:
-	podman build -f Dockerfile.Website -t docker.io/nemoahead/bomberman-website
+	podman build -f Dockerfile.Website -t ghcr.io/n3moahead/bombahead/website
 
 image-website-public: image-website
-	podman push docker.io/nemoahead/bomberman-website:latest
+	podman push ghcr.io/n3moahead/bombahead/website:latest
 
 image-matchmaker:
-	podman build -f Dockerfile.Matchmaker -t docker.io/nemoahead/bomberman-matchmaker
+	podman build -f Dockerfile.Matchmaker -t ghcr.io/n3moahead/bombahead/matchmaker
 
 image-matchmaker-public: image-matchmaker
-	podman push docker.io/nemoahead/bomberman-matchmaker:latest
+	podman push ghcr.io/n3moahead/bombahead/matchmaker:latest
 
 lint:
 	@echo "==> Running linter..."

@@ -4,7 +4,7 @@ CMD_PATH=./cmd/match_runner
 VERSION ?= $(shell git describe --tags --always --dirty || echo "dev")
 
 # Docker parameters
-DOCKER_IMAGE_NAME=docker.io/nemoahead/bomberman-match-runner
+DOCKER_IMAGE_NAME=ghcr.io/n3moahead/bombahead/match-runner
 DOCKER_TAG ?= latest
 
 .PHONY: all build run clean test lint image image-run help
@@ -42,7 +42,7 @@ image:
 	@echo "==> Building Docker image $(DOCKER_IMAGE_NAME):$(DOCKER_TAG)..."
 	podman build -t $(DOCKER_IMAGE_NAME):$(DOCKER_TAG) .
 
-image-public:
+image-public: image
 	@echo "==> Pushing Docker image $(DOCKER_IMAGE_NAME):$(DOCKER_TAG)..."
 	podman push $(DOCKER_IMAGE_NAME):$(DOCKER_TAG)
 

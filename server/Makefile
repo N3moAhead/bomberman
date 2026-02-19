@@ -7,8 +7,8 @@ BINARY_NAME := bomberman-server
 BINARY_NAME_OS := bomberman-one-shot-server
 
 # Docker parameters
-IMAGE_NAME := docker.io/nemoahead/bomberman-server
-IMAGE_NAME_OS := docker.io/nemoahead/bomberman-os-server
+IMAGE_NAME := ghcr.io/n3moahead/bombahead/server
+IMAGE_NAME_OS := ghcr.io/n3moahead/bombahead/os-server
 
 # Build rules
 all: build build-os

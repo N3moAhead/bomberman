@@ -33,7 +33,7 @@ services:
       retries: 5
 
   website:
-    image: docker.io/nemoahead/bomberman-website:latest
+    image: ghcr.io/n3moahead/bombahead/website:latest
     container_name: bombahead
     restart: unless-stopped
     ports:
@@ -51,7 +51,7 @@ services:
       RABBITMQ_RESULT_QUEUE: ${RABBITMQ_RESULT_QUEUE}
 
   matchmaker:
-    image: docker.io/nemoahead/bomberman-matchmaker:latest
+    image: ghcr.io/n3moahead/bombahead/matchmaker:latest
     container_name: matchmaker
     restart: unless-stopped
     environment:
@@ -67,7 +67,7 @@ services:
       RABBITMQ_RESULT_QUEUE: ${RABBITMQ_RESULT_QUEUE}
 
   matchrunner:
-    image: docker.io/nemoahead/bomberman-match-runner:latest
+    image: ghcr.io/n3moahead/bombahead/match-runner:latest
     container_name: matchrunner
     restart: unless-stopped
     environment:

@@ -94,7 +94,7 @@ func startNewMatch(bot1ID uint, bot2ID uint, mqClient *mq.Client, db *gorm.DB) {
 	matchID := uuid.New().String()
 	details := message.Details{
 		MatchID:      matchID,
-		ServerImage:  "docker.io/nemoahead/bomberman-os-server:latest",
+		ServerImage:  "ghcr.io/n3moahead/bombahead/os-server:latest",
 		Client1Image: bot1.DockerHubUrl,
 		Client2Image: bot2.DockerHubUrl,
 	}
