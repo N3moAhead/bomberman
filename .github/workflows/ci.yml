@@ -7,14 +7,55 @@ on:
     branches: ["main"]
 
 jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for changes
+        id: changed-files
+        uses: tj-actions/changed-files@v45
+        with:
+          files_yaml: |
+            match_runner:
+              - match_runner/**
+            server:
+              - server/**
+            website:
+              - website/**
+
+      - name: Create Matrix JSON
+        id: set-matrix
+        run: |
+          MODULES_JSON="["
+
+          if [[ "${{ steps.changed-files.outputs.match_runner_any_changed }}" == "true" ]]; then
+            MODULES_JSON+='"match_runner",'
+          fi
+          if [[ "${{ steps.changed-files.outputs.server_any_changed }}" == "true" ]]; then
+            MODULES_JSON+='"server",'
+          fi
+          if [[ "${{ steps.changed-files.outputs.website_any_changed }}" == "true" ]]; then
+            MODULES_JSON+='"website",'
+          fi
+
+          MODULES_JSON="${MODULES_JSON%,}]"
+
+          echo "Generated Matrix: $MODULES_JSON"
+          echo "matrix=$MODULES_JSON" >> $GITHUB_OUTPUT
+
   lint:
     name: Lint Go Code
+    needs: detect-changes
+    if: needs.detect-changes.outputs.matrix != '[]'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        # Running lint/fmt per module is much more stable than running from root
-        module: [match_runner, server, website]
+        module: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -28,7 +69,6 @@ jobs:
         working-directory: ${{ matrix.module }}
         run: |
           echo "Checking format in ${{ matrix.module }}"
-          # -l lists files whose formatting differs from gofmt's
           if [ -n "$(gofmt -l .)" ]; then
             echo "Go files in ${{ matrix.module }} are not formatted:"
             gofmt -d .
@@ -45,9 +85,15 @@ jobs:
 
   build-and-push:
     name: Build and Conditionally Push Images
+    if: |
+      always() &&
+      (needs.lint.result == 'success' || needs.lint.result == 'skipped')
     needs: lint
     runs-on: ubuntu-latest
-    environment: production
+    permissions:
+      contents: read
+      packages: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -78,12 +124,13 @@ jobs:
             echo "target_w_matchmaker=image-matchmaker" >> $GITHUB_OUTPUT
           fi
 
-      - name: Login to Docker Hub
+      - name: Login to GitHub Container Registry
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
 
       # --- Match Runner ---
       - name: Build/Push match_runner image
