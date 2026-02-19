@@ -5,17 +5,15 @@ package leaderboard
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
+import "github.com/a-h/templ"
+import templruntime "github.com/a-h/templ/runtime"
+
 import (
 	"fmt"
-
 	"github.com/N3moAhead/bombahead/website/internal/models"
-	"github.com/a-h/templ"
-	templruntime "github.com/a-h/templ/runtime"
-
-	"strconv"
-
 	botTemplates "github.com/N3moAhead/bombahead/website/internal/templates/bots"
 	"github.com/N3moAhead/bombahead/website/internal/templates/layout"
+	"strconv"
 )
 
 func Leaderboard(csrfToken string, user *models.User, bots []models.Bot) templ.Component {

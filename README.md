@@ -59,9 +59,9 @@ First off, clone the main Bomberman repository:
 
 ```bash
 # SSH
-git clone git@github.com:N3moAhead/bomberman.git
+git clone git@github.com:N3moAhead/bombahead.git
 # HTTPS
-git clone https://github.com/N3moAhead/bomberman.git
+git clone https://github.com/N3moAhead/bombahead.git
 ```
 
 The next steps depend on the language you want to use. You can currently choose between **Golang**, **Rust**, and **Javascript**.
