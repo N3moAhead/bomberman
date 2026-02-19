@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/N3moAhead/bomberman/match_runner/internal/history"
-	"github.com/N3moAhead/bomberman/match_runner/internal/match"
-	"github.com/N3moAhead/bomberman/match_runner/pkg/logger"
+	"github.com/N3moAhead/bombahead/match_runner/internal/history"
+	"github.com/N3moAhead/bombahead/match_runner/internal/match"
+	"github.com/N3moAhead/bombahead/match_runner/pkg/logger"
 	"github.com/google/uuid"
 )
 

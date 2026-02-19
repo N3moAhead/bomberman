@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/N3moAhead/bomberman/server/internal/client"
-	"github.com/N3moAhead/bomberman/server/internal/hub"
-	"github.com/N3moAhead/bomberman/server/pkg/logger"
+	"github.com/N3moAhead/bombahead/server/internal/client"
+	"github.com/N3moAhead/bombahead/server/internal/hub"
+	"github.com/N3moAhead/bombahead/server/pkg/logger"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )

@@ -1,6 +1,6 @@
 package classic
 
-import "github.com/N3moAhead/bomberman/server/pkg/types"
+import "github.com/N3moAhead/bombahead/server/pkg/types"
 
 type Player struct {
 	ID        string     `json:"id"`

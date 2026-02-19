@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/N3moAhead/bomberman/website/internal/cfg"
-	"github.com/N3moAhead/bomberman/website/internal/db"
-	"github.com/N3moAhead/bomberman/website/internal/models"
+	"github.com/N3moAhead/bombahead/website/internal/cfg"
+	"github.com/N3moAhead/bombahead/website/internal/db"
+	"github.com/N3moAhead/bombahead/website/internal/models"
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"

@@ -3,7 +3,7 @@ package main
 import (
 	"net/url"
 
-	"github.com/N3moAhead/bomberman/client_go/pkg/bomber"
+	"github.com/N3moAhead/bombahead/client_go/pkg/bomber"
 )
 
 type Bot struct{}

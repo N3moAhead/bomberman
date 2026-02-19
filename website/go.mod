@@ -1,4 +1,4 @@
-module github.com/N3moAhead/bomberman/website
+module github.com/N3moAhead/bombahead/website
 
 go 1.24.5
 

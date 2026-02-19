@@ -1,7 +1,7 @@
 package db
 
 import (
-	"github.com/N3moAhead/bomberman/website/internal/models"
+	"github.com/N3moAhead/bombahead/website/internal/models"
 )
 
 func GetUserByUsername(username string) (*models.User, error) {

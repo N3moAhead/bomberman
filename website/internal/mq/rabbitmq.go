@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/N3moAhead/bomberman/website/internal/cfg"
-	"github.com/N3moAhead/bomberman/website/pkg/logger"
+	"github.com/N3moAhead/bombahead/website/internal/cfg"
+	"github.com/N3moAhead/bombahead/website/pkg/logger"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 

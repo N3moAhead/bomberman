@@ -3,7 +3,7 @@ package bomber
 import (
 	"encoding/json"
 
-	"github.com/N3moAhead/bomberman/client_go/pkg/types"
+	"github.com/N3moAhead/bombahead/client_go/pkg/types"
 )
 
 type Message struct {

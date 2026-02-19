@@ -5,14 +5,14 @@ package bots
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
-import "github.com/a-h/templ"
-import templruntime "github.com/a-h/templ/runtime"
-
 import (
 	"fmt"
-	"github.com/N3moAhead/bomberman/website/internal/models"
-	"github.com/N3moAhead/bomberman/website/internal/templates/layout"
-	"github.com/N3moAhead/bomberman/website/internal/viewmodels"
+
+	"github.com/N3moAhead/bombahead/website/internal/models"
+	"github.com/N3moAhead/bombahead/website/internal/templates/layout"
+	"github.com/N3moAhead/bombahead/website/internal/viewmodels"
+	"github.com/a-h/templ"
+	templruntime "github.com/a-h/templ/runtime"
 )
 
 func getMatchOutcome(bot *models.Bot, match models.Match) string {

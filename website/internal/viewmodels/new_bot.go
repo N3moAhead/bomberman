@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/N3moAhead/bomberman/website/internal/models"
+	"github.com/N3moAhead/bombahead/website/internal/models"
 )
 
 type NewBotForm struct {

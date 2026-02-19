@@ -3,7 +3,7 @@ package config
 import (
 	"os"
 
-	"github.com/N3moAhead/bomberman/match_runner/pkg/logger"
+	"github.com/N3moAhead/bombahead/match_runner/pkg/logger"
 	"github.com/joho/godotenv"
 )
 

@@ -1,6 +1,6 @@
 package db
 
-import "github.com/N3moAhead/bomberman/website/internal/models"
+import "github.com/N3moAhead/bombahead/website/internal/models"
 
 func GetMatches(from, to int) ([]models.Match, error) {
 	var matches []models.Match

@@ -3,7 +3,7 @@ package match
 import (
 	"encoding/json"
 
-	"github.com/N3moAhead/bomberman/match_runner/internal/history"
+	"github.com/N3moAhead/bombahead/match_runner/internal/history"
 )
 
 // Details represents the information about a match to be run

@@ -1,4 +1,4 @@
-module github.com/N3moAhead/bomberman/client_go
+module github.com/N3moAhead/bombahead/client_go
 
 go 1.25.6
 

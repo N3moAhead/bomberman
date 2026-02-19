@@ -3,8 +3,8 @@ package viewmodels
 import (
 	"encoding/json"
 
-	"github.com/N3moAhead/bomberman/website/internal/message"
-	"github.com/N3moAhead/bomberman/website/internal/models"
+	"github.com/N3moAhead/bombahead/website/internal/message"
+	"github.com/N3moAhead/bombahead/website/internal/models"
 )
 
 type MatchDetail struct {

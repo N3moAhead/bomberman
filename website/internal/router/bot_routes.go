@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/N3moAhead/bomberman/website/internal/db"
-	"github.com/N3moAhead/bomberman/website/internal/models"
-	"github.com/N3moAhead/bomberman/website/internal/templates/bots"
-	"github.com/N3moAhead/bomberman/website/internal/viewmodels"
+	"github.com/N3moAhead/bombahead/website/internal/db"
+	"github.com/N3moAhead/bombahead/website/internal/models"
+	"github.com/N3moAhead/bombahead/website/internal/templates/bots"
+	"github.com/N3moAhead/bombahead/website/internal/viewmodels"
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/csrf"
 )

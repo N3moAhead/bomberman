@@ -1,7 +1,7 @@
 package viewmodels
 
 import (
-	"github.com/N3moAhead/bomberman/website/internal/models"
+	"github.com/N3moAhead/bombahead/website/internal/models"
 )
 
 type BotDetail struct {

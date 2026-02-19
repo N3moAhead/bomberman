@@ -3,7 +3,7 @@ package cfg
 import (
 	"os"
 
-	"github.com/N3moAhead/bomberman/website/pkg/logger"
+	"github.com/N3moAhead/bombahead/website/pkg/logger"
 	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"

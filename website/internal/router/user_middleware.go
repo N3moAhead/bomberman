@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/N3moAhead/bomberman/website/internal/db"
+	"github.com/N3moAhead/bombahead/website/internal/db"
 )
 
 func userMiddleware(next http.Handler) http.Handler {

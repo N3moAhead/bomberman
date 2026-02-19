@@ -1,6 +1,6 @@
 package game
 
-import "github.com/N3moAhead/bomberman/server/internal/message"
+import "github.com/N3moAhead/bombahead/server/internal/message"
 
 // The player struct defines the functions that a game
 // awaits from a connected player

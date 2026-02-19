@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/N3moAhead/bomberman/match_runner/internal/config"
-	"github.com/N3moAhead/bomberman/match_runner/internal/match"
-	"github.com/N3moAhead/bomberman/match_runner/internal/mq"
-	"github.com/N3moAhead/bomberman/match_runner/pkg/logger"
+	"github.com/N3moAhead/bombahead/match_runner/internal/config"
+	"github.com/N3moAhead/bombahead/match_runner/internal/match"
+	"github.com/N3moAhead/bombahead/match_runner/internal/mq"
+	"github.com/N3moAhead/bombahead/match_runner/pkg/logger"
 	"github.com/google/uuid"
 )
 

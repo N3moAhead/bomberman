@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/N3moAhead/bomberman/match_runner/internal/config"
-	"github.com/N3moAhead/bomberman/match_runner/internal/worker"
-	"github.com/N3moAhead/bomberman/match_runner/pkg/logger"
+	"github.com/N3moAhead/bombahead/match_runner/internal/config"
+	"github.com/N3moAhead/bombahead/match_runner/internal/worker"
+	"github.com/N3moAhead/bombahead/match_runner/pkg/logger"
 )
 
 var log = logger.New("[Match_Runner]")

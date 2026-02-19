@@ -1,7 +1,7 @@
 package classic
 
 import (
-	"github.com/N3moAhead/bomberman/server/pkg/types"
+	"github.com/N3moAhead/bombahead/server/pkg/types"
 )
 
 func (c *Classic) update() []types.Vec2 {

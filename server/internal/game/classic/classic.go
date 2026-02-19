@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/N3moAhead/bomberman/server/internal/game"
-	"github.com/N3moAhead/bomberman/server/internal/message"
-	"github.com/N3moAhead/bomberman/server/pkg/logger"
-	"github.com/N3moAhead/bomberman/server/pkg/types"
+	"github.com/N3moAhead/bombahead/server/internal/game"
+	"github.com/N3moAhead/bombahead/server/internal/message"
+	"github.com/N3moAhead/bombahead/server/pkg/logger"
+	"github.com/N3moAhead/bombahead/server/pkg/types"
 )
 
 var log = logger.New("[Classic]")

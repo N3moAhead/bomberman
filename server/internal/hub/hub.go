@@ -5,9 +5,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/N3moAhead/bomberman/server/internal/game"
-	"github.com/N3moAhead/bomberman/server/internal/game/classic"
-	"github.com/N3moAhead/bomberman/server/internal/message"
+	"github.com/N3moAhead/bombahead/server/internal/game"
+	"github.com/N3moAhead/bombahead/server/internal/game/classic"
+	"github.com/N3moAhead/bombahead/server/internal/message"
 	"github.com/google/uuid"
 )
 

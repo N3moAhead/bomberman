@@ -3,9 +3,9 @@ package db
 import (
 	"time"
 
-	"github.com/N3moAhead/bomberman/website/internal/cfg"
-	"github.com/N3moAhead/bomberman/website/internal/models"
-	"github.com/N3moAhead/bomberman/website/pkg/logger"
+	"github.com/N3moAhead/bombahead/website/internal/cfg"
+	"github.com/N3moAhead/bombahead/website/internal/models"
+	"github.com/N3moAhead/bombahead/website/pkg/logger"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

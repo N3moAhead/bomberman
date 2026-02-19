@@ -7,11 +7,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/N3moAhead/bomberman/match_runner/internal/config"
-	"github.com/N3moAhead/bomberman/match_runner/internal/match"
-	"github.com/N3moAhead/bomberman/match_runner/internal/mq"
-	"github.com/N3moAhead/bomberman/match_runner/internal/runner"
-	"github.com/N3moAhead/bomberman/match_runner/pkg/logger"
+	"github.com/N3moAhead/bombahead/match_runner/internal/config"
+	"github.com/N3moAhead/bombahead/match_runner/internal/match"
+	"github.com/N3moAhead/bombahead/match_runner/internal/mq"
+	"github.com/N3moAhead/bombahead/match_runner/internal/runner"
+	"github.com/N3moAhead/bombahead/match_runner/pkg/logger"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
