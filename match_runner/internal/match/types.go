@@ -2,6 +2,7 @@ package match
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/N3moAhead/bombahead/match_runner/internal/history"
 )
@@ -23,6 +24,16 @@ type Result struct {
 	Log           *history.GameHistory `json:"log"`
 }
 
+// Failure represents a permanently failed match handling attempt.
+type Failure struct {
+	MatchID    string          `json:"match_id"`
+	Reason     string          `json:"reason"`
+	Error      string          `json:"error"`
+	RetryCount int             `json:"retry_count"`
+	FailedAt   time.Time       `json:"failed_at"`
+	Payload    json.RawMessage `json:"payload"`
+}
+
 // ToJSON encodes a Details struct to a JSON byte slice
 func (d *Details) ToJSON() ([]byte, error) {
 	return json.Marshal(d)
@@ -36,4 +47,9 @@ func (d *Details) FromJSON(data []byte) error {
 // ToJSON encodes a Result struct to a JSON byte slice
 func (r *Result) ToJSON() ([]byte, error) {
 	return json.Marshal(r)
+}
+
+// ToJSON encodes a Failure struct to a JSON byte slice
+func (f *Failure) ToJSON() ([]byte, error) {
+	return json.Marshal(f)
 }

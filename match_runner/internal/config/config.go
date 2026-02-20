@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strconv"
 
 	"github.com/N3moAhead/bombahead/match_runner/pkg/logger"
 	"github.com/joho/godotenv"
@@ -14,6 +15,9 @@ type Config struct {
 	RabbitMQURL string
 	MatchQueue  string
 	ResultQueue string
+	FailedQueue string
+
+	MaxMatchRetries int
 }
 
 // Load loads configuration from environment variables
@@ -42,9 +46,27 @@ func Load() (*Config, error) {
 		resultQueue = "bomberman.matches.results"
 	}
 
+	failedQueue := os.Getenv("RABBITMQ_FAILED_QUEUE")
+	if failedQueue == "" {
+		failedQueue = "bomberman.matches.failed"
+	}
+
+	maxMatchRetries := 3
+	maxMatchRetriesRaw := os.Getenv("MATCH_MAX_RETRIES")
+	if maxMatchRetriesRaw != "" {
+		parsedRetries, parseErr := strconv.Atoi(maxMatchRetriesRaw)
+		if parseErr != nil || parsedRetries < 0 {
+			log.Warn("Invalid MATCH_MAX_RETRIES '%s', using default %d", maxMatchRetriesRaw, maxMatchRetries)
+		} else {
+			maxMatchRetries = parsedRetries
+		}
+	}
+
 	return &Config{
-		RabbitMQURL: url,
-		MatchQueue:  matchQueue,
-		ResultQueue: resultQueue,
+		RabbitMQURL:     url,
+		MatchQueue:      matchQueue,
+		ResultQueue:     resultQueue,
+		FailedQueue:     failedQueue,
+		MaxMatchRetries: maxMatchRetries,
 	}, nil
 }

@@ -16,7 +16,7 @@ import (
 var log = logger.New("[Match_Initiator]")
 
 func main() {
-	serverImage := flag.String("server", "docker.io/nemoahead/bomberman-os-server:latest", "Server docker image")
+	serverImage := flag.String("server", "ghcr.io/n3moahead/bombahead/os-server:latest", "Server docker image")
 	client1Image := flag.String("client1", "ghcr.io/n3moahead/bomber:self-destruct", "Client 1 docker image")
 	client2Image := flag.String("client2", "ghcr.io/n3moahead/bomber:idle", "Client 2 docker image")
 	flag.Parse()

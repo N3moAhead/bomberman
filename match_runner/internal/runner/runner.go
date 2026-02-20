@@ -19,6 +19,11 @@ import (
 
 var log = logger.New("[Runner]")
 
+const (
+	errCodeImagePullRateLimit = "ERR_IMAGE_PULL_RATE_LIMIT"
+	errCodeImageNotPullable   = "ERR_IMAGE_NOT_PULLABLE"
+)
+
 // Runner handles the execution of a single match.
 type Runner struct{}
 
@@ -130,7 +135,11 @@ func (r *Runner) pullImage(ctx context.Context, image string) error {
 	log.Info("Pulling image: %s", image)
 	cmd := exec.CommandContext(ctx, "podman", "pull", image)
 	if output, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("podman pull of '%s' failed: %s: %w", image, string(output), err)
+		rawOutput := strings.TrimSpace(string(output))
+		if code := classifyImagePullError(rawOutput); code != "" {
+			return fmt.Errorf("%s: podman pull of '%s' failed: %s: %w", code, image, rawOutput, err)
+		}
+		return fmt.Errorf("podman pull of '%s' failed: %s: %w", image, rawOutput, err)
 	}
 	return nil
 }
@@ -316,4 +325,29 @@ func parseGameHistory(logs string) (*history.GameHistory, error) {
 	}
 
 	return nil, fmt.Errorf("game history prefix not found in server logs")
+}
+
+func classifyImagePullError(output string) string {
+	out := strings.ToLower(output)
+
+	// Docker Hub / OCI registry rate limit signatures.
+	if strings.Contains(out, "toomanyrequests") ||
+		strings.Contains(out, "pull rate limit") ||
+		strings.Contains(out, "you have reached your unauthenticated pull rate limit") ||
+		strings.Contains(out, "too many requests") {
+		return errCodeImagePullRateLimit
+	}
+
+	// Common signatures for non-pullable images (missing/private/invalid reference).
+	if strings.Contains(out, "manifest unknown") ||
+		strings.Contains(out, "not found") ||
+		strings.Contains(out, "name unknown") ||
+		strings.Contains(out, "pull access denied") ||
+		strings.Contains(out, "requested access to the resource is denied") ||
+		strings.Contains(out, "repository does not exist") ||
+		strings.Contains(out, "insufficient_scope") {
+		return errCodeImageNotPullable
+	}
+
+	return ""
 }

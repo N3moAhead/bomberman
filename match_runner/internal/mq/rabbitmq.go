@@ -72,7 +72,7 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	}
 
 	// Declare durable queues to ensure they survive broker restarts
-	queues := []string{cfg.MatchQueue, cfg.ResultQueue}
+	queues := []string{cfg.MatchQueue, cfg.ResultQueue, cfg.FailedQueue}
 	for _, q := range queues {
 		if _, err = ch.QueueDeclare(
 			q,     // name
@@ -151,35 +151,32 @@ func (c *Client) PublishResultMessage(ctx context.Context, body []byte) error {
 	}
 
 	log.Info("Publishing result to queue '%s'", c.cfg.ResultQueue)
-	return c.ch.PublishWithContext(ctx,
-		"",                // exchange (default)
-		c.cfg.ResultQueue, // routing key (queue name)
-		false,             // mandatory
-		false,             // immediate
-		amqp.Publishing{
-			ContentType:  "application/json",
-			DeliveryMode: amqp.Persistent, // Make message persistent
-			Body:         body,
-		})
+	return c.publishToQueue(ctx, c.cfg.ResultQueue, body, nil)
 }
 
 // PublishMatchMessage publishes a match request to the match queue.
 func (c *Client) PublishMatchMessage(ctx context.Context, body []byte) error {
+	return c.PublishMatchMessageWithHeaders(ctx, body, nil)
+}
+
+// PublishMatchMessageWithHeaders publishes a match request with custom headers.
+func (c *Client) PublishMatchMessageWithHeaders(ctx context.Context, body []byte, headers amqp.Table) error {
 	if c == nil || c.ch == nil {
 		return fmt.Errorf("rabbitmq client is not initialized")
 	}
 
 	log.Info("Publishing match request to queue '%s'", c.cfg.MatchQueue)
-	return c.ch.PublishWithContext(ctx,
-		"",               // exchange (default)
-		c.cfg.MatchQueue, // routing key (queue name)
-		false,            // mandatory
-		false,            // immediate
-		amqp.Publishing{
-			ContentType:  "application/json",
-			DeliveryMode: amqp.Persistent, // Make message persistent
-			Body:         body,
-		})
+	return c.publishToQueue(ctx, c.cfg.MatchQueue, body, headers)
+}
+
+// PublishFailureMessage publishes a permanent failure event to the failure queue.
+func (c *Client) PublishFailureMessage(ctx context.Context, body []byte) error {
+	if c == nil || c.ch == nil {
+		return fmt.Errorf("rabbitmq client is not initialized")
+	}
+
+	log.Info("Publishing failure event to queue '%s'", c.cfg.FailedQueue)
+	return c.publishToQueue(ctx, c.cfg.FailedQueue, body, nil)
 }
 
 // Close gracefully closes the channel and connection
@@ -216,4 +213,19 @@ func closeAMQP(ch *amqp.Channel, conn *amqp.Connection) error {
 	}
 
 	return nil
+}
+
+func (c *Client) publishToQueue(ctx context.Context, queue string, body []byte, headers amqp.Table) error {
+	return c.ch.PublishWithContext(ctx,
+		"",    // exchange (default)
+		queue, // routing key (queue name)
+		false, // mandatory
+		false, // immediate
+		amqp.Publishing{
+			ContentType:  "application/json",
+			DeliveryMode: amqp.Persistent, // Make message persistent
+			Headers:      headers,
+			Body:         body,
+		},
+	)
 }
