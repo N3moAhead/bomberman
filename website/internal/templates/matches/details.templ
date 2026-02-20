@@ -161,12 +161,29 @@ templ Details(csrf string, user *models.User, vm *viewmodels.MatchDetail, histor
         });
       }
 
-      function updateMoveHighlight(tickIndex) {
+      function isMoveEntryVisible(moveEntry, container) {
+        if (!moveEntry || !container) return false;
+        const entryRect = moveEntry.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        return (
+          entryRect.top >= containerRect.top &&
+          entryRect.bottom <= containerRect.bottom
+        );
+      }
+
+      function updateMoveHighlight(tickIndex, shouldScroll = false) {
         const moveEntries = moveListTbody.children;
+        const moveListContainer = moveListTbody.closest(".overflow-y-auto");
         for (let i = 0; i < moveEntries.length; i++) {
           if (parseInt(moveEntries[i].dataset.tick) === tickIndex) {
             moveEntries[i].classList.add("active", "outline", "outline-2", "outline-primary");
-            moveEntries[i].scrollIntoView({ block: 'center', behavior: 'smooth' });
+            if (
+              shouldScroll &&
+              moveListContainer &&
+              !isMoveEntryVisible(moveEntries[i], moveListContainer)
+            ) {
+              moveEntries[i].scrollIntoView({ block: "center", behavior: "smooth" });
+            }
           } else {
             moveEntries[i].classList.remove("active", "outline", "outline-2", "outline-primary");
           }
@@ -579,7 +596,7 @@ templ Details(csrf string, user *models.User, vm *viewmodels.MatchDetail, histor
         drawExplosions(tick.explosions);
 
         tickCounter.textContent = `Tick: ${tickIndex} / ${totalTicks}`;
-        updateMoveHighlight(tickIndex);
+        updateMoveHighlight(tickIndex, isNewTick);
       }
 
       prevBtn.addEventListener("click", () => {
