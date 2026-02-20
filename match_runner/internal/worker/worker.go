@@ -3,7 +3,6 @@ package worker
 import (
 	"context"
 	"fmt"
-	"os"
 	"os/signal"
 	"syscall"
 
@@ -17,7 +16,7 @@ import (
 
 var log = logger.New("[Worker]")
 
-// Worker processes matches from the queue
+// Worker processes matches from the queue.
 type Worker struct {
 	config *config.Config
 	mq     *mq.Client
@@ -38,29 +37,26 @@ func New(cfg *config.Config) (*Worker, error) {
 	}, nil
 }
 
-// Run starts the worker's main loop
-// It blocks until a shutdown signal is received
-func (w *Worker) Run() error {
-	defer w.mq.Close()
+// Run starts the worker's main loop.
+// It blocks until a shutdown signal is received.
+func (w *Worker) Run() (runErr error) {
+	defer func() {
+		if err := w.mq.Close(); err != nil {
+			if runErr == nil {
+				runErr = fmt.Errorf("worker stopped and failed to close mq client cleanly: %w", err)
+				return
+			}
+			log.Error("Failed to close MQ client during shutdown: %v", err)
+		}
+	}()
 
 	msgs, err := w.mq.ConsumeMatchMessages()
 	if err != nil {
 		return fmt.Errorf("failed to start consuming messages: %w", err)
 	}
 
-	// TODO i should add somehting so that endless matches
-	// end after some time...
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	// Graceful shutdown handling
-	shutdown := make(chan os.Signal, 1)
-	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		<-shutdown
-		log.Info("Shutdown signal received, stopping worker...")
-		cancel()
-	}()
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
 	log.Info("Worker is waiting for matches. Press CTRL+C to exit.")
 
@@ -69,43 +65,57 @@ func (w *Worker) Run() error {
 		case <-ctx.Done():
 			log.Info("Worker is shutting down.")
 			return nil
+		case amqpErr := <-w.mq.ChannelClose():
+			if amqpErr != nil {
+				return fmt.Errorf("rabbitmq channel closed unexpectedly: %w", amqpErr)
+			}
+			return fmt.Errorf("rabbitmq channel closed")
+		case amqpErr := <-w.mq.ConnectionClose():
+			if amqpErr != nil {
+				return fmt.Errorf("rabbitmq connection closed unexpectedly: %w", amqpErr)
+			}
+			return fmt.Errorf("rabbitmq connection closed")
 		case msg, ok := <-msgs:
 			if !ok {
-				log.Info("Message channel closed by broker. Shutting down.")
-				return nil
+				if ctx.Err() != nil {
+					log.Info("Message channel closed during shutdown.")
+					return nil
+				}
+				return fmt.Errorf("message channel closed by broker")
 			}
-			w.handleMessage(ctx, msg)
+
+			if err := w.handleMessage(ctx, msg); err != nil {
+				return fmt.Errorf("failed while handling message: %w", err)
+			}
 		}
 	}
 }
 
-// handleMessage decodes and processes a single match message from the queue
-func (w *Worker) handleMessage(ctx context.Context, msg amqp.Delivery) {
+// handleMessage decodes and processes a single match message from the queue.
+func (w *Worker) handleMessage(ctx context.Context, msg amqp.Delivery) error {
 	log.Info("Received a new match request.")
 
 	var details match.Details
 	if err := details.FromJSON(msg.Body); err != nil {
 		log.Error("Failed to decode match details JSON: %v", err)
-		err := msg.Nack(false, false)
-		if err != nil {
-			log.Errorln("Failed to nack msg ", err)
+		if nackErr := nackMessage(msg, false); nackErr != nil {
+			return fmt.Errorf("decode failed: %w (additionally failed to reject message: %v)", err, nackErr)
 		}
-		return
+		return nil
 	}
 
-	// Create a new context for this specific match
+	// Create a new context for this specific match.
 	matchCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	result, err := w.runner.RunMatch(matchCtx, &details)
 	if err != nil {
 		log.Error("Failed to run match '%s': %v", details.MatchID, err)
-		// Reject the message. Don't requeue to avoid poison pills
-		err := msg.Nack(false, false)
-		if err != nil {
-			log.Errorln("Failed to nack msg ", err)
+		// Reject the message. Don't requeue to avoid poison pills.
+		if nackErr := nackMessage(msg, false); nackErr != nil {
+			return fmt.Errorf("match run failed: %w (additionally failed to reject message: %v)", err, nackErr)
 		}
-		return
+		return nil
 	}
 
 	log.Success("Successfully processed match '%s'.", result.MatchID)
@@ -113,31 +123,40 @@ func (w *Worker) handleMessage(ctx context.Context, msg amqp.Delivery) {
 	resultJSON, err := result.ToJSON()
 	if err != nil {
 		log.Error("Failed to encode match result: %v", err)
-		// This is a weird state. The match ran, but we can't report it
-		// Nack and don't requeue
-		err := msg.Nack(false, false)
-		if err != nil {
-			log.Errorln("Failed to nack msg ", err)
+		// The match ran, but we can't report it.
+		if nackErr := nackMessage(msg, false); nackErr != nil {
+			return fmt.Errorf("result encoding failed: %w (additionally failed to reject message: %v)", err, nackErr)
 		}
-		return
+		return nil
 	}
 
 	if err := w.mq.PublishResultMessage(ctx, resultJSON); err != nil {
 		log.Error("Failed to publish match result: %v", err)
-		// Requeue the message so we can try publishing the result again
-		err := msg.Nack(false, true)
-		if err != nil {
-			log.Errorln("Failed to nack message ", err)
+		// Requeue the message so we can try publishing the result again.
+		if nackErr := nackMessage(msg, true); nackErr != nil {
+			return fmt.Errorf("result publishing failed: %w (additionally failed to requeue message: %v)", err, nackErr)
 		}
-		return
+		return nil
 	}
 
 	log.Info("Published result for match '%s'.", result.MatchID)
 
-	// Everything worked so we can just
-	// acknowledge the message to delete it from the queue
-	err = msg.Ack(false)
-	if err != nil {
-		log.Errorln("Failed to Ack the msg ", err)
+	// Everything worked, acknowledge the message to delete it from the queue.
+	if err := msg.Ack(false); err != nil {
+		return fmt.Errorf("failed to ack message for match '%s': %w", result.MatchID, err)
 	}
+
+	return nil
+}
+
+func nackMessage(msg amqp.Delivery, requeue bool) error {
+	if err := msg.Nack(false, requeue); err == nil {
+		return nil
+	}
+
+	if err := msg.Reject(requeue); err == nil {
+		return nil
+	}
+
+	return fmt.Errorf("nack and reject both failed")
 }

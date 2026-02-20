@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -28,20 +30,27 @@ func New() *Runner {
 // RunMatch executes a full match lifecycle: creates a pod,
 // runs containers, waits for completion, and cleans up
 func (r *Runner) RunMatch(ctx context.Context, details *match.Details) (*match.Result, error) {
-	podName := fmt.Sprintf("bomberman-match-%s", details.MatchID)
+	runID := uuid.NewString()[:8]
+	podName := fmt.Sprintf("bomberman-match-%s-%s", details.MatchID, runID)
+	serverContainerName := fmt.Sprintf("%s-server", podName)
+	client1ContainerName := fmt.Sprintf("%s-client1", podName)
+	client2ContainerName := fmt.Sprintf("%s-client2", podName)
+
 	log.Info("Starting match %s in pod %s", details.MatchID, podName)
 
 	client1AuthToken := uuid.NewString()
 	client2AuthToken := uuid.NewString()
 
+	// Ensure no stale resources from previous runs can interfere with this match.
+	r.cleanupResources(context.Background(), podName, serverContainerName, client1ContainerName, client2ContainerName)
+
 	// Cleanup is deferred to ensure it runs even if errors occur
-	defer r.cleanupPod(podName)
+	defer r.cleanupResources(context.Background(), podName, serverContainerName, client1ContainerName, client2ContainerName)
 
 	if err := r.createPod(ctx, podName); err != nil {
 		return nil, fmt.Errorf("failed to create pod: %w", err)
 	}
 
-	serverContainerName := "server"
 	if err := r.runServer(ctx, podName, serverContainerName, details.ServerImage); err != nil {
 		return nil, fmt.Errorf("failed to run server: %w", err)
 	}
@@ -49,13 +58,13 @@ func (r *Runner) RunMatch(ctx context.Context, details *match.Details) (*match.R
 	// Run clients concurrently
 	clientErrCh := make(chan error, 2)
 	go func() {
-		clientErrCh <- r.runClient(ctx, podName, "client1", details.Client1Image, client1AuthToken)
+		clientErrCh <- r.runClient(ctx, podName, client1ContainerName, details.Client1Image, client1AuthToken)
 	}()
 	go func() {
-		clientErrCh <- r.runClient(ctx, podName, "client2", details.Client2Image, client2AuthToken)
+		clientErrCh <- r.runClient(ctx, podName, client2ContainerName, details.Client2Image, client2AuthToken)
 	}()
 
-	for range 2 {
+	for i := 0; i < 2; i++ {
 		if err := <-clientErrCh; err != nil {
 			return nil, fmt.Errorf("failed to run a client: %w", err)
 		}
@@ -109,8 +118,7 @@ func (r *Runner) RunMatch(ctx context.Context, details *match.Details) (*match.R
 
 func (r *Runner) createPod(ctx context.Context, podName string) error {
 	log.Debug("Creating pod: %s", podName)
-	// TODO Rething if --network ="host" is the correct decision here...
-	cmd := exec.CommandContext(ctx, "podman", "pod", "create", "--name", podName, "--network=host")
+	cmd := exec.CommandContext(ctx, "podman", "pod", "create", "--name", podName, "--network=none")
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("podman pod create failed: %s: %w", string(output), err)
 	}
@@ -164,10 +172,51 @@ func (r *Runner) runClient(ctx context.Context, podName, containerName, image, c
 func (r *Runner) waitForContainer(ctx context.Context, containerName string) error {
 	log.Debug("Waiting for container '%s' to stop...", containerName)
 	cmd := exec.CommandContext(ctx, "podman", "wait", containerName)
-	if _, err := cmd.CombinedOutput(); err != nil {
+	output, err := cmd.CombinedOutput()
+	if err != nil {
 		return fmt.Errorf("podman wait for '%s' failed: %w", containerName, err)
 	}
+
+	// podman wait may include extra whitespace/lines; parse the first token safely.
+	fields := strings.Fields(string(output))
+	if len(fields) == 0 {
+		exitCode, inspectErr := r.inspectContainerExitCode(ctx, containerName)
+		if inspectErr != nil {
+			return fmt.Errorf("podman wait for '%s' returned empty output and inspect failed: %w", containerName, inspectErr)
+		}
+		if exitCode != 0 {
+			return fmt.Errorf("container '%s' exited with code %d", containerName, exitCode)
+		}
+		return nil
+	}
+
+	exitCode, err := strconv.Atoi(fields[0])
+	if err != nil {
+		return fmt.Errorf("podman wait for '%s' returned non-integer exit code token %q (raw: %q): %w", containerName, fields[0], strings.TrimSpace(string(output)), err)
+	}
+	if exitCode != 0 {
+		return fmt.Errorf("container '%s' exited with code %d", containerName, exitCode)
+	}
 	return nil
+}
+
+func (r *Runner) inspectContainerExitCode(ctx context.Context, containerName string) (int, error) {
+	cmd := exec.CommandContext(ctx, "podman", "inspect", "--format", "{{.State.ExitCode}}", containerName)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return 0, fmt.Errorf("podman inspect for '%s' failed: %s: %w", containerName, strings.TrimSpace(string(output)), err)
+	}
+
+	fields := strings.Fields(string(output))
+	if len(fields) == 0 {
+		return 0, fmt.Errorf("podman inspect for '%s' returned empty output", containerName)
+	}
+
+	exitCode, parseErr := strconv.Atoi(fields[0])
+	if parseErr != nil {
+		return 0, fmt.Errorf("podman inspect for '%s' returned non-integer exit code token %q", containerName, fields[0])
+	}
+	return exitCode, nil
 }
 
 func (r *Runner) getContainerLogs(ctx context.Context, containerName string) (string, error) {
@@ -190,12 +239,42 @@ func (r *Runner) removeImage(ctx context.Context, image string) {
 	}
 }
 
-func (r *Runner) cleanupPod(podName string) {
-	// Use a background context with a timeout for cleanup,
-	// as the original match context might have been cancelled
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+func (r *Runner) cleanupResources(ctx context.Context, podName string, containerNames ...string) {
+	// Use a timeout for cleanup operations so we don't block forever on a bad engine state.
+	cleanupCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
+	for _, containerName := range containerNames {
+		r.forceRemoveContainer(cleanupCtx, containerName)
+	}
+	r.cleanupPod(cleanupCtx, podName)
+}
+
+func (r *Runner) forceRemoveContainer(ctx context.Context, containerName string) {
+	log.Info("Ensuring container '%s' is removed...", containerName)
+	cmd := exec.CommandContext(ctx, "podman", "rm", "-f", containerName)
+	if output, err := cmd.CombinedOutput(); err != nil {
+		combined := strings.TrimSpace(string(output))
+		if strings.Contains(combined, "no container with name") || strings.Contains(combined, "no such container") {
+			log.Debug("Container '%s' does not exist, nothing to remove.", containerName)
+			return
+		}
+
+		// Ignore cancellations/timeouts from parent context during best-effort cleanup.
+		if errorsIsContextDone(err) {
+			log.Warn("Container cleanup for '%s' stopped by context: %v", containerName, err)
+			return
+		}
+
+		log.Warn("Failed to force remove container '%s': %s: %v", containerName, string(output), err)
+		return
+	}
+	log.Success("Container '%s' removed.", containerName)
+}
+
+func (r *Runner) cleanupPod(ctx context.Context, podName string) {
+	// Use a background context with a timeout for cleanup,
+	// as the original match context might have been cancelled
 	log.Info("Cleaning up resources for pod '%s'", podName)
 	cmd := exec.CommandContext(ctx, "podman", "pod", "exists", podName)
 	if err := cmd.Run(); err != nil {
@@ -211,6 +290,10 @@ func (r *Runner) cleanupPod(podName string) {
 	} else {
 		log.Success("Successfully removed pod '%s'", podName)
 	}
+}
+
+func errorsIsContextDone(err error) bool {
+	return err != nil && (errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded))
 }
 
 func parseGameHistory(logs string) (*history.GameHistory, error) {
