@@ -413,6 +413,8 @@ templ Details(csrf string, user *models.User, vm *viewmodels.MatchDetail, histor
         const sx = animationFrame * SPRITE_WIDTH;
         const sy = 64;
 
+
+
         bombs.forEach((bomb) => {
           ctx.drawImage(
             textureAtlas,
@@ -424,6 +426,17 @@ templ Details(csrf string, user *models.User, vm *viewmodels.MatchDetail, histor
             bomb.pos.y * tileHeight,
             tileWidth,
             tileHeight,
+          );
+          ctx.fillStyle = bomb.fuse < 4 ? "#F10" : "#FFF";
+          if (bomb.fuse < 7) {
+            ctx.fillStyle = bomb.fuse < 4 ? "#F10" : "#F80";
+          }
+          ctx.font = "bold 8px monospace";
+          ctx.textAlign = "center";
+          ctx.fillText(
+            bomb.fuse,
+            bomb.pos.x * tileWidth - 2 + tileWidth / 2,
+            bomb.pos.y * tileHeight + tileHeight / 2 + 13,
           );
         });
       }
