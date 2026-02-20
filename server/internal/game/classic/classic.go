@@ -174,6 +174,7 @@ func (c *Classic) Start() {
 			destroyedBoxes := c.update()
 			c.history.RecordTick(c.players, c.bombs, c.explosions, destroyedBoxes)
 			gameState := c.getGameState()
+			gameOver := c.isGameOver()
 			c.resetPlayerInputs()
 			c.playerMux.Unlock()
 
@@ -188,7 +189,7 @@ func (c *Classic) Start() {
 					)
 				}
 			}
-			if c.isGameOver() {
+			if gameOver {
 				go c.Stop()
 			}
 		case <-maxGameTimer.C:
