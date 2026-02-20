@@ -33,11 +33,11 @@ func (f *NewBotForm) Validate() bool {
 	if strings.TrimSpace(f.DockerHubUrl) == "" {
 		f.Errors["DockerHubUrl"] = "Docker Hub URL is required."
 	} else {
-		// It must start with 'docker.io/' and can have a user/namespace and a tag.
-		dockerImageRegex := `^docker\.io\/([a-zA-Z0-9.-]+\/)*[a-zA-Z0-9.-]+(:[a-zA-Z0-9.-]+)?$`
+		// It must start with 'docker.io/' or 'ghcr.io/'and can have a user/namespace and a tag.
+		dockerImageRegex := `^\(\bdocker\.io\b|\bghcr\.io\b\/([a-zA-Z0-9.-]+\/)*[a-zA-Z0-9.-]+(:[a-zA-Z0-9.-]+)?$`
 		re := regexp.MustCompile(dockerImageRegex)
 		if !re.MatchString(f.DockerHubUrl) {
-			f.Errors["DockerHubUrl"] = "Please enter a valid Docker image URL starting with docker.io/ (e.g., docker.io/user/repo:tag)."
+			f.Errors["DockerHubUrl"] = "Please enter a valid Docker image URL starting with docker.io/ or ghcr.io/ (e.g., ghcr.io/user/repo:tag)."
 		}
 	}
 
