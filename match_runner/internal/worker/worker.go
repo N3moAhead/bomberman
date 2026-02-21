@@ -110,7 +110,7 @@ func (w *Worker) handleMessage(ctx context.Context, msg amqp.Delivery) error {
 	matchCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	result, err := w.runner.RunMatch(matchCtx, &details)
+	result, err := w.runner.RunMatch(matchCtx, &details, w.config.MatchHistoryDir)
 	if err != nil {
 		log.Error("Failed to run match '%s': %v", details.MatchID, err)
 		return w.handleFailure(ctx, msg, &details, "match_run_failed", err, true)

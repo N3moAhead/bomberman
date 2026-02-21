@@ -34,7 +34,7 @@ func New() *Runner {
 
 // RunMatch executes a full match lifecycle: creates a pod,
 // runs containers, waits for completion, and cleans up
-func (r *Runner) RunMatch(ctx context.Context, details *match.Details) (*match.Result, error) {
+func (r *Runner) RunMatch(ctx context.Context, details *match.Details, matchHistoryDir string) (*match.Result, error) {
 	runID := uuid.NewString()[:8]
 	podName := fmt.Sprintf("bomberman-match-%s-%s", details.MatchID, runID)
 	serverContainerName := fmt.Sprintf("%s-server", podName)
@@ -46,13 +46,7 @@ func (r *Runner) RunMatch(ctx context.Context, details *match.Details) (*match.R
 	client1AuthToken := uuid.NewString()
 	client2AuthToken := uuid.NewString()
 
-	historyDir := os.Getenv("MATCH_HISTORY_DIR")
-	if historyDir != "" {
-		if err := os.MkdirAll(historyDir, 0755); err != nil {
-			return nil, fmt.Errorf("failed to create history directory '%s': %w", historyDir, err)
-		}
-	}
-	historyFile, err := os.CreateTemp(historyDir, "bombahead-match-history-*.json")
+	historyFile, err := os.CreateTemp(matchHistoryDir, "bombahead-match-history-*.json")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temporary history file: %w", err)
 	}

@@ -18,6 +18,7 @@ type Config struct {
 	FailedQueue string
 
 	MaxMatchRetries int
+	MatchHistoryDir string
 }
 
 // Load loads configuration from environment variables
@@ -51,6 +52,11 @@ func Load() (*Config, error) {
 		failedQueue = "bomberman.matches.failed"
 	}
 
+	matchHistoryDirectory := os.Getenv("MATCH_HISTORY_DIR")
+	if matchHistoryDirectory == "" {
+		log.Fatal("The env variable MATCH_HISTORY_DIR has to be set")
+	}
+
 	maxMatchRetries := 3
 	maxMatchRetriesRaw := os.Getenv("MATCH_MAX_RETRIES")
 	if maxMatchRetriesRaw != "" {
@@ -68,5 +74,6 @@ func Load() (*Config, error) {
 		ResultQueue:     resultQueue,
 		FailedQueue:     failedQueue,
 		MaxMatchRetries: maxMatchRetries,
+		MatchHistoryDir: matchHistoryDirectory,
 	}, nil
 }
