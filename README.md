@@ -1,16 +1,16 @@
 # BombAhead
 
-BombAhead ist ein Monorepo.
+BombAhead is a monorepo.
 
-Enthalten sind:
-- der Game-Server (`server/`)
-- der Match-Runner (`match_runner/`)
-- die Website + Plattform-Backend (`website/`)
-- der Matchmaker (`website/cmd/matchmaker/`)
-- Beispiel-Bots in Go, JavaScript und Rust (`client_go/`, `client_js/`, `client_rust/`)
-- das Legacy-SDL-C-Spiel (`c_game/`)
+Included are:
+- the game server (`server/`)
+- the match runner (`match_runner/`)
+- the website + platform backend (`website/`)
+- the matchmaker (`website/cmd/matchmaker/`)
+- example bots in Go, JavaScript, and Rust (`client_go/`, `client_js/`, `client_rust/`)
+- the legacy SDL C game (`c_game/`)
 
-Alle aktuellen Infos, Setup-Schritte und Competition-Details stehen hier:
+All current information, setup steps, and competition details can be found here:
 https://bombahead.n3mo.org/
 
-Für das Legacy-C-Spiel siehe `c_game/README.md`.
+For the legacy C game, see `c_game/README.md`.
