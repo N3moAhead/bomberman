@@ -75,8 +75,10 @@ services:
       RABBITMQ_URL: ${RABBITMQ_URL}
       RABBITMQ_MATCH_QUEUE: ${RABBITMQ_MATCH_QUEUE}
       RABBITMQ_RESULT_QUEUE: ${RABBITMQ_RESULT_QUEUE}
+      MATCH_HISTORY_DIR: /tmp/bombahead_matches
     volumes:
       - /run/user/1000/podman/podman.sock:/run/podman/podman.sock
+      - /tmp/bombahead_matches:/tmp/bombahead_matches
 
 volumes:
   rabbitmq_data:
