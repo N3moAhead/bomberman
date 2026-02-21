@@ -2,6 +2,8 @@ package client
 
 import (
 	"encoding/json"
+	"fmt"
+	"sync"
 	"time"
 
 	"github.com/N3moAhead/bombahead/server/internal/game"
@@ -15,7 +17,7 @@ const (
 	writeWait      = 10 * time.Second
 	pongWait       = 60 * time.Second
 	pingPeriod     = (pongWait * 9) / 10
-	maxMessageSize = 1024
+	maxMessageSize = 8192
 )
 
 var log = logger.New("[Client]")
@@ -30,6 +32,9 @@ type Client struct {
 	isReady   bool
 	gameID    string
 	authToken string // Is just important for async bot games and the one shot hub
+	sendMu    sync.RWMutex
+	closeOnce sync.Once
+	isClosed  bool
 }
 
 // Assure Client implements the interface from the hub package
@@ -93,7 +98,15 @@ func (c *Client) SetGameID(id string) {
 // Close closes the client's send channel. The connection itself is closed
 // by the read/write pumps when they exit
 func (c *Client) Close() {
-	close(c.Send)
+	c.closeOnce.Do(func() {
+		c.sendMu.Lock()
+		defer c.sendMu.Unlock()
+		if c.isClosed {
+			return
+		}
+		c.isClosed = true
+		close(c.Send)
+	})
 }
 
 // SendMessage formats and sends a structured message to the client
@@ -111,6 +124,12 @@ func (c *Client) SendMessage(msgType message.MessageType, payload any) error {
 	if err != nil {
 		log.Error("Error marshalling message for client %s: %v", c.ID, err)
 		return err
+	}
+
+	c.sendMu.RLock()
+	defer c.sendMu.RUnlock()
+	if c.isClosed {
+		return fmt.Errorf("client %s is closed", c.ID)
 	}
 
 	select {

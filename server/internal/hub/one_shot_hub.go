@@ -60,6 +60,9 @@ func (h *OneShotHub) Run() {
 			}
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
+				if h.game != nil {
+					h.game.RemovePlayer(client)
+				}
 				delete(h.clients, client)
 				client.Close()
 				log.Warn("Client %s unregistered.", client.GetID())
