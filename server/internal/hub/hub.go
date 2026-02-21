@@ -161,7 +161,7 @@ func (h *Hub) selectAndStartGame() {
 
 	gameInfo := h.availableGames[0]
 	gameID := uuid.New().String()
-	newGame := classic.NewClassic(h, gameID)
+	newGame := classic.NewClassic(h, gameID, "")
 	h.activeGames[gameID] = newGame
 
 	clientsInLobby := []Client{}

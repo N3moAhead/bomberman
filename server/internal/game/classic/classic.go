@@ -3,7 +3,7 @@ package classic
 import (
 	"encoding/json"
 	"fmt"
-	stdlog "log"
+	"os"
 	"sync"
 	"time"
 
@@ -19,11 +19,12 @@ type Classic struct {
 	gameFinisher game.GameFinisher
 	stopChan     chan bool
 
-	gameID    string
-	players   map[string]*Player     // ClientID -> ClassicPlayer
-	playerMap map[string]game.Player // ClientID -> game.Player
-	playerMux sync.RWMutex
-	history   *History
+	gameID          string
+	players         map[string]*Player     // ClientID -> ClassicPlayer
+	playerMap       map[string]game.Player // ClientID -> game.Player
+	playerMux       sync.RWMutex
+	history         *History
+	historyFilePath string
 
 	field      *Field
 	bombs      map[string]*Bomb      // Bomb.Pos -> Bomb
@@ -38,14 +39,15 @@ type Classic struct {
 	lastTickTime time.Time // for delta time
 }
 
-func NewClassic(finisher game.GameFinisher, id string) *Classic {
+func NewClassic(finisher game.GameFinisher, id string, historyFilePath string) *Classic {
 	return &Classic{
 		gameFinisher: finisher,
 		stopChan:     make(chan bool),
 
-		gameID:    id,
-		players:   make(map[string]*Player),
-		playerMap: make(map[string]game.Player),
+		gameID:          id,
+		players:         make(map[string]*Player),
+		playerMap:       make(map[string]game.Player),
+		historyFilePath: historyFilePath,
 
 		field:      NewField(),
 		bombs:      make(map[string]*Bomb),
@@ -275,7 +277,29 @@ func (c *Classic) Stop() {
 		if err != nil {
 			log.Error("Failed to marshal game history: %v", err)
 		} else {
-			stdlog.Printf("GameHistory:%s\n", string(b))
+			if fileInfo, statErr := os.Stat(c.historyFilePath); statErr != nil {
+				if os.IsNotExist(statErr) {
+					log.Warn(
+						"Game history file does not exist. Skipping history write. path='%s'",
+						c.historyFilePath,
+					)
+				} else {
+					log.Warn(
+						"Could not access game history file. Skipping history write. path='%s', err=%v",
+						c.historyFilePath,
+						statErr,
+					)
+				}
+			} else if fileInfo.IsDir() {
+				log.Warn(
+					"Game history path is a directory, not a file. Skipping history write. path='%s'",
+					c.historyFilePath,
+				)
+			} else if writeErr := os.WriteFile(c.historyFilePath, b, 0); writeErr != nil {
+				log.Error("Failed to write game history to '%s': %v", c.historyFilePath, writeErr)
+			} else {
+				log.Success("Game history written to '%s'", c.historyFilePath)
+			}
 		}
 	}
 

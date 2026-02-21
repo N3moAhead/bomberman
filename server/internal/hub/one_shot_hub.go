@@ -16,25 +16,27 @@ var log = logger.New("[HUB]")
 // OneShotHub is a hub that waits for two players,
 // runs one game, and then shuts down
 type OneShotHub struct {
-	clients    map[Client]bool
-	Register   chan Client
-	unregister chan Client
-	incoming   chan hubMessage
-	game       game.Game
-	gameMutex  sync.Mutex
-	shutdown   chan struct{}
-	Done       chan struct{}
+	clients         map[Client]bool
+	Register        chan Client
+	unregister      chan Client
+	incoming        chan hubMessage
+	game            game.Game
+	gameMutex       sync.Mutex
+	historyFilePath string
+	shutdown        chan struct{}
+	Done            chan struct{}
 }
 
 // NewOneShotHub creates a new OneShotHub
-func NewOneShotHub() *OneShotHub {
+func NewOneShotHub(historyFilePath string) *OneShotHub {
 	return &OneShotHub{
-		clients:    make(map[Client]bool),
-		Register:   make(chan Client),
-		unregister: make(chan Client),
-		incoming:   make(chan hubMessage),
-		shutdown:   make(chan struct{}),
-		Done:       make(chan struct{}),
+		clients:         make(map[Client]bool),
+		Register:        make(chan Client),
+		unregister:      make(chan Client),
+		incoming:        make(chan hubMessage),
+		historyFilePath: historyFilePath,
+		shutdown:        make(chan struct{}),
+		Done:            make(chan struct{}),
 	}
 }
 
@@ -120,7 +122,7 @@ func (h *OneShotHub) startGame() {
 
 	gameID := uuid.New().String()
 	// The OneShotHub implements GameFinisher, so we pass 'h'
-	newGame := classic.NewClassic(h, gameID)
+	newGame := classic.NewClassic(h, gameID, h.historyFilePath)
 	h.game = newGame
 
 	for client := range h.clients {

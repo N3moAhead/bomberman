@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/N3moAhead/bombahead/server/internal/client"
@@ -23,7 +24,12 @@ var upgrader = websocket.Upgrader{
 }
 
 func main() {
-	oneShotHub := hub.NewOneShotHub()
+	historyFilePath := os.Getenv("BOMBERMAN_MATCH_HISTORY_PATH")
+	if historyFilePath == "" {
+		log.Warn("History file path env missing")
+	}
+
+	oneShotHub := hub.NewOneShotHub(historyFilePath)
 	go oneShotHub.Run()
 
 	mux := http.NewServeMux()
