@@ -1,11 +1,11 @@
 package runner
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -46,6 +46,24 @@ func (r *Runner) RunMatch(ctx context.Context, details *match.Details) (*match.R
 	client1AuthToken := uuid.NewString()
 	client2AuthToken := uuid.NewString()
 
+	historyFile, err := os.CreateTemp("", "bombahead-match-history-*.json")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temporary history file: %w", err)
+	}
+	historyFilePath := historyFile.Name()
+	if closeErr := historyFile.Close(); closeErr != nil {
+		return nil, fmt.Errorf("failed to close temporary history file: %w", closeErr)
+	}
+	// Allow the container process to write to the bind-mounted file.
+	if chmodErr := os.Chmod(historyFilePath, 0666); chmodErr != nil {
+		return nil, fmt.Errorf("failed to set permissions on temporary history file: %w", chmodErr)
+	}
+	defer func() {
+		if removeErr := os.Remove(historyFilePath); removeErr != nil && !os.IsNotExist(removeErr) {
+			log.Warn("Failed to remove temporary history file '%s': %v", historyFilePath, removeErr)
+		}
+	}()
+
 	// Ensure no stale resources from previous runs can interfere with this match.
 	r.cleanupResources(context.Background(), podName, serverContainerName, client1ContainerName, client2ContainerName)
 
@@ -56,7 +74,7 @@ func (r *Runner) RunMatch(ctx context.Context, details *match.Details) (*match.R
 		return nil, fmt.Errorf("failed to create pod: %w", err)
 	}
 
-	if err := r.runServer(ctx, podName, serverContainerName, details.ServerImage); err != nil {
+	if err := r.runServer(ctx, podName, serverContainerName, details.ServerImage, historyFilePath); err != nil {
 		return nil, fmt.Errorf("failed to run server: %w", err)
 	}
 
@@ -69,7 +87,7 @@ func (r *Runner) RunMatch(ctx context.Context, details *match.Details) (*match.R
 		clientErrCh <- r.runClient(ctx, podName, client2ContainerName, details.Client2Image, client2AuthToken)
 	}()
 
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		if err := <-clientErrCh; err != nil {
 			return nil, fmt.Errorf("failed to run a client: %w", err)
 		}
@@ -93,26 +111,20 @@ func (r *Runner) RunMatch(ctx context.Context, details *match.Details) (*match.R
 		Client2GameID: client2AuthToken,
 	}
 
-	serverLogs, err := r.getContainerLogs(context.Background(), serverContainerName)
+	gameHistory, err := r.readGameHistoryFromFile(historyFilePath)
 	if err != nil {
-		log.Warn("Could not get server logs after match completion: %v", err)
+		log.Warn("Failed to read game history from file '%s': %v", historyFilePath, err)
 	} else {
-		// Try to parse the game history from the logs
-		gameHistory, err := parseGameHistory(serverLogs)
-		if err != nil {
-			log.Warn("Failed to parse game history from server logs: %v", err)
-		} else {
-			if gameHistory.WinnerAuthToken != "" {
-				switch gameHistory.WinnerAuthToken {
-				case client1AuthToken:
-					result.Winner = details.Client1Image
-				case client2AuthToken:
-					result.Winner = details.Client2Image
-				}
+		if gameHistory.WinnerAuthToken != "" {
+			switch gameHistory.WinnerAuthToken {
+			case client1AuthToken:
+				result.Winner = details.Client1Image
+			case client2AuthToken:
+				result.Winner = details.Client2Image
 			}
-			result.Log = gameHistory
-			log.Success("Successfully parsed game history with %d ticks.", len(gameHistory.Ticks))
 		}
+		result.Log = gameHistory
+		log.Success("Successfully read game history with %d ticks from file.", len(gameHistory.Ticks))
 	}
 
 	go r.removeImage(context.Background(), details.Client1Image)
@@ -144,12 +156,22 @@ func (r *Runner) pullImage(ctx context.Context, image string) error {
 	return nil
 }
 
-func (r *Runner) runServer(ctx context.Context, podName, containerName, image string) error {
+func (r *Runner) runServer(ctx context.Context, podName, containerName, image, hostHistoryFilePath string) error {
 	log.Info("Starting server container '%s' with image '%s'", containerName, image)
 	if err := r.pullImage(ctx, image); err != nil {
 		return err
 	}
-	cmd := exec.CommandContext(ctx, "podman", "run", "--pod", podName, "--name", containerName, "--detach", image)
+	cmd := exec.CommandContext(
+		ctx,
+		"podman",
+		"run",
+		"--pod", podName,
+		"--name", containerName,
+		"--detach",
+		"--mount", fmt.Sprintf("type=bind,src=%s,dst=/tmp/match-history.json,relabel=shared", hostHistoryFilePath),
+		"--env", "BOMBERMAN_MATCH_HISTORY_PATH=/tmp/match-history.json",
+		image,
+	)
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("podman run (server) failed: %s: %w", string(output), err)
 	}
@@ -305,26 +327,23 @@ func errorsIsContextDone(err error) bool {
 	return err != nil && (errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded))
 }
 
-func parseGameHistory(logs string) (*history.GameHistory, error) {
-	const prefix = "GameHistory:"
-	scanner := bufio.NewScanner(strings.NewReader(logs))
-	for scanner.Scan() {
-		line := scanner.Text()
-		if after, ok := strings.CutPrefix(line, prefix); ok {
-			jsonBody := after
-			var gameHistory history.GameHistory
-			if err := json.Unmarshal([]byte(jsonBody), &gameHistory); err != nil {
-				return nil, fmt.Errorf("failed to unmarshal game history JSON: %w", err)
-			}
-			return &gameHistory, nil
-		}
+func (r *Runner) readGameHistoryFromFile(filePath string) (*history.GameHistory, error) {
+	raw, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read history file: %w", err)
 	}
 
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("error reading server logs: %w", err)
+	trimmed := strings.TrimSpace(string(raw))
+	if trimmed == "" {
+		return nil, fmt.Errorf("history file is empty")
 	}
 
-	return nil, fmt.Errorf("game history prefix not found in server logs")
+	var gameHistory history.GameHistory
+	if err := json.Unmarshal([]byte(trimmed), &gameHistory); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal history JSON: %w", err)
+	}
+
+	return &gameHistory, nil
 }
 
 func classifyImagePullError(output string) string {
